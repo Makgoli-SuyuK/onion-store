@@ -3,7 +3,6 @@ package com.example.onionstore.domain.chat.service;
 import com.example.onionstore.domain.chat.dto.request.ChatRoomCreateRequest;
 import com.example.onionstore.domain.chat.dto.response.ChatRoomCreateResponse;
 import com.example.onionstore.domain.chat.entity.ChatRoom;
-import com.example.onionstore.domain.chat.repository.ChatMessageRepository;
 import com.example.onionstore.domain.chat.repository.ChatRoomRepository;
 import com.example.onionstore.domain.user.entity.Role;
 import com.example.onionstore.domain.user.entity.User;
