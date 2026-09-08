@@ -35,6 +35,7 @@ class OrderServiceTest {
         // given
         User user = new User("test@test.com", "1234", "테스트", "010-0000-0000", Role.CUSTOMER);
         Order order = new Order("1", user, 5000);
+        dddd
 
         // when
 
