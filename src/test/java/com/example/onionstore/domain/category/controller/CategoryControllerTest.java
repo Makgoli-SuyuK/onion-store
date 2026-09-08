@@ -1,6 +1,7 @@
 package com.example.onionstore.domain.category.controller;
 
 import com.example.onionstore.domain.category.dto.CategoryCreateRequest;
+import com.example.onionstore.domain.category.dto.CategoryEditRequest;
 import com.example.onionstore.domain.category.entity.Category;
 import com.example.onionstore.domain.category.service.CategoryService;
 import com.example.onionstore.global.exception.BusinessException;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
@@ -19,8 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -99,5 +100,41 @@ class CategoryControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("data.[0].name").value("name1"))
                 .andExpect(jsonPath("data.[1].name").value("name2"));
+    }
+
+    @Test
+    @DisplayName("PATCH /categories/{categoryId} api - 카테고리 수정 테스트")
+    void 카테고리_이름을_변경한다() throws Exception {
+        //given
+        Category category = new Category("new category");
+        ReflectionTestUtils.setField(category, "id", 1L);
+
+        CategoryEditRequest editRequest = new CategoryEditRequest("edited");
+
+        //when&then
+        mockMvc.perform(patch("/categories/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(editRequest)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("PATCH /categories/{categoryId} api - 카테고리 수정 시 같은 이름이 이미 존재하면 409 에러를 반환")
+    void 카테고리_이름이_이미_존재한다면_에러를_반환한다() throws Exception {
+        //given
+        Category category = new Category("new category");
+        ReflectionTestUtils.setField(category, "id", 1L);
+
+        CategoryEditRequest editRequest = new CategoryEditRequest("edited");
+        willThrow(new BusinessException(ErrorCode.DUPLICATE_CATEGORY))
+                .given(categoryService)
+                .editCategory(1L, editRequest);
+
+        //when&then
+        mockMvc.perform(patch("/categories/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(editRequest)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value(ErrorCode.DUPLICATE_CATEGORY.getMessage()));
     }
 }
