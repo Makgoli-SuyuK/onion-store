@@ -27,6 +27,9 @@ public class ChatRoom extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, length = 50)
+    private String title;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
@@ -35,8 +38,9 @@ public class ChatRoom extends BaseTimeEntity {
     @Column(nullable = false, length = 20)
     private ChatRoomStatus status;
 
-    public ChatRoom(User user) {
+    public ChatRoom(User user, String title) {
         this.user = user;
+        this.title = title;
         this.status = ChatRoomStatus.WAITING;
     }
 }
