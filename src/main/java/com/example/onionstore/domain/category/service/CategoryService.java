@@ -1,6 +1,7 @@
 package com.example.onionstore.domain.category.service;
 
 import com.example.onionstore.domain.category.dto.CategoryCreateRequest;
+import com.example.onionstore.domain.category.dto.CategoryEditRequest;
 import com.example.onionstore.domain.category.entity.Category;
 import com.example.onionstore.domain.category.repository.CategoryRepository;
 import com.example.onionstore.global.exception.BusinessException;
@@ -18,9 +19,7 @@ public class CategoryService {
 
     @Transactional
     public void addCategory(CategoryCreateRequest createRequest) {
-        if (categoryRepository.existsByName(createRequest.name())) {
-            throw new BusinessException(ErrorCode.DUPLICATE_CATEGORY);
-        }
+        checkIfExists(createRequest.name());
 
         categoryRepository.save(new Category(createRequest.name()));
     }
@@ -28,5 +27,26 @@ public class CategoryService {
     @Transactional(readOnly = true)
     public List<Category> getAllCategories() {
         return categoryRepository.findAll();
+    }
+
+    @Transactional
+    public void editCategory(Long id, CategoryEditRequest editRequest) {
+        Category toEdit = findCategory(id);
+
+        checkIfExists(editRequest.newName());
+        toEdit.changeName(editRequest.newName());
+
+        categoryRepository.save(toEdit);
+    }
+
+    private Category findCategory(Long id) {
+        return categoryRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
+    }
+
+    private void checkIfExists(String name) {
+        if (categoryRepository.existsByName(name)) {
+            throw new BusinessException(ErrorCode.DUPLICATE_CATEGORY);
+        }
     }
 }
