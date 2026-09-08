@@ -12,6 +12,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -57,5 +61,24 @@ class CategoryServiceTest {
         assertThatThrownBy(() -> categoryService.addCategory(createRequest))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.DUPLICATE_CATEGORY.getMessage());
+    }
+
+    @Test
+    @DisplayName("카테고리 전체 조회 테스트")
+    void 카테고리_전체_데이터를_조회한다() {
+        //given
+        List<Category> categories = new ArrayList<>();
+        categories.add(new Category("new category1"));
+        categories.add(new Category("new category2"));
+
+        given(categoryRepository.findAll()).willReturn(categories);
+
+        //when
+        List<Category> list = categoryService.getAllCategories();
+
+        //then
+        assertEquals(list.size(), categories.size());
+        assertEquals(list.get(0), categories.get(0));
+        assertEquals(list.get(1), categories.get(1));
     }
 }

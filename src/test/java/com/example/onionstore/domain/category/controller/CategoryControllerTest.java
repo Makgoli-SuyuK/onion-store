@@ -1,6 +1,7 @@
 package com.example.onionstore.domain.category.controller;
 
 import com.example.onionstore.domain.category.dto.CategoryCreateRequest;
+import com.example.onionstore.domain.category.entity.Category;
 import com.example.onionstore.domain.category.service.CategoryService;
 import com.example.onionstore.global.exception.BusinessException;
 import com.example.onionstore.global.exception.ErrorCode;
@@ -14,6 +15,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
 import static org.mockito.BDDMockito.willThrow;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -76,5 +82,22 @@ class CategoryControllerTest {
                         .content(mapper.writeValueAsString(createRequest)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value(ErrorCode.INVALID_INPUT_VALUE.getMessage()));
+    }
+
+    @Test
+    @DisplayName("GET /categories api - 모든 카테고리 리스트 조회")
+    void 모든_카테고리_정보를_조회한다() throws Exception {
+        //given
+        List<Category> list = new ArrayList<>();
+        list.add(new Category("name1"));
+        list.add(new Category("name2"));
+
+        given(categoryService.getAllCategories()).willReturn(list);
+
+        //when&then
+        mockMvc.perform(get("/categories"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("data.[0].name").value("name1"))
+                .andExpect(jsonPath("data.[1].name").value("name2"));
     }
 }
