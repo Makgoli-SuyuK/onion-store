@@ -2,6 +2,8 @@ package com.example.onionstore.domain.product.entity;
 
 import com.example.onionstore.domain.category.entity.Category;
 import com.example.onionstore.global.entity.BaseTimeEntity;
+import com.example.onionstore.global.exception.BusinessException;
+import com.example.onionstore.global.exception.ErrorCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -42,7 +44,7 @@ public class Product extends BaseTimeEntity {
     private long price;
 
     @Column(nullable = false)
-    private int stock;
+    private long stock;
 
     @Column(name = "like_count", nullable = false)
     private long likeCount;
@@ -51,7 +53,10 @@ public class Product extends BaseTimeEntity {
     @Column(nullable = false, length = 20)
     private ProductStatus status;
 
-    public Product(Category category, String name, String description, long price, int stock) {
+    @Column(nullable = false)
+    private boolean deleted;
+
+    private Product(Category category, String name, String description, long price, long stock) {
         this.category = category;
         this.name = name;
         this.description = description;
@@ -59,6 +64,10 @@ public class Product extends BaseTimeEntity {
         this.stock = stock;
         this.likeCount = 0;
         this.status = stock == 0 ? ProductStatus.SOLD_OUT : ProductStatus.SELLING;
+        this.deleted = false;
     }
 
+    public static Product create(Category category, String name, String description, long price, long stock) {
+        return new Product(category, name, description, price, stock);
+    }
 }
