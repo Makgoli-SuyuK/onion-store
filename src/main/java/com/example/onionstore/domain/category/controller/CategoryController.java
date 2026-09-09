@@ -37,4 +37,11 @@ public class CategoryController {
 
         return ResponseEntity.ok(ApiResponse.success("카테고리 수정 성공", null));
     }
+
+    @DeleteMapping("/{categoryId}")
+    public ResponseEntity<ApiResponse<Void>> deleteCategory(@PathVariable Long categoryId) {
+        categoryService.deleteCategory(categoryId);
+
+        return ResponseEntity.ok(ApiResponse.success("카테고리 삭제 성공", null));
+    }
 }

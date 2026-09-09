@@ -31,6 +31,8 @@ public enum ErrorCode {
     // 카테고리
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "CATEGORY_001", "카테고리를 찾을 수 없습니다."),
     DUPLICATE_CATEGORY(HttpStatus.CONFLICT, "CATEGORY_002", "이미 존재하는 카테고리입니다."),
+    CATEGORY_ITEM_EXISTS(HttpStatus.BAD_REQUEST, "CATEGORY_003", "상품이 존재하는 카테고리는 삭제할 수 없습니다."),
+    CATEGORY_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "CATEGORY_004", "이미 삭제된 카테고리입니다."),
 
     // 상품
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "PRODUCT_001", "상품을 찾을 수 없습니다."),

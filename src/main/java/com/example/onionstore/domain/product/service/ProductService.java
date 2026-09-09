@@ -37,4 +37,9 @@ public class ProductService {
 
         productRepository.save(newProduct);
     }
+
+    /** 테스트용 가짜 메서드 **/
+    public boolean existsByCategoryId(Long categoryId) {
+        return false;
+    }
 }

@@ -4,6 +4,7 @@ import com.example.onionstore.domain.category.dto.CategoryCreateRequest;
 import com.example.onionstore.domain.category.dto.CategoryEditRequest;
 import com.example.onionstore.domain.category.entity.Category;
 import com.example.onionstore.domain.category.repository.CategoryRepository;
+import com.example.onionstore.domain.product.service.ProductService;
 import com.example.onionstore.global.exception.BusinessException;
 import com.example.onionstore.global.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
@@ -18,9 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -34,6 +33,8 @@ class CategoryServiceTest {
     private CategoryRepository categoryRepository;
     @InjectMocks
     private CategoryService categoryService;
+    @Mock
+    private ProductService productService;
 
     @Test
     @DisplayName("카테고리 추가 테스트")
@@ -124,5 +125,72 @@ class CategoryServiceTest {
         assertThatThrownBy(() -> categoryService.editCategory(1L, editRequest))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.DUPLICATE_CATEGORY.getMessage());
+    }
+
+    @Test
+    @DisplayName("카테고리 수정 테스트 - 이미 삭제된 카테고리 수정 시도 시 에러 발생")
+    void 카테고리_수정_시_삭제된_카테고리면_에러를_반환한다() {
+        //given
+        Category category = new Category("new category");
+        ReflectionTestUtils.setField(category, "id", 1L);
+        category.markAsDeleted();
+
+        CategoryEditRequest editRequest = new CategoryEditRequest("deleted");
+
+        given(categoryRepository.findById(1L)).willReturn(Optional.of(category));
+
+        //when&then
+        assertThatThrownBy(() -> categoryService.editCategory(1L, editRequest))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.CATEGORY_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("카테고리 삭제 테스트 - 정상 삭제")
+    void 카테고리_삭제_시_문제_없으면_삭제로_마킹한다() {
+        //given
+        Category category = new Category("new category");
+        ReflectionTestUtils.setField(category, "id", 1L);
+
+        given(categoryRepository.findById(1L)).willReturn(Optional.of(category));
+        given(productService.existsByCategoryId(1L)).willReturn(Boolean.FALSE);
+
+        //when
+        categoryService.deleteCategory(1L);
+
+        //then
+        assertThat(category.isDeleted()).isTrue();
+    }
+
+    @Test
+    @DisplayName("카테고리 삭제 테스트 - 이미 삭제된 카테고리")
+    void 카테고리_삭제_시_이미_삭제된_카테고리면_에러를_반환한다() {
+        //given
+        Category category = new Category("new category");
+        ReflectionTestUtils.setField(category, "id", 1L);
+        category.markAsDeleted();
+
+        given(categoryRepository.findById(1L)).willReturn(Optional.of(category));
+
+        //when&then
+        assertThatThrownBy(() -> categoryService.deleteCategory(1L))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.CATEGORY_ALREADY_DELETED.getMessage());
+    }
+
+    @Test
+    @DisplayName("카테고리 삭제 테스트 - 상품이 존재하는 카테고리")
+    void 카테고리_삭제_시_상품이_존재하면_에러를_반환한다() {
+        //given
+        Category category = new Category("new category");
+        ReflectionTestUtils.setField(category, "id", 1L);
+
+        given(categoryRepository.findById(1L)).willReturn(Optional.of(category));
+        given(productService.existsByCategoryId(1L)).willReturn(Boolean.TRUE);
+
+        //when&then
+        assertThatThrownBy(() -> categoryService.deleteCategory(1L))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.CATEGORY_ITEM_EXISTS.getMessage());
     }
 }

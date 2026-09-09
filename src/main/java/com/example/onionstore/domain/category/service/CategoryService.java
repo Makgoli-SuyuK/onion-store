@@ -4,6 +4,7 @@ import com.example.onionstore.domain.category.dto.CategoryCreateRequest;
 import com.example.onionstore.domain.category.dto.CategoryEditRequest;
 import com.example.onionstore.domain.category.entity.Category;
 import com.example.onionstore.domain.category.repository.CategoryRepository;
+import com.example.onionstore.domain.product.service.ProductService;
 import com.example.onionstore.global.exception.BusinessException;
 import com.example.onionstore.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CategoryService {
     private final CategoryRepository categoryRepository;
+    private final ProductService productService;
 
     @Transactional
     public void addCategory(CategoryCreateRequest createRequest) {
@@ -42,7 +44,23 @@ public class CategoryService {
 
         categoryRepository.save(toEdit);
     }
-    
+
+    @Transactional
+    public void deleteCategory(Long id) {
+        Category toDelete = findCategory(id);
+
+        if (toDelete.isDeleted()) {
+            throw new BusinessException(ErrorCode.CATEGORY_ALREADY_DELETED);
+        }
+
+        if (productService.existsByCategoryId(id)) {
+            throw new BusinessException(ErrorCode.CATEGORY_ITEM_EXISTS);
+        }
+
+        toDelete.markAsDeleted();
+        categoryRepository.save(toDelete);
+    }
+
     @Transactional(readOnly = true)
     public Category getCategoryByName(String name) {
         return categoryRepository.findByName(name)
