@@ -43,6 +43,7 @@ public class CategoryService {
         categoryRepository.save(toEdit);
     }
 
+    @Transactional(readOnly = true)
     private Category findCategory(Long id) {
         return categoryRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
@@ -52,5 +53,10 @@ public class CategoryService {
         if (categoryRepository.existsByName(name)) {
             throw new BusinessException(ErrorCode.DUPLICATE_CATEGORY);
         }
+    }
+  
+    public Category getCategoryByName(String name) {
+        return categoryRepository.findByName(name)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
     }
 }
