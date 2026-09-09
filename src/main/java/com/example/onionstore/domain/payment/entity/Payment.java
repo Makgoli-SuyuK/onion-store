@@ -17,6 +17,7 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -37,7 +38,7 @@ public class Payment extends BaseTimeEntity {
     private Order order;
 
     @Column(name = "payment_key", unique = true, length = 255)
-    private String paymentKey;
+    private String portonePaymentId;
 
     @Column(nullable = false)
     private long amount;
@@ -52,6 +53,7 @@ public class Payment extends BaseTimeEntity {
     public Payment(Order order, long amount) {
         this.order = order;
         this.amount = amount;
+        this.portonePaymentId = "pay_" + UUID.randomUUID();
         this.status = PaymentStatus.READY;
     }
 
