@@ -14,7 +14,7 @@ public class ProductFacade {
     private final CategoryService categoryService;
 
     public void addProduct(ProductCreateRequest createRequest) {
-        Category category = categoryService.getCategoryByName(createRequest.productName());
+        Category category = categoryService.getCategoryByName(createRequest.category());
 
         productService.createProduct(createRequest, category);
     }
