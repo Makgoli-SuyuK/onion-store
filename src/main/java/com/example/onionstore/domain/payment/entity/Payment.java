@@ -2,6 +2,8 @@ package com.example.onionstore.domain.payment.entity;
 
 import com.example.onionstore.global.entity.BaseTimeEntity;
 import com.example.onionstore.domain.order.entity.Order;
+import com.example.onionstore.global.exception.BusinessException;
+import com.example.onionstore.global.exception.ErrorCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -13,7 +15,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+
 import java.time.LocalDateTime;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -49,5 +53,33 @@ public class Payment extends BaseTimeEntity {
         this.order = order;
         this.amount = amount;
         this.status = PaymentStatus.READY;
+    }
+
+    public boolean markAsSuccess() {
+        boolean changed = changedStatus(PaymentStatus.SUCCESS);
+        if(changed) {
+            this.paidAt = LocalDateTime.now();
+        }
+        return changed;
+    }
+
+    public boolean markAsFailed() {
+        return changedStatus(PaymentStatus.FAILED);
+    }
+
+    public boolean markAsCancelled() {
+        return changedStatus(PaymentStatus.CANCELLED);
+    }
+
+
+    private boolean changedStatus(PaymentStatus target) {
+        if (this.status == target) {
+            return false;
+        }
+        if (!this.status.canTransitTo(target)) {
+            throw new BusinessException(ErrorCode.INVALID_PAYMENT_STATUS);
+        }
+        this.status = target;
+        return true;
     }
 }
