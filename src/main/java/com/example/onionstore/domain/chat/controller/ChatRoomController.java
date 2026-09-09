@@ -2,8 +2,12 @@ package com.example.onionstore.domain.chat.controller;
 
 import com.example.onionstore.domain.chat.dto.request.ChatRoomCreateRequest;
 import com.example.onionstore.domain.chat.dto.response.ChatRoomCreateResponse;
+
 import com.example.onionstore.domain.chat.dto.response.ChatRoomListResponse;
 import com.example.onionstore.domain.chat.entity.ChatRoomStatus;
+
+import com.example.onionstore.domain.chat.dto.response.ChatRoomDetailResponse;
+
 import com.example.onionstore.domain.chat.service.ChatRoomService;
 import com.example.onionstore.global.dto.ApiResponse;
 import jakarta.validation.Valid;
@@ -36,6 +40,15 @@ public class ChatRoomController {
             Pageable pageable
             ) {
         Page<ChatRoomListResponse> response = chatRoomService.getRooms(userId, status, pageable);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(response));
+    }
+
+    @GetMapping("/rooms/{roomdId}")
+    public ResponseEntity<ApiResponse<ChatRoomDetailResponse>> getRoom(
+            @RequestHeader("X-USER-ID")Long userId,
+            @PathVariable Long roomdId
+    ){
+        ChatRoomDetailResponse response = chatRoomService.getRoom(userId, roomdId);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(response));
     }
 
