@@ -5,6 +5,7 @@ import com.example.onionstore.domain.product.service.ProductService;
 import com.example.onionstore.global.dto.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,9 +18,9 @@ public class ProductController {
     private final ProductService productService;
 
     @PostMapping
-    public ApiResponse<Void> addProduct(@Valid @RequestBody ProductCreateRequest createRequest) {
+    public ResponseEntity<ApiResponse<Void>> addProduct(@Valid @RequestBody ProductCreateRequest createRequest) {
         productService.createProduct(createRequest);
 
-        return ApiResponse.success(null);
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 }
