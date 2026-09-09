@@ -28,7 +28,7 @@ class CategoryControllerTest {
     private ObjectMapper mapper = new ObjectMapper();
 
     @Test
-    @DisplayName("POST /categories api - 카테고리 추가 테스트")
+    @DisplayName("POST /api/categories api - 카테고리 추가 테스트")
     void 카테고리를_추가할_수_있다() throws Exception {
         //given
         CategoryCreateRequest createRequest = new CategoryCreateRequest(
@@ -36,14 +36,14 @@ class CategoryControllerTest {
         );
 
         //when&then
-        mockMvc.perform(post("/categories")
+        mockMvc.perform(post("/api/categories")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(createRequest)))
                 .andExpect(status().isOk());
     }
 
     @Test
-    @DisplayName("POST /categories api - 이미 존재하는 카테고리 이름")
+    @DisplayName("POST /api/categories api - 이미 존재하는 카테고리 이름")
     void 이미_존재하는_카테고리_이름으로_카테고리를_추가하면_409_에러가_발생한다() throws Exception {
         //given
         CategoryCreateRequest createRequest = new CategoryCreateRequest(
@@ -55,7 +55,7 @@ class CategoryControllerTest {
                 .addCategory(createRequest);
 
         //when&then
-        mockMvc.perform(post("/categories")
+        mockMvc.perform(post("/api/categories")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(createRequest)))
                 .andExpect(status().isConflict())
@@ -63,7 +63,7 @@ class CategoryControllerTest {
     }
 
     @Test
-    @DisplayName("POST /categories api - 입력값 검증 실패")
+    @DisplayName("POST /api/categories api - 입력값 검증 실패")
     void 카테고리_추가_시_이름이_공백일_수_없다() throws Exception {
         //given
         CategoryCreateRequest createRequest = new CategoryCreateRequest(
@@ -71,7 +71,7 @@ class CategoryControllerTest {
         );
 
         //when&then
-        mockMvc.perform(post("/categories")
+        mockMvc.perform(post("/api/categories")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(createRequest)))
                 .andExpect(status().isBadRequest())
