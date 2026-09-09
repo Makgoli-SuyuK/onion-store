@@ -23,7 +23,7 @@ public class CategoryService {
         categoryRepository.save(new Category(createRequest.name()));
     }
     
-    @Transactioanl(readOnly = true)
+    @Transactional(readOnly = true)
     public Category getCategoryByName(String name) {
         return categoryRepository.findByName(name)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
