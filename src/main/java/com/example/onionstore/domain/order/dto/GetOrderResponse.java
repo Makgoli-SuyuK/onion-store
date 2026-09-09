@@ -2,6 +2,7 @@ package com.example.onionstore.domain.order.dto;
 
 import com.example.onionstore.domain.order.entity.Order;
 import com.example.onionstore.domain.order.entity.OrderStatus;
+import com.example.onionstore.domain.payment.dto.GetPaymentInfoResponse;
 import com.example.onionstore.domain.payment.entity.Payment;
 import com.example.onionstore.domain.payment.entity.PaymentStatus;
 
@@ -17,14 +18,14 @@ public record GetOrderResponse(
         PaymentStatus paymentStatus,
         List<GetOrderItemResponse> orderItems
 ) {
-    public static GetOrderResponse from(Order order, Payment payment, List<GetOrderItemResponse> orderItems) {
+    public static GetOrderResponse from(Order order, GetPaymentInfoResponse paymentInfo, List<GetOrderItemResponse> orderItems) {
         return new GetOrderResponse(
                 order.getOrderNumber(),
                 order.getTotalPrice(),
                 order.getCreatedAt(),
-                payment.getPaidAt(),
+                paymentInfo.paidAt(),
                 order.getStatus(),
-                payment.getStatus(),
+                paymentInfo.status(),
                 orderItems
         );
     }

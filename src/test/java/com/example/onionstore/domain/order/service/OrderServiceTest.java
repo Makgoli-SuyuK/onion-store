@@ -7,8 +7,9 @@ import com.example.onionstore.domain.order.entity.Order;
 import com.example.onionstore.domain.order.entity.OrderItem;
 import com.example.onionstore.domain.order.repository.OrderItemRepository;
 import com.example.onionstore.domain.order.repository.OrderRepository;
+import com.example.onionstore.domain.payment.dto.GetPaymentInfoResponse;
 import com.example.onionstore.domain.payment.entity.Payment;
-import com.example.onionstore.domain.payment.repository.PaymentRepository;
+import com.example.onionstore.domain.payment.service.PaymentService;
 import com.example.onionstore.domain.product.entity.Product;
 import com.example.onionstore.domain.user.entity.Role;
 import com.example.onionstore.domain.user.entity.User;
@@ -34,7 +35,7 @@ class OrderServiceTest {
     private OrderItemRepository orderItemRepository;
 
     @Mock
-    private PaymentRepository paymentRepository;
+    private PaymentService paymentService;
 
     @InjectMocks
     private OrderService orderService;
@@ -49,7 +50,8 @@ class OrderServiceTest {
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
 
         Payment payment = new Payment(order, 5000);
-        when(paymentRepository.findByOrderId(orderId)).thenReturn(Optional.of(payment));
+        GetPaymentInfoResponse paymentInfo = GetPaymentInfoResponse.from(payment);
+        when(paymentService.getPaymentByOrderId(orderId)).thenReturn(paymentInfo);
 
         Category category = new Category("양파");
         Product product = new Product(category, "양파즙", "역대급 양파즙", 5000, 10);
@@ -62,7 +64,7 @@ class OrderServiceTest {
         // then
         assertEquals(order.getOrderNumber(), result.orderNumber());
         assertEquals(5000, result.totalPrice());
-        assertEquals(payment.getStatus(), result.paymentStatus());
+        assertEquals(paymentInfo.status(), result.paymentStatus());
         assertEquals(1, result.orderItems().size());
 
         GetOrderItemResponse resultItem = result.orderItems().get(0);
