@@ -56,7 +56,7 @@ class OrderServiceTest {
         when(paymentService.getPaymentByOrderId(orderId)).thenReturn(paymentInfo);
 
         Category category = new Category("양파");
-        Product product = new Product(category, "양파즙", "역대급 양파즙", 5000, 10);
+        Product product = Product.create(category, "양파즙", "역대급 양파즙", 5000, 10);
         OrderItem orderItem = new OrderItem(order, product, product.getName(), product.getPrice(), 1);
         when(orderItemRepository.findAllByOrderId(orderId)).thenReturn(List.of(orderItem));
 
