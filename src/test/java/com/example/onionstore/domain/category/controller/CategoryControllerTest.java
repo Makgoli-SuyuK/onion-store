@@ -85,7 +85,7 @@ class CategoryControllerTest {
     }
 
     @Test
-    @DisplayName("GET /categories api - 모든 카테고리 리스트 조회")
+    @DisplayName("GET /api/categories api - 모든 카테고리 리스트 조회")
     void 모든_카테고리_정보를_조회한다() throws Exception {
         //given
         List<Category> list = new ArrayList<>();
@@ -95,7 +95,7 @@ class CategoryControllerTest {
         given(categoryService.getAllCategories()).willReturn(list);
 
         //when&then
-        mockMvc.perform(get("/categories"))
+        mockMvc.perform(get("/api/categories"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("data.[0].name").value("name1"))
                 .andExpect(jsonPath("data.[1].name").value("name2"));
