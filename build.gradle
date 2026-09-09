@@ -26,6 +26,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
 
+    // 비밀번호 해싱 (버전은 Spring Boot에서 관리)
+    implementation 'org.springframework.security:spring-security-crypto'
+
     // Querydsl
     implementation "io.github.openfeign.querydsl:querydsl-jpa:${querydslVersion}"
     annotationProcessor "io.github.openfeign.querydsl:querydsl-apt:${querydslVersion}:jpa"
