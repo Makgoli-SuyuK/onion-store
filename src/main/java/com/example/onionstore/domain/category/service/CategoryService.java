@@ -26,7 +26,7 @@ public class CategoryService {
 
     @Transactional(readOnly = true)
     public List<Category> getAllCategories() {
-        return categoryRepository.findAll();
+        return categoryRepository.findAllByDeletedFalse();
     }
 
     @Transactional
