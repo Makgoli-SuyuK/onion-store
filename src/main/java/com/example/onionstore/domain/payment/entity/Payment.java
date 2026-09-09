@@ -55,13 +55,10 @@ public class Payment extends BaseTimeEntity {
         this.status = PaymentStatus.READY;
     }
 
-    public boolean markAsSuccess(LocalDateTime verifiedPaidAt) {
-        if (verifiedPaidAt == null) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
-        }
+    public boolean markAsSuccess() {
         boolean changed = changedStatus(PaymentStatus.SUCCESS);
-        if (changed) {
-            this.paidAt = verifiedPaidAt;
+        if(changed) {
+            this.paidAt = LocalDateTime.now();
         }
         return changed;
     }

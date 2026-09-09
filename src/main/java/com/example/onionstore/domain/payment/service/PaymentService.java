@@ -29,9 +29,9 @@ public class PaymentService {
 
     // 포트원 성공 결과 검증 결과를 내부 호출자가 사용
     @Transactional
-    public PaymentStateChangeResponse applySuccess(Long orderId, LocalDateTime paidAt) {
+    public PaymentStateChangeResponse applySuccess(Long orderId) {
         Payment payment = findPaymentForUpdate(orderId);
-        boolean changed = payment.markAsSuccess(paidAt);
+        boolean changed = payment.markAsSuccess();
         return new PaymentStateChangeResponse(changed, GetPaymentInfoResponse.from(payment));
     }
 
