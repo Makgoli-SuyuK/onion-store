@@ -29,7 +29,7 @@ public class CategoryController {
     }
 
     @GetMapping
-    public ApiResponse<List<Category>> getAllCategories() {
-        return ApiResponse.success(categoryService.getAllCategories());
+    public ResponseEntity<ApiResponse<List<Category>>> getAllCategories() {
+        return ResponseEntity.ok(ApiResponse.success(categoryService.getAllCategories()));
     }
 }
