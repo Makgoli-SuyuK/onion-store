@@ -1,6 +1,7 @@
 package com.example.onionstore.domain.category.service;
 
 import com.example.onionstore.domain.category.dto.CategoryCreateRequest;
+import com.example.onionstore.domain.category.dto.CategoryEditRequest;
 import com.example.onionstore.domain.category.entity.Category;
 import com.example.onionstore.domain.category.repository.CategoryRepository;
 import com.example.onionstore.global.exception.BusinessException;
@@ -11,6 +12,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +24,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -80,5 +87,42 @@ class CategoryServiceTest {
         assertEquals(list.size(), categories.size());
         assertEquals(list.get(0), categories.get(0));
         assertEquals(list.get(1), categories.get(1));
+    }
+
+    @Test
+    @DisplayName("카테고리 수정 테스트")
+    void 카테고리_수정_테스트() {
+        //given
+        Category category = new Category("new category");
+        ReflectionTestUtils.setField(category, "id", 1L);
+
+        CategoryEditRequest editRequest = new CategoryEditRequest("edited");
+
+        given(categoryRepository.findById(1L)).willReturn(Optional.of(category));
+        given(categoryRepository.save(any())).willReturn(category);
+
+        //when
+        categoryService.editCategory(1L, editRequest);
+
+        //then
+        verify(categoryRepository).save(any(Category.class));
+    }
+
+    @Test
+    @DisplayName("카테고리 수정 테스트 - 이미 존재하는 이름으로 수정 시도 시 에러 발생")
+    void 카테고리_수정_시_이미_존재하는_이름이면_에러가_발생한다() {
+        //given
+        Category category = new Category("new category");
+        ReflectionTestUtils.setField(category, "id", 1L);
+
+        CategoryEditRequest editRequest = new CategoryEditRequest("exists");
+
+        given(categoryRepository.findById(1L)).willReturn(Optional.of(category));
+        given(categoryRepository.existsByName(anyString())).willReturn(Boolean.TRUE);
+
+        //when&then
+        assertThatThrownBy(() -> categoryService.editCategory(1L, editRequest))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.DUPLICATE_CATEGORY.getMessage());
     }
 }

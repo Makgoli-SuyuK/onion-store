@@ -1,15 +1,16 @@
 package com.example.onionstore.domain.category.controller;
 
 import com.example.onionstore.domain.category.dto.CategoryCreateRequest;
+import com.example.onionstore.domain.category.dto.CategoryEditRequest;
 import com.example.onionstore.domain.category.entity.Category;
 import com.example.onionstore.domain.category.service.CategoryService;
 import com.example.onionstore.global.dto.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/categories")
@@ -27,5 +28,13 @@ public class CategoryController {
     @GetMapping
     public ResponseEntity<ApiResponse<List<Category>>> getAllCategories() {
         return ResponseEntity.ok(ApiResponse.success(categoryService.getAllCategories()));
+    }
+
+    @PatchMapping("/{categoryId}")
+    public ResponseEntity<ApiResponse<Void>> editCategory(@PathVariable Long categoryId,
+                                          @Valid @RequestBody CategoryEditRequest categoryEditRequest) {
+        categoryService.editCategory(categoryId, categoryEditRequest);
+
+        return ResponseEntity.ok(ApiResponse.success("카테고리 수정 성공", null));
     }
 }
