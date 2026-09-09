@@ -71,7 +71,13 @@ public enum ErrorCode {
     CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT_001", "채팅방을 찾을 수 없습니다."),
     CHAT_ROOM_ACCESS_DENIED(HttpStatus.FORBIDDEN, "CHAT_002", "해당 채팅방에 참여하지 않은 사용자입니다."),
     CHAT_MESSAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT_003", "채팅 메시지를 찾을 수 없습니다."),
-    EMPTY_MESSAGE(HttpStatus.BAD_REQUEST, "CHAT_004", "메시지 내용이 비어있습니다.");
+    CHAT_MESSAGE_EMPTY(HttpStatus.BAD_REQUEST, "CHAT_004", "메시지 내용이 비어있습니다."),
+    CHAT_ROOM_CREATE_FORBIDDEN_FOR_ADMIN(HttpStatus.FORBIDDEN, "CHAT_005", "관리자는 문의방을 생성할 수 없습니다."),
+    CHAT_ROOM_STATUS_CHANGE_ADMIN_ONLY(HttpStatus.FORBIDDEN,"CHAT_006", "관리자만 상태를 변경할 수 있습니다."),
+    INVALID_CHAT_ROOM_STATUS_TRANSITION(HttpStatus.CONFLICT,"CHAT_007","완료된 문의는 상태를 되돌릴 수 없습니다."),
+    INVALID_CHAT_MESSAGE_LENGTH(HttpStatus.BAD_REQUEST,"CHAT_008","메시지는 1~1000자여야 합니다."),
+    CANNOT_SEND_TO_COMPLETED_CHAT_ROOM(HttpStatus.CONFLICT,"CHAT_009","완료된 문의에는 메시지를 보낼 수 없습니다.");
+
 
     private final HttpStatus status;
     private final String code;
