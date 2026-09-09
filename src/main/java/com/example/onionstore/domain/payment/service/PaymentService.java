@@ -18,7 +18,7 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
 
-
+    @Transactional(readOnly = true)
     public GetPaymentInfoResponse getPaymentByOrderId(Long orderId) {
         Payment payment = paymentRepository.findByOrderId(orderId).orElseThrow(
                 () -> new BusinessException(ErrorCode.PAYMENT_NOT_FOUND)
