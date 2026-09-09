@@ -13,6 +13,8 @@ import com.example.onionstore.domain.payment.service.PaymentService;
 import com.example.onionstore.domain.product.entity.Product;
 import com.example.onionstore.domain.user.entity.Role;
 import com.example.onionstore.domain.user.entity.User;
+import com.example.onionstore.global.exception.BusinessException;
+import com.example.onionstore.global.exception.ErrorCode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -69,7 +71,16 @@ class OrderServiceTest {
 
         GetOrderItemResponse resultItem = result.orderItems().get(0);
         assertEquals(orderItem.getProduct().getName(), resultItem.productName());
+    }
 
+    @Test
+    void 존재하지_않는_주문조회() {
+        // given
+        when(orderRepository.findById(1L)).thenReturn(Optional.empty());
+
+        // when & then
+        BusinessException exception = assertThrows(BusinessException.class, () -> orderService.getOne(1L));
+        assertEquals(ErrorCode.ORDER_NOT_FOUND, exception.getErrorCode());
     }
 
 }
