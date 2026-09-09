@@ -33,6 +33,10 @@ public class CategoryService {
     public void editCategory(Long id, CategoryEditRequest editRequest) {
         Category toEdit = findCategory(id);
 
+        if (toEdit.isDeleted()) {
+            throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);
+        }
+
         checkIfExists(editRequest.newName());
         toEdit.changeName(editRequest.newName());
 
