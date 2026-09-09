@@ -54,7 +54,8 @@ public class CategoryService {
             throw new BusinessException(ErrorCode.DUPLICATE_CATEGORY);
         }
     }
-  
+    
+    @Transactional(readOnly = true)
     public Category getCategoryByName(String name) {
         return categoryRepository.findByName(name)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
