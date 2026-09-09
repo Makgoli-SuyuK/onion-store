@@ -23,7 +23,7 @@ public class User extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 255)
+    @Column(nullable = false, unique = true, length = 50)
     private String email;
 
     @Column(nullable = false, length = 255)
@@ -38,6 +38,14 @@ public class User extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Role role;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private UserStatus status = UserStatus.ACTIVE;
+
+    public static User customer(String email, String password, String name, String phoneNumber) {
+        return new User(email, password, name, phoneNumber, Role.CUSTOMER);
+    }
 
     public User(String email, String password, String name, String phoneNumber, Role role) {
         this.email = email;
