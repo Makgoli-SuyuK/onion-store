@@ -18,8 +18,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
@@ -75,7 +75,7 @@ class CategoryServiceTest {
         categories.add(new Category("new category1"));
         categories.add(new Category("new category2"));
 
-        given(categoryRepository.findAll()).willReturn(categories);
+        given(categoryRepository.findAllByDeletedFalse()).willReturn(categories);
 
         //when
         List<Category> list = categoryService.getAllCategories();
