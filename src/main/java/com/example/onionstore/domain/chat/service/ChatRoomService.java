@@ -2,7 +2,9 @@ package com.example.onionstore.domain.chat.service;
 
 import com.example.onionstore.domain.chat.dto.request.ChatRoomCreateRequest;
 import com.example.onionstore.domain.chat.dto.response.ChatRoomCreateResponse;
+import com.example.onionstore.domain.chat.dto.response.ChatRoomListResponse;
 import com.example.onionstore.domain.chat.entity.ChatRoom;
+import com.example.onionstore.domain.chat.entity.ChatRoomStatus;
 import com.example.onionstore.domain.chat.repository.ChatRoomRepository;
 import com.example.onionstore.domain.user.entity.Role;
 import com.example.onionstore.domain.user.entity.User;
@@ -10,6 +12,8 @@ import com.example.onionstore.domain.user.repository.UserRepository;
 import com.example.onionstore.global.exception.BusinessException;
 import com.example.onionstore.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +44,30 @@ public class ChatRoomService {
                 chatRoom.getCreatedAt()
         );
     }
+
+    public Page<ChatRoomListResponse> getRooms(Long userId, ChatRoomStatus status, Pageable pageable){
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        Page<ChatRoom> rooms;
+        if(user.getRole() == Role.ADMIN){
+            if(status == null) {
+                rooms = chatRoomRepository.findAll(pageable);
+            } else {
+                rooms = chatRoomRepository.findByStatus(status, pageable);
+            }
+        } else {
+            rooms = chatRoomRepository.findByUser(user, pageable);
+        }
+        return rooms.map(room ->new ChatRoomListResponse(
+                room.getId(),
+                room.getTitle(),
+                room.getStatus(),
+                room.getUser().getId(),
+                room.getCreatedAt()
+        ));
+    }
+
 }
 
 
