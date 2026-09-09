@@ -29,4 +29,10 @@ public class CategoryService {
     public List<Category> getAllCategories() {
         return categoryRepository.findAllByDeletedFalse();
     }
+      
+    @Transactional(readOnly = true)
+    public Category getCategoryByName(String name) {
+        return categoryRepository.findByName(name)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
+    }
 }
