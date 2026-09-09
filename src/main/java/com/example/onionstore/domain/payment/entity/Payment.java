@@ -37,7 +37,7 @@ public class Payment extends BaseTimeEntity {
     @JoinColumn(name = "order_id", nullable = false, unique = true)
     private Order order;
 
-    @Column(name = "payment_key", unique = true, length = 255)
+    @Column(name = "portone_payment_id", unique = true, length = 255)
     private String portonePaymentId;
 
     @Column(nullable = false)
