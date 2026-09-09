@@ -17,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
+import com.example.onionstore.domain.chat.dto.response.ChatRoomDetailResponse;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -30,8 +31,6 @@ class ChatRoomServiceTest {
     UserRepository userRepository;
     @Autowired
     ChatRoomRepository chatRoomRepository;
-
-    // ===== 채팅방 생성 =====
 
     @Test
     @DisplayName("고객이 채팅방을 생성하면 WAITING 상태로 만들어진다.")
@@ -59,7 +58,6 @@ class ChatRoomServiceTest {
                 .isInstanceOf(BusinessException.class);
     }
 
-    // ===== 채팅방 목록 조회 =====
 
     @Test
     @DisplayName("고객이 목록 조회하면 본인이 만든 방만 조회")
@@ -105,5 +103,51 @@ class ChatRoomServiceTest {
 
         assertThat(waiting.getTotalElements()).isEqualTo(1);
         assertThat(completed.getTotalElements()).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("고객이 본인 채팅방을 상세 조회한다.")
+    void getRoom_customer_own() {
+        User customer = userRepository.save(
+                new User("d1@test.com", "pw", "김고객", "01000000001", Role.CUSTOMER));
+        ChatRoom room = chatRoomRepository.save(new ChatRoom(customer, "배송문의"));
+
+        ChatRoomDetailResponse response = chatRoomService.getRoom(customer.getId(), room.getId());
+
+        assertThat(response.getRoomId()).isEqualTo(room.getId());
+        assertThat(response.getTitle()).isEqualTo("배송문의");
+        assertThat(response.getCustomerId()).isEqualTo(customer.getId());
+        assertThat(response.getCustomerName()).isEqualTo("김고객");
+    }
+    @Test
+    @DisplayName("고객이 남의 채팅방을 조회하면 거부된다.")
+    void getRoom_customer_other_rejected() {
+        User owner = userRepository.save(new User("d2@test.com", "pw", "주인", "01000000002", Role.CUSTOMER));
+        User stranger = userRepository.save(new User("d3@test.com", "pw", "남", "01000000003", Role.CUSTOMER));
+        ChatRoom room = chatRoomRepository.save(new ChatRoom(owner, "문의"));
+
+        assertThatThrownBy(() -> chatRoomService.getRoom(stranger.getId(), room.getId()))
+                .isInstanceOf(BusinessException.class);
+    }
+
+    @Test
+    @DisplayName("관리자는 남의 채팅방도 상세 조회할 수 있다.")
+    void getRoom_admin_any() {
+        User customer = userRepository.save(new User("d4@test.com", "pw", "고객", "01000000004", Role.CUSTOMER));
+        User admin = userRepository.save(new User("d5@test.com", "pw", "관리자", "01000000005", Role.ADMIN));
+        ChatRoom room = chatRoomRepository.save(new ChatRoom(customer, "문의"));
+
+        ChatRoomDetailResponse response = chatRoomService.getRoom(admin.getId(), room.getId());
+
+        assertThat(response.getRoomId()).isEqualTo(room.getId());
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 채팅방을 조회하면 예외가 발생한다.")
+    void getRoom_notFound() {
+        User customer = userRepository.save(new User("d6@test.com", "pw", "고객", "01000000006", Role.CUSTOMER));
+
+        assertThatThrownBy(() -> chatRoomService.getRoom(customer.getId(), 999L))
+                .isInstanceOf(BusinessException.class);
     }
 }
