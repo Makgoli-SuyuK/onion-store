@@ -68,7 +68,7 @@ class SignupIntegrationTest {
         for (String state : new String[]{"ACTIVE", "DELETED"}) {
             jdbc.update("update users set status = ?", state);
             mvc.perform(post("/api/auth/signup").contentType(MediaType.APPLICATION_JSON).content(body("b")))
-                    .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("MEMBER_002"));
+                    .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("USER_001"));
         }
         assertThat(users.count()).isEqualTo(1);
     }
@@ -113,7 +113,7 @@ class SignupIntegrationTest {
                 service.signup(new SignupRequest("same@example.com", "a", "고객", "01012345678"));
                 return "SUCCESS";
             } catch (BusinessException exception) {
-                assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.DUPLICATE_EMAIL);
+                assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.EMAIL_ALREADY_EXISTS);
                 return "DUPLICATE";
             }
         };

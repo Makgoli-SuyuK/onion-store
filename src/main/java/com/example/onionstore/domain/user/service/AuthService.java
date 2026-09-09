@@ -20,7 +20,7 @@ public class AuthService {
     public SignupResponse signup(SignupRequest request) {
         // 탈퇴한 회원의 이메일도 중복 검사에 포함한다.
         if (userRepository.existsByEmail(request.email())) {
-            throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
+            throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS);
         }
         User user = User.customer(request.email(), passwordEncoder.encode(request.password()),
                 request.name(), request.phoneNumber());
@@ -29,7 +29,7 @@ public class AuthService {
             return SignupResponse.from(userRepository.saveAndFlush(user));
         } catch (DataIntegrityViolationException exception) {
             if (userRepository.existsByEmail(request.email())) {
-                throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
+                throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS);
             }
             throw exception;
         }
