@@ -44,7 +44,7 @@ public class Product extends BaseTimeEntity {
     private long price;
 
     @Column(nullable = false)
-    private long stock;
+    private int stock;
 
     @Column(name = "like_count", nullable = false)
     private long likeCount;
@@ -56,7 +56,7 @@ public class Product extends BaseTimeEntity {
     @Column(nullable = false)
     private boolean deleted;
 
-    private Product(Category category, String name, String description, long price, long stock) {
+    private Product(Category category, String name, String description, long price, int stock) {
         this.category = category;
         this.name = name;
         this.description = description;
@@ -67,7 +67,7 @@ public class Product extends BaseTimeEntity {
         this.deleted = false;
     }
 
-    public static Product create(Category category, String name, String description, long price, long stock) {
+    public static Product create(Category category, String name, String description, long price, int stock) {
         return new Product(category, name, description, price, stock);
     }
 }

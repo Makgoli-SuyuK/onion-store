@@ -17,6 +17,6 @@ public record ProductCreateRequest(
         long price,
 
         @Min(1)
-        long stock
+        int stock
 ) {
 }

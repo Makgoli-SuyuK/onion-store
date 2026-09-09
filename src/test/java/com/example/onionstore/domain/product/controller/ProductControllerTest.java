@@ -38,7 +38,7 @@ class ProductControllerTest {
         );
 
         //when&then
-        mockMvc.perform(post("/products")
+        mockMvc.perform(post("/api/products")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(createRequest)))
                 .andExpect(status().isOk());
@@ -57,7 +57,7 @@ class ProductControllerTest {
         );
 
         //when&then
-        mockMvc.perform(post("/products")
+        mockMvc.perform(post("/api/products")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(createRequest)))
                 .andExpect(status().isBadRequest())
