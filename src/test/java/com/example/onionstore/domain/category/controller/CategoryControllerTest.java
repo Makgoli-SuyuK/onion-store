@@ -16,6 +16,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.willThrow;
 import java.util.ArrayList;
 import java.util.List;
@@ -136,5 +137,17 @@ class CategoryControllerTest {
                         .content(mapper.writeValueAsString(editRequest)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value(ErrorCode.DUPLICATE_CATEGORY.getMessage()));
+    }
+
+    @Test
+    @DisplayName("DELETE /api/categories/{categoryId} api - 카테고리 삭제 테스트")
+    void 카테고리_삭제_테스트() throws Exception {
+        //given
+        Category category = new Category("new category");
+        ReflectionTestUtils.setField(category, "id", 1L);
+
+        //when&then
+        mockMvc.perform(delete("/api/categories/1"))
+                .andExpect(status().isOk());
     }
 }
