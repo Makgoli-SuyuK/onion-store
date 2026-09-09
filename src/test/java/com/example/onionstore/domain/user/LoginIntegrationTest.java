@@ -3,6 +3,7 @@ package com.example.onionstore.domain.user;
 import com.example.onionstore.domain.user.dto.LoginRequest;
 import com.example.onionstore.domain.user.entity.Role;
 import com.example.onionstore.domain.user.entity.User;
+import com.example.onionstore.domain.user.entity.UserStatus;
 import com.example.onionstore.domain.user.repository.UserRepository;
 import com.example.onionstore.domain.user.service.AuthService;
 import com.example.onionstore.global.exception.BusinessException;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,6 +49,9 @@ class LoginIntegrationTest {
         assertThatThrownBy(() -> authService.login("missing@example.com", "pw"))
                 .isInstanceOfSatisfying(BusinessException.class,
                         e -> assertThat(e.getErrorCode()).isEqualTo(ErrorCode.INVALID_CREDENTIALS));
-        userRepository.delete(user);
+        ReflectionTestUtils.setField(user, "status", UserStatus.DELETED);
+        assertThatThrownBy(() -> authService.login("login@example.com", "pw"))
+                .isInstanceOfSatisfying(BusinessException.class,
+                        e -> assertThat(e.getErrorCode()).isEqualTo(ErrorCode.INVALID_CREDENTIALS));
     }
 }

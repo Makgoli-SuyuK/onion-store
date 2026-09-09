@@ -17,10 +17,14 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import java.util.List;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
+import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+    private final DeletedUserTokenFilter deletedUserTokenFilter;
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http.csrf(csrf -> csrf.disable())
@@ -31,6 +35,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth -> oauth.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))
+                .addFilterAfter(deletedUserTokenFilter, BearerTokenAuthenticationFilter.class)
                 .build();
     }
 
