@@ -103,7 +103,7 @@ class CategoryControllerTest {
     }
 
     @Test
-    @DisplayName("PATCH /categories/{categoryId} api - 카테고리 수정 테스트")
+    @DisplayName("PATCH /api/categories/{categoryId} api - 카테고리 수정 테스트")
     void 카테고리_이름을_변경한다() throws Exception {
         //given
         Category category = new Category("new category");
@@ -112,14 +112,14 @@ class CategoryControllerTest {
         CategoryEditRequest editRequest = new CategoryEditRequest("edited");
 
         //when&then
-        mockMvc.perform(patch("/categories/1")
+        mockMvc.perform(patch("/api/categories/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(editRequest)))
                 .andExpect(status().isOk());
     }
 
     @Test
-    @DisplayName("PATCH /categories/{categoryId} api - 카테고리 수정 시 같은 이름이 이미 존재하면 409 에러를 반환")
+    @DisplayName("PATCH /api/categories/{categoryId} api - 카테고리 수정 시 같은 이름이 이미 존재하면 409 에러를 반환")
     void 카테고리_이름이_이미_존재한다면_에러를_반환한다() throws Exception {
         //given
         Category category = new Category("new category");
@@ -131,7 +131,7 @@ class CategoryControllerTest {
                 .editCategory(1L, editRequest);
 
         //when&then
-        mockMvc.perform(patch("/categories/1")
+        mockMvc.perform(patch("/api/categories/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(editRequest)))
                 .andExpect(status().isConflict())
