@@ -43,12 +43,12 @@ public class ChatRoomController {
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(response));
     }
 
-    @GetMapping("/rooms/{roomdId}")
+    @GetMapping("/rooms/{roomId}")
     public ResponseEntity<ApiResponse<ChatRoomDetailResponse>> getRoom(
             @RequestHeader("X-USER-ID")Long userId,
-            @PathVariable Long roomdId
+            @PathVariable Long roomId
     ){
-        ChatRoomDetailResponse response = chatRoomService.getRoom(userId, roomdId);
+        ChatRoomDetailResponse response = chatRoomService.getRoom(userId, roomId);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(response));
     }
 

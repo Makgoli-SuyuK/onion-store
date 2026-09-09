@@ -69,7 +69,7 @@ public class ChatRoomService {
         ));
     }
 
-    @Transactional
+
     public ChatRoomDetailResponse getRoom(Long userId, Long roomId){
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
