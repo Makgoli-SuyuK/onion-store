@@ -28,6 +28,9 @@ dependencies {
 
     // 비밀번호 해싱 (버전은 Spring Boot에서 관리)
     implementation 'org.springframework.security:spring-security-crypto'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.security:spring-security-oauth2-jose'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 
     // Querydsl
     implementation "io.github.openfeign.querydsl:querydsl-jpa:${querydslVersion}"
