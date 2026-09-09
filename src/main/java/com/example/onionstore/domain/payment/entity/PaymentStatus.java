@@ -4,17 +4,23 @@ public enum PaymentStatus {
     READY {
         @Override
         public boolean canTransitTo(PaymentStatus target) {
-            return target == SUCCESS || target == FAILED;
+            return target == SUCCESS || target == FAILED || target == CANCELLED;
 
         }
     },
     SUCCESS {
         @Override
         public boolean canTransitTo(PaymentStatus target) {
-            return target == FAILED;
+            return target == CANCELLED;
         }
     },
     FAILED {
+        public boolean canTransitTo(PaymentStatus target) {
+            return target == CANCELLED;
+        }
+    },
+    CANCELLED {
+        @Override
         public boolean canTransitTo(PaymentStatus target) {
             return false;
         }
