@@ -21,7 +21,7 @@ public record GetOrderListResponse(
                 items,
                 order.getTotalPrice(),
                 order.getCreatedAt(),
-                info.paidAt()
+                info != null ? info.paidAt() : null
         );
     }
 }

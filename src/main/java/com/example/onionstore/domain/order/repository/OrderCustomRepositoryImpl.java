@@ -26,6 +26,7 @@ public class OrderCustomRepositoryImpl implements OrderCustomRepository {
         // 실제로 현재 페이지에 보여줄 주문 데이터를 조회
         List<Order> orders = queryFactory
                 .selectFrom(order)
+                .distinct()
                 .join(orderItem)
                 .on(orderItem.order.id.eq(order.id))
                 .where(order.user.id.eq(userId),
@@ -57,7 +58,7 @@ public class OrderCustomRepositoryImpl implements OrderCustomRepository {
     private BooleanExpression keywordContain(String keyword) {
         return keyword == null || keyword.isBlank()
                 ? null
-                : orderItem.product.name.contains(keyword);
+                : orderItem.productName.contains(keyword);
     }
     private BooleanExpression startDateGoe(LocalDate startDate) {
         return startDate != null

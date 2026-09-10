@@ -8,6 +8,7 @@ import com.example.onionstore.domain.order.repository.OrderItemRepository;
 import com.example.onionstore.domain.order.repository.OrderRepository;
 import com.example.onionstore.domain.payment.dto.GetPaymentInfoResponse;
 import com.example.onionstore.domain.payment.entity.Payment;
+import com.example.onionstore.domain.payment.entity.PaymentStatus;
 import com.example.onionstore.domain.payment.service.PaymentService;
 import com.example.onionstore.domain.product.entity.Product;
 import com.example.onionstore.domain.user.entity.User;
@@ -23,6 +24,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -189,5 +191,47 @@ class OrderServiceTest {
         // then
         assertEquals(1, result.getContent().size());
         assertEquals(orderItem.getProductName(), resultItem.productName());
+    }
+
+    @Test
+    void Payment가_없는_주문이_있을때_주문전체조회() {
+        // given
+        when(user.getId()).thenReturn(1L);
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        when(order.getId()).thenReturn(1L);
+        when(order2.getId()).thenReturn(2L);
+
+        List<Order> orders = List.of(order, order2);
+        Page<Order> orderPage = new PageImpl<>(orders, pageable, 2);
+
+        OrderSearchRequest request = new OrderSearchRequest();
+
+        when(orderRepository.findAllByUser_IdWithKeyword(user.getId(), pageable, request)).thenReturn(orderPage);
+
+        Category category = new Category("양파");
+        Product product = Product.create(category, "양파즙", "역대급 양파즙", 5000, 10);
+        OrderItem orderItem = new OrderItem(order, product, product.getName(), product.getPrice(), 1);
+        OrderItem orderItem2 = new OrderItem(order2, product, product.getName(), product.getPrice(), 1);
+
+        when(orderItemRepository.findAllByOrder_IdIn(List.of(1L, 2L))).thenReturn(List.of(orderItem, orderItem2));
+
+        GetPaymentInfoResponse paymentInfo = new GetPaymentInfoResponse(order.getId(), LocalDateTime.now(), PaymentStatus.SUCCESS);
+
+        when(paymentService.getPaymentsByOrderIds(List.of(1L, 2L))).thenReturn(List.of(paymentInfo));
+
+        // when
+        Page<GetOrderListResponse> result = orderService.getAll(user.getId(), pageable, request);
+
+        // then
+        assertEquals(2, result.getContent().size());
+        GetOrderListResponse orderResult = result.getContent().get(0);
+        GetOrderListResponse order2Result = result.getContent().get(1);
+        assertEquals(order.getId(), orderResult.orderId());
+        assertEquals(order.getId(), paymentInfo.orderId());
+        assertEquals(paymentInfo.paidAt(), orderResult.paidAt());
+        assertEquals(order2.getId(), order2Result.orderId());
+        assertNull(order2Result.paidAt());
     }
 }

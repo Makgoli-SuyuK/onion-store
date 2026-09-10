@@ -16,6 +16,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,7 +30,6 @@ public class OrderService {
     private final PaymentService paymentService;
 
     // 개인회원 주문 상세 조회
-    // TODO: 인증 구현 완료 후 현재 로그인 사용자의 주문인지 검증
     public GetOrderResponse getOne(Long userId, Long orderId) {
 
         Order order = orderRepository.findById(orderId).orElseThrow(
@@ -50,16 +52,44 @@ public class OrderService {
     }
 
     // 개인회원 주문 전체 조회
-    // TODO: N+1 조회 쿼리 성능 개선필요
     public Page<GetOrderListResponse> getAll(Long userId, Pageable pageable, OrderSearchRequest request) {
         Page<Order> orders = orderRepository.findAllByUser_IdWithKeyword(userId, pageable, request);
 
-        return orders.map(order -> {
-            List<OrderItem> orderItems = orderItemRepository.findAllByOrderId(order.getId());
-            List<GetOrderListItemResponse> items = orderItems.stream()
-                    .map(GetOrderListItemResponse::from).toList();
+        // 1. 현재 페이지의 주문 ID를 한 번에 추출
+        List<Long> orderIds = orders.getContent().stream()
+                .map(Order::getId)
+                .toList();
 
-            GetPaymentInfoResponse info = paymentService.getPaymentByOrderId(order.getId());
+        // 2. 주문 상품을 한 번에 조회
+        List<OrderItem> orderItems = orderItemRepository.findAllByOrder_IdIn(orderIds);
+        // 3. 결제 정보를 한 번에 조회
+        List<GetPaymentInfoResponse> paymentInfos = paymentService.getPaymentsByOrderIds(orderIds);
+
+        // 4. 주문별 상품을 묶어두기
+        Map<Long, List<GetOrderListItemResponse>> orderItemsMap =
+                orderItems.stream()
+                        .collect(Collectors.groupingBy(
+                                orderItem -> orderItem.getOrder().getId(),
+                                Collectors.mapping(
+                                        GetOrderListItemResponse::from,
+                                        Collectors.toList()
+                                )
+                        ));
+
+        // 5. 주문별 결제정보를 Map으로 만들어두기
+        Map<Long, GetPaymentInfoResponse> paymentInfoMap =
+                paymentInfos.stream()
+                        .collect(Collectors.toMap(
+                                info -> info.orderId(),
+                                Function.identity()
+                        ));
+
+        return orders.map(order -> {
+            List<GetOrderListItemResponse> items =
+                    orderItemsMap.getOrDefault(order.getId(), List.of());
+
+            GetPaymentInfoResponse info =
+                    paymentInfoMap.get(order.getId());
 
             return GetOrderListResponse.from(order, items, info);
         });
