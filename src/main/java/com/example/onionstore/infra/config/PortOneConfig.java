@@ -21,7 +21,7 @@ public class PortOneConfig {
         return RestClient.builder()
                 .requestFactory(requestFactory)
                 .baseUrl(properties.getBaseUrl())
-                .defaultHeader("Authorization", "Portone " + properties.getApiSecret())
+                .defaultHeader("Authorization", "PortOne " + properties.getApiSecret())
                 .build();
     }
 
