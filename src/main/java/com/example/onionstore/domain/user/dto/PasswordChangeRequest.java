@@ -1,7 +1,9 @@
 package com.example.onionstore.domain.user.dto;
 
+import com.example.onionstore.domain.user.validation.ValidPassword;
+
 public record PasswordChangeRequest(
         String currentPassword,
-        String newPassword
+        @ValidPassword String newPassword
 ) {
 }
