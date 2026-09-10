@@ -55,4 +55,13 @@ public class User extends BaseTimeEntity {
         this.role = role;
     }
 
+    public void updateProfile(String name, String phoneNumber) {
+        if (name != null) {
+            this.name = name;
+        }
+        if (phoneNumber != null) {
+            this.phoneNumber = phoneNumber;
+        }
+    }
+
 }
