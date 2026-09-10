@@ -13,6 +13,7 @@ import com.example.onionstore.domain.payment.dto.CreatePaymentResponse;
 import com.example.onionstore.domain.payment.entity.Payment;
 import com.example.onionstore.domain.payment.service.PaymentService;
 import com.example.onionstore.domain.product.entity.Product;
+import com.example.onionstore.domain.product.service.ProductService;
 import com.example.onionstore.domain.user.entity.User;
 import com.example.onionstore.domain.user.service.UserService;
 import com.example.onionstore.global.exception.BusinessException;
@@ -34,6 +35,7 @@ public class OrderFacade {
     private final OrderService orderService;
     private final PaymentService paymentService;
     private final OrderItemRepository orderItemRepository;
+    private final ProductService productService;
 
     @Transactional
     public OrderCreateResponse createOrder(Long userId, OrderCreateRequest request) {
@@ -54,7 +56,7 @@ public class OrderFacade {
 
         for (CartItem cartItem : cartItems) {
             Product product = cartItem.getProduct();
-            product.decreaseStock(cartItem.getQuantity());
+            productService.decreaseStock(product.getId(), cartItem.getQuantity());
 
             OrderItem orderItem = new OrderItem(order,
                     product, product.getName(),
