@@ -61,11 +61,14 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public Product getProductForCart(Long productId) { // 존재하고 판매 중인 상품만 장바구니 도메인에 전달한다.
+    public Product getProductForCart(Long productId,int quantity) { // 존재하고 판매 중인 상품만 장바구니 도메인에 전달한다.
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
         if (product.isDeleted() || product.getStatus() != ProductStatus.SELLING) {
             throw new BusinessException(ErrorCode.PRODUCT_NOT_SELLING);
+        }
+        if (product.getStock() < quantity) {
+            throw new BusinessException(ErrorCode.PRODUCT_OUT_OF_STOCK);
         }
         return product;
     }

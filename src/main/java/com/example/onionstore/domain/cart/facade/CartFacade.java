@@ -22,7 +22,7 @@ public class CartFacade {
     @Transactional
     public CartItemResponse addItem(Long userId, AddCartItemRequest request) {
         User user = userService.findUser(userId);
-        Product product = productService.getProductForCart(request.productId());
+        Product product = productService.getProductForCart(request.productId(), request.quantity());
         return cartService.addItem(user, product, request.quantity());
     }
 }
