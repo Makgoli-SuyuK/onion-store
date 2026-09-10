@@ -42,4 +42,21 @@ public class OrderService {
 
         return GetOrderResponse.from(order, paymentInfo, getOrderItems);
     }
+
+    @Transactional
+    public boolean markAsPaid(Long orderId) {
+        Order order = findOrderForUpdate(orderId);
+        return order.markAsPaid();
+    }
+
+    @Transactional
+    public boolean cancelOrder(Long orderId) {
+        Order order = findOrderForUpdate(orderId);
+        return order.cancel();
+    }
+
+    private Order findOrderForUpdate(Long orderId) {
+        return orderRepository.findByIdForUpdate(orderId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
+    }
 }

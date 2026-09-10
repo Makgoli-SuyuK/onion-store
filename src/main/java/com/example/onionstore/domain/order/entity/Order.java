@@ -2,6 +2,8 @@ package com.example.onionstore.domain.order.entity;
 
 import com.example.onionstore.global.entity.BaseTimeEntity;
 import com.example.onionstore.domain.user.entity.User;
+import com.example.onionstore.global.exception.BusinessException;
+import com.example.onionstore.global.exception.ErrorCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -46,5 +48,25 @@ public class Order extends BaseTimeEntity {
         this.user = user;
         this.totalPrice = totalPrice;
         this.status = OrderStatus.PENDING;
+    }
+
+    public boolean markAsPaid() {
+        return changeStatus(OrderStatus.PAID);
+    }
+
+    public boolean cancel() {
+        return changeStatus(OrderStatus.CANCELLED);
+    }
+
+    private boolean changeStatus(OrderStatus target) {
+        if (status == target) {
+            return false;
+        }
+        if (!status.canTransitTo(target)) {
+            throw new BusinessException(ErrorCode.INVALID_ORDER_STATUS);
+        }
+
+        status = target;
+        return true;
     }
 }
