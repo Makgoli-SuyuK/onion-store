@@ -1,5 +1,6 @@
 package com.example.onionstore.domain.product.service;
 
+import com.example.onionstore.domain.category.entity.Category;
 import com.example.onionstore.domain.category.service.CategoryService;
 import com.example.onionstore.domain.product.dto.ProductCreateRequest;
 import com.example.onionstore.domain.product.entity.Product;
@@ -15,10 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class ProductService {
     private final ProductRepository productRepository;
-    private final CategoryService categoryService;
 
     @Transactional
-    public void createProduct(ProductCreateRequest createRequest) {
+    public void createProduct(ProductCreateRequest createRequest, Category category) {
         if (createRequest.price() <= 0) {
             throw new BusinessException(ErrorCode.INVALID_PRICE);
         }
@@ -28,7 +28,7 @@ public class ProductService {
         }
 
         Product newProduct = Product.create(
-                categoryService.getCategoryByName(createRequest.category()),
+                category,
                 createRequest.productName(),
                 createRequest.description(),
                 createRequest.price(),

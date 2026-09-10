@@ -39,12 +39,10 @@ class ProductServiceTest {
                 10000,
                 40
         );
-
-        given(categoryService.getCategoryByName(createRequest.category()))
-                .willReturn(new Category(createRequest.category()));
+        Category category = new Category(createRequest.category());
 
         //when
-        productService.createProduct(createRequest);
+        productService.createProduct(createRequest, category);
 
         //then
         verify(productRepository).save(any(Product.class));
@@ -61,9 +59,10 @@ class ProductServiceTest {
                 10000,
                 0
         );
+        Category category = new Category(createRequest.category());
 
         //when&then
-        assertThatThrownBy(() -> productService.createProduct(createRequest))
+        assertThatThrownBy(() -> productService.createProduct(createRequest, category))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.INVALID_STOCK.getMessage());
     }
@@ -79,9 +78,10 @@ class ProductServiceTest {
                 0,
                 1
         );
+        Category category = new Category(createRequest.category());
 
         //when&then
-        assertThatThrownBy(() -> productService.createProduct(createRequest))
+        assertThatThrownBy(() -> productService.createProduct(createRequest, category))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.INVALID_PRICE.getMessage());
     }

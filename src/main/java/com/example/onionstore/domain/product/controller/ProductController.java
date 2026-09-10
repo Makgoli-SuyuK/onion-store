@@ -1,6 +1,7 @@
 package com.example.onionstore.domain.product.controller;
 
 import com.example.onionstore.domain.product.dto.ProductCreateRequest;
+import com.example.onionstore.domain.product.facade.ProductFacade;
 import com.example.onionstore.domain.product.service.ProductService;
 import com.example.onionstore.global.dto.ApiResponse;
 import jakarta.validation.Valid;
@@ -16,10 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class ProductController {
     private final ProductService productService;
+    private final ProductFacade productFacade;
 
     @PostMapping
     public ResponseEntity<ApiResponse<Void>> addProduct(@Valid @RequestBody ProductCreateRequest createRequest) {
-        productService.createProduct(createRequest);
+        productFacade.addProduct(createRequest);
 
         return ResponseEntity.ok(ApiResponse.success(null));
     }
