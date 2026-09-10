@@ -1,8 +1,7 @@
 package com.example.onionstore.domain.order.controller;
 
-import com.example.onionstore.domain.order.dto.GetOrderResponse;
-import com.example.onionstore.domain.order.dto.GetOrderListResponse;
-import com.example.onionstore.domain.order.dto.OrderSearchRequest;
+import com.example.onionstore.domain.order.dto.*;
+import com.example.onionstore.domain.order.facade.OrderFacade;
 import com.example.onionstore.domain.order.service.OrderService;
 import com.example.onionstore.global.dto.ApiResponse;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class OrderController {
 
     private final OrderService orderService;
+    private final OrderFacade orderFacade;
 
     // 개인회원 주문 상세 조회
     @GetMapping("/{orderId}")
@@ -39,5 +39,17 @@ public class OrderController {
             ) {
 
         return ResponseEntity.ok(ApiResponse.success(orderService.getAll(Long.valueOf(jwt.getSubject()), pageable, request)));
+    }
+
+    // 주문 생성
+    @PostMapping
+    public ResponseEntity<ApiResponse<OrderCreateResponse>>  createOrder(
+            @AuthenticationPrincipal Jwt jwt,
+            // request가 없으면 장바구니 전체주문
+            @RequestBody(required = false) OrderCreateRequest request
+    ) {
+        Long userId = Long.valueOf(jwt.getSubject());
+        OrderCreateResponse response = orderFacade.createOrder(userId, request);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

@@ -7,6 +7,7 @@ import com.example.onionstore.domain.order.repository.OrderItemRepository;
 import com.example.onionstore.domain.order.repository.OrderRepository;
 import com.example.onionstore.domain.payment.dto.GetPaymentInfoResponse;
 import com.example.onionstore.domain.payment.service.PaymentService;
+import com.example.onionstore.domain.user.entity.User;
 import com.example.onionstore.global.exception.BusinessException;
 import com.example.onionstore.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,12 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final PaymentService paymentService;
+
+    @Transactional
+    public Order createOrder(User user, long totalPrice) {
+        Order order = new Order(user, totalPrice);
+        return orderRepository.save(order);
+    }
 
     // 개인회원 주문 상세 조회
     public GetOrderResponse getOne(Long userId, Long orderId) {
