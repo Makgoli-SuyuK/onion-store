@@ -101,4 +101,9 @@ public class Product extends BaseTimeEntity {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
         }
     }
+
+    public void markAsDeleted() {
+        this.deleted = true;
+        this.status = ProductStatus.HIDDEN;
+    }
 }
