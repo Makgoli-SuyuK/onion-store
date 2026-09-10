@@ -19,6 +19,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Getter
 @Entity
 @Table(name = "orders")
@@ -43,11 +45,11 @@ public class Order extends BaseTimeEntity {
     @Column(nullable = false, length = 20)
     private OrderStatus status;
 
-    public Order(String orderNumber, User user, long totalPrice) {
-        this.orderNumber = orderNumber;
+    public Order(User user, long totalPrice) {
         this.user = user;
         this.totalPrice = totalPrice;
         this.status = OrderStatus.PENDING;
+        this.orderNumber = makeOrderNumber();
     }
 
     public boolean markAsPaid() {
@@ -68,5 +70,11 @@ public class Order extends BaseTimeEntity {
 
         status = target;
         return true;
+    }
+
+    private String makeOrderNumber() {
+        String uuid = UUID.randomUUID().toString();
+        String reUuid = uuid.replace("-", "");
+        return "ORD-" + reUuid.substring(0, 16);
     }
 }
