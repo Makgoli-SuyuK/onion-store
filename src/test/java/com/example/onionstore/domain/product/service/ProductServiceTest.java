@@ -3,6 +3,7 @@ package com.example.onionstore.domain.product.service;
 import com.example.onionstore.domain.category.entity.Category;
 import com.example.onionstore.domain.category.service.CategoryService;
 import com.example.onionstore.domain.product.dto.ProductCreateRequest;
+import com.example.onionstore.domain.product.dto.ProductResponse;
 import com.example.onionstore.domain.product.entity.Product;
 import com.example.onionstore.domain.product.repository.ProductRepository;
 import com.example.onionstore.global.exception.BusinessException;
@@ -13,9 +14,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -84,5 +90,29 @@ class ProductServiceTest {
         assertThatThrownBy(() -> productService.createProduct(createRequest, category))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.INVALID_PRICE.getMessage());
+    }
+
+    @Test
+    @DisplayName("상품 단일 조회 로직 테스트")
+    void 상품이_존재한다면_상품_상세_정보를_반환한다() {
+        //given
+        Product product = Product.create(
+                new Category("category"),
+                "name",
+                "desc",
+                10000,
+                40
+        );
+        ReflectionTestUtils.setField(product, "id", 1L);
+
+        given(productRepository.findByIdAndDeletedFalse(anyLong())).willReturn(Optional.of(product));
+
+        //when
+        ProductResponse res = productService.findById(1L);
+
+        //then
+        assertThat(res.categoryName()).isEqualTo(product.getCategory().getName());
+        assertThat(res.name()).isEqualTo(product.getName());
+        assertThat(res.price()).isEqualTo(product.getPrice());
     }
 }
