@@ -3,11 +3,15 @@ package com.example.onionstore.domain.product.controller;
 import com.example.onionstore.domain.product.dto.ProductCreateRequest;
 import com.example.onionstore.domain.product.dto.ProductResponse;
 import com.example.onionstore.domain.product.entity.Product;
+import com.example.onionstore.domain.product.dto.ProductSimpleResponse;
 import com.example.onionstore.domain.product.facade.ProductFacade;
+import com.example.onionstore.domain.product.repository.dto.ProductSearchConditions;
 import com.example.onionstore.domain.product.service.ProductService;
 import com.example.onionstore.global.dto.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,5 +34,32 @@ public class ProductController {
         return ResponseEntity.ok(
                 ApiResponse.success(productService.findById(productId))
         );
+    }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<Page<ProductSimpleResponse>>> searchProducts(
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) Long priceStart,
+            @RequestParam(required = false) Long priceEnd,
+            @RequestParam(required = false) Integer likeCount,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String sortOrder,
+            @RequestParam int page,
+            @RequestParam int size) {
+        ProductSearchConditions conditions = new ProductSearchConditions(
+                category,
+                name,
+                priceStart,
+                priceEnd,
+                likeCount,
+                sortBy,
+                sortOrder,
+                page,
+                size
+        );
+
+        return ResponseEntity.ok(
+                ApiResponse.success(productService.searchWithConditions(conditions, page, size)));
     }
 }

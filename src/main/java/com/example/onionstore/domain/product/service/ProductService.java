@@ -1,14 +1,18 @@
 package com.example.onionstore.domain.product.service;
 
 import com.example.onionstore.domain.category.entity.Category;
-import com.example.onionstore.domain.category.service.CategoryService;
 import com.example.onionstore.domain.product.dto.ProductCreateRequest;
 import com.example.onionstore.domain.product.dto.ProductResponse;
+import com.example.onionstore.domain.product.dto.ProductSimpleResponse;
 import com.example.onionstore.domain.product.entity.Product;
 import com.example.onionstore.domain.product.repository.ProductRepository;
+import com.example.onionstore.domain.product.repository.dto.ProductSearchConditions;
 import com.example.onionstore.global.exception.BusinessException;
 import com.example.onionstore.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,6 +49,12 @@ public class ProductService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
 
         return ProductResponse.from(product);
+    }
+
+    public Page<ProductSimpleResponse> searchWithConditions(ProductSearchConditions conditions, int page, int limit) {
+        Pageable pageable = PageRequest.of(page - 1, limit);
+
+        return productRepository.searchWithConditions(conditions, pageable);
     }
 
     /** 테스트용 가짜 메서드 **/
