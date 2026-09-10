@@ -7,7 +7,7 @@ public record CartItemResponse(
         Long cartItemId,
         Long productId,
         String productName,
-        long productPrice,
+        long price,
         long quantity,
         long subtotal
 ) {
