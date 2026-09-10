@@ -96,6 +96,38 @@ public class Product extends BaseTimeEntity {
         }
     }
 
+    public void changeName(String newName) {
+        this.name = newName;
+    }
+
+    public void changeDescription(String newDescription) {
+        this.description = newDescription;
+    }
+
+    public void changePrice(long newPrice) {
+        if (newPrice <= 0) {
+            throw new BusinessException(ErrorCode.INVALID_PRICE);
+        }
+
+        this.price = newPrice;
+    }
+
+    public void changeStock(int newStock) {
+        if (newStock < 0) {
+            throw new BusinessException(ErrorCode.INVALID_STOCK);
+        } else if (newStock == 0) {
+            changeStatus(ProductStatus.SOLD_OUT);
+        } else if (this.status != ProductStatus.SELLING) {
+            changeStatus(ProductStatus.SELLING);
+        }
+
+        this.stock = newStock;
+    }
+
+    public void changeStatus(ProductStatus newStatus) {
+        this.status = newStatus;
+    }
+
     private void validateQuantity(int quantity) {
         if (quantity <= 0) {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
