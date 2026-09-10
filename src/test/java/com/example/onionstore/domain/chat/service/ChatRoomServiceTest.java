@@ -3,6 +3,7 @@ package com.example.onionstore.domain.chat.service;
 import com.example.onionstore.domain.chat.dto.request.ChatRoomCreateRequest;
 import com.example.onionstore.domain.chat.dto.response.ChatRoomCreateResponse;
 import com.example.onionstore.domain.chat.dto.response.ChatRoomListResponse;
+import com.example.onionstore.domain.chat.dto.response.ChatRoomStatusUpdateResponse;
 import com.example.onionstore.domain.chat.entity.ChatRoom;
 import com.example.onionstore.domain.chat.entity.ChatRoomStatus;
 import com.example.onionstore.domain.chat.repository.ChatRoomRepository;
@@ -53,7 +54,8 @@ class ChatRoomServiceTest {
         User admin = userRepository.save(
                 new User("admin@test.com", "pw", "관리자", "01000000000", Role.ADMIN));
 
-        assertThatThrownBy(() -> chatRoomService.createRoom(
+        assertThatThrownBy(() ->
+                chatRoomService.createRoom(
                 admin.getId(), new ChatRoomCreateRequest("문의")))
                 .isInstanceOf(BusinessException.class);
     }
@@ -126,7 +128,8 @@ class ChatRoomServiceTest {
         User stranger = userRepository.save(new User("d3@test.com", "pw", "남", "01000000003", Role.CUSTOMER));
         ChatRoom room = chatRoomRepository.save(new ChatRoom(owner, "문의"));
 
-        assertThatThrownBy(() -> chatRoomService.getRoom(stranger.getId(), room.getId()))
+        assertThatThrownBy(() ->
+                chatRoomService.getRoom(stranger.getId(), room.getId()))
                 .isInstanceOf(BusinessException.class);
     }
 
@@ -147,7 +150,56 @@ class ChatRoomServiceTest {
     void getRoom_notFound() {
         User customer = userRepository.save(new User("d6@test.com", "pw", "고객", "01000000006", Role.CUSTOMER));
 
-        assertThatThrownBy(() -> chatRoomService.getRoom(customer.getId(), 999L))
+        assertThatThrownBy(() ->
+                chatRoomService.getRoom(customer.getId(), 999L))
+                .isInstanceOf(BusinessException.class);
+    }
+
+    @Test
+    @DisplayName("관리자가 대기중 방을 처리중으로 변경한다.")
+    void updateStatus_success(){
+        User admin = userRepository.save(new User("s1@test.com","pw","관리자","01000000011",Role.ADMIN));
+        User customer = userRepository.save(new User("s2@test.com", "pw","고객","01000000012",Role.CUSTOMER));
+        ChatRoom room = chatRoomRepository.save(new ChatRoom(customer,"문의"));
+
+        ChatRoomStatusUpdateResponse response =
+                chatRoomService.updateStatus(admin.getId(), room.getId(), ChatRoomStatus.IN_PROGRESS);
+        assertThat(response.getStatus()).isEqualTo(ChatRoomStatus.IN_PROGRESS);
+        assertThat(response.getRoomId()).isEqualTo(room.getId());
+    }
+
+    @Test
+    @DisplayName("완료된 문의는 상태를 되돌릴 수 없다.")
+    void updateStatus_completed_blocked(){
+        User admin = userRepository.save(new User("s3@tset.com","pw","관리자","01000000013",Role.ADMIN));
+        User customer = userRepository.save(new User("s4@test.com","pw","고객","01000000014",Role.CUSTOMER));
+        ChatRoom room = chatRoomRepository.save(new ChatRoom(customer,"문의"));
+        room.changeStatus(ChatRoomStatus.COMPLETED);
+        chatRoomRepository.save(room);
+
+        assertThatThrownBy(() ->
+                chatRoomService.updateStatus(admin.getId(), room.getId(), ChatRoomStatus.WAITING))
+                .isInstanceOf(BusinessException.class);
+    }
+
+    @Test
+    @DisplayName("관리자가 아니면 상태 변경 할 수 없다.")
+    void updateStatus_notAdmin_rejected(){
+        User customer = userRepository.save(new User("s5@test.com", "pw", "고객", "01000000015", Role.CUSTOMER));
+        ChatRoom room = chatRoomRepository.save(new ChatRoom(customer,"문의"));
+
+        assertThatThrownBy(() ->
+                chatRoomService.updateStatus(customer.getId(), room.getId(), ChatRoomStatus.IN_PROGRESS))
+                .isInstanceOf(BusinessException.class);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 방의 상태를 변경하면 예외가 발생한다.")
+    void updateStatus_roomNoFound(){
+        User admin = userRepository.save(new User ("s6@test.com", "pw", "관리자", "01000000016", Role.ADMIN));
+
+        assertThatThrownBy(() ->
+                chatRoomService.updateStatus(admin.getId(), 999L, ChatRoomStatus.IN_PROGRESS))
                 .isInstanceOf(BusinessException.class);
     }
 }
