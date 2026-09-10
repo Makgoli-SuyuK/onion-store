@@ -53,11 +53,6 @@ public class CartItem extends BaseTimeEntity {
         this.quantity += quantity;
     }
 
-    public void changeQuantity(int quantity) { // 장바구니 항목의 수량을 요청한 값으로 바꾼다.
-        validateQuantity(quantity);
-        this.quantity = quantity;
-    }
-
     private void validateQuantity(int quantity) { // 생성과 수량 변경 모두에서 1개 이상 규칙을 보장한다.
         if (quantity < 1) {
             throw new BusinessException(ErrorCode.INVALID_CART_ITEM_QUANTITY);

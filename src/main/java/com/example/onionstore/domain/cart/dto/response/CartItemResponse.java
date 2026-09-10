@@ -4,7 +4,7 @@ import com.example.onionstore.domain.cart.entity.CartItem;
 import com.example.onionstore.domain.product.entity.Product;
 
 public record CartItemResponse(
-        Long cartItem,
+        Long cartItemId,
         Long productId,
         String productName,
         long productPrice,

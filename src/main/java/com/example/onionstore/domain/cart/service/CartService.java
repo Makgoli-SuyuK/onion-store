@@ -22,9 +22,9 @@ public class CartService {
     public CartItemResponse addItem(User user, Product product, int quantity) {
         Cart cart = findOrCreateCart(user);
         CartItem cartItem = cartItemRepository.findByCartIdAndProductId(cart.getId(), product.getId())
-                .map(exisitingItem -> {
-                    exisitingItem.addQuantity(quantity);
-                    return exisitingItem;
+                .map(existingItem -> {
+                    existingItem.addQuantity(quantity);
+                    return existingItem;
                 })
                 .orElseGet(() -> cartItemRepository.save(new CartItem(cart, product, quantity)));
         return CartItemResponse.from(cartItem);
