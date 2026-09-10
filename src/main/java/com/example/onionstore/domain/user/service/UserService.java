@@ -38,7 +38,8 @@ public class UserService {
         user.updatePassword(passwordEncoder.encode(newPassword));
     }
 
-    private User findUser(Long userId) {
+    @Transactional(readOnly = true)
+    public User findUser(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
     }

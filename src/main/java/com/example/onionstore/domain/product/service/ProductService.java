@@ -5,6 +5,7 @@ import com.example.onionstore.domain.product.dto.ProductCreateRequest;
 import com.example.onionstore.domain.product.dto.ProductResponse;
 import com.example.onionstore.domain.product.dto.ProductSimpleResponse;
 import com.example.onionstore.domain.product.entity.Product;
+import com.example.onionstore.domain.product.entity.ProductStatus;
 import com.example.onionstore.domain.product.repository.ProductRepository;
 import com.example.onionstore.domain.product.repository.dto.ProductSearchConditions;
 import com.example.onionstore.global.exception.BusinessException;
@@ -78,5 +79,18 @@ public class ProductService {
     private Product findProductForUpdate(Long productId) {
         return productRepository.findByIdForUpdate(productId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
+    }
+
+    @Transactional(readOnly = true)
+    public Product getProductForCart(Long productId,int quantity) { // 존재하고 판매 중인 상품만 장바구니 도메인에 전달한다.
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
+        if (product.isDeleted() || product.getStatus() != ProductStatus.SELLING) {
+            throw new BusinessException(ErrorCode.PRODUCT_NOT_SELLING);
+        }
+        if (product.getStock() < quantity) {
+            throw new BusinessException(ErrorCode.PRODUCT_OUT_OF_STOCK);
+        }
+        return product;
     }
 }
