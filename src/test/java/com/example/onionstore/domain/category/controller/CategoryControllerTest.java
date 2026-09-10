@@ -6,17 +6,20 @@ import com.example.onionstore.domain.category.entity.Category;
 import com.example.onionstore.domain.category.service.CategoryService;
 import com.example.onionstore.global.exception.BusinessException;
 import com.example.onionstore.global.exception.ErrorCode;
+import com.example.onionstore.global.security.DeletedUserTokenFilter;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.willThrow;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +29,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(CategoryController.class)
+@WebMvcTest(
+        value = CategoryController.class,
+        excludeFilters = {
+                @ComponentScan.Filter(
+                        type = FilterType.ASSIGNABLE_TYPE,
+                        classes = DeletedUserTokenFilter.class
+                )
+        }
+)
 class CategoryControllerTest {
     @Autowired
     private MockMvc mockMvc;

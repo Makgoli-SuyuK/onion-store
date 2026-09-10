@@ -1,5 +1,7 @@
 package com.example.onionstore.domain.payment.service;
 
+import com.example.onionstore.domain.order.entity.Order;
+import com.example.onionstore.domain.payment.dto.CreatePaymentResponse;
 import com.example.onionstore.domain.payment.dto.GetPaymentInfoResponse;
 import com.example.onionstore.domain.payment.dto.PaymentStateChangeResponse;
 import com.example.onionstore.domain.payment.entity.Payment;
@@ -17,6 +19,14 @@ import java.time.LocalDateTime;
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
+
+    // 주문 생성 흐름에서 저장된 주문과 서버계산 금액을 전달.
+    @Transactional
+    public CreatePaymentResponse createPayment(Order order, long amount) {
+        Payment payment = new Payment(order, amount);
+        Payment createdPayment = paymentRepository.save(payment);
+        return CreatePaymentResponse.from(createdPayment);
+    }
 
     @Transactional(readOnly = true)
     public GetPaymentInfoResponse getPaymentByOrderId(Long orderId) {
