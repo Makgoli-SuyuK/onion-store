@@ -2,6 +2,7 @@ package com.example.onionstore.domain.user.controller;
 
 import com.example.onionstore.domain.user.dto.UserMeResponse;
 import com.example.onionstore.domain.user.dto.UserProfileUpdateRequest;
+import com.example.onionstore.domain.user.dto.PasswordChangeRequest;
 import com.example.onionstore.domain.user.service.UserService;
 import jakarta.validation.Valid;
 import com.example.onionstore.global.dto.ApiResponse;
@@ -33,5 +34,14 @@ public class UserController {
             @Valid @RequestBody UserProfileUpdateRequest request) {
         UserMeResponse response = userService.updateProfile(Long.valueOf(jwt.getSubject()), request);
         return ResponseEntity.ok(ApiResponse.success("내 정보 수정에 성공했습니다.", response));
+    }
+
+    @PatchMapping("/me/password")
+    public ResponseEntity<ApiResponse<Void>> changePassword(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody PasswordChangeRequest request) {
+        userService.changePassword(Long.valueOf(jwt.getSubject()),
+                request.currentPassword(), request.newPassword());
+        return ResponseEntity.ok(ApiResponse.success("비밀번호 변경에 성공했습니다.", null));
     }
 }

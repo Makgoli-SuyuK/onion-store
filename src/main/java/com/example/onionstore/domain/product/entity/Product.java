@@ -70,4 +70,35 @@ public class Product extends BaseTimeEntity {
     public static Product create(Category category, String name, String description, long price, int stock) {
         return new Product(category, name, description, price, stock);
     }
+
+    public void decreaseStock(int quantity) {
+        validateQuantity(quantity);
+
+        if (status != ProductStatus.SELLING) {
+            throw new BusinessException(ErrorCode.PRODUCT_NOT_SELLING);
+        }
+        if (stock < quantity) {
+            throw new BusinessException(ErrorCode.PRODUCT_OUT_OF_STOCK);
+        }
+
+        stock -= quantity;
+        if (stock == 0) {
+            status = ProductStatus.SOLD_OUT;
+        }
+    }
+
+    public void restoreStock(int quantity) {
+        validateQuantity(quantity);
+
+        stock += quantity;
+        if (status == ProductStatus.SOLD_OUT) {
+            status = ProductStatus.SELLING;
+        }
+    }
+
+    private void validateQuantity(int quantity) {
+        if (quantity <= 0) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+    }
 }

@@ -10,6 +10,9 @@ import java.util.Optional;
 
 public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
 
+    @Query("SELECT oi FROM OrderItem oi WHERE oi.order.id IN :orderIds")
+    List<OrderItem> findAllByOrder_IdIn(@Param("orderIds") List<Long> orderIds);
+
     @Query("SELECT oi FROM OrderItem oi WHERE oi.order.id = :orderId")
-    List<OrderItem> findAllByOrderId(@Param("orderId")Long orderId);
+    List<OrderItem> findAllByOrderId(@Param("orderId") Long orderId);
 }

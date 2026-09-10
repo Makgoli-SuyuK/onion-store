@@ -42,4 +42,21 @@ public class ProductService {
     public boolean existsByCategoryId(Long categoryId) {
         return false;
     }
+
+    @Transactional
+    public void decreaseStock(Long productId, int quantity) {
+        Product product = findProductForUpdate(productId);
+        product.decreaseStock(quantity);
+    }
+
+    @Transactional
+    public void restoreStock(Long productId, int quantity) {
+        Product product = findProductForUpdate(productId);
+        product.restoreStock(quantity);
+    }
+
+    private Product findProductForUpdate(Long productId) {
+        return productRepository.findByIdForUpdate(productId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
+    }
 }

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +29,7 @@ public class PaymentService {
         return CreatePaymentResponse.from(createdPayment);
     }
 
+    // 주문조회시 필요한 결제정보 조회
     @Transactional(readOnly = true)
     public GetPaymentInfoResponse getPaymentByOrderId(Long orderId) {
         Payment payment = paymentRepository.findByOrderId(orderId).orElseThrow(
@@ -35,6 +37,15 @@ public class PaymentService {
         );
 
         return GetPaymentInfoResponse.from(payment);
+    }
+
+    // 전체주문조회시 필요한 결제정보 한번에 조회
+    @Transactional(readOnly = true)
+    public List<GetPaymentInfoResponse> getPaymentsByOrderIds(List<Long> orderIds) {
+        return paymentRepository.findAllByOrder_IdIn(orderIds)
+                .stream()
+                .map(GetPaymentInfoResponse::from)
+                .toList();
     }
 
     // 포트원 성공 결과 검증 결과를 내부 호출자가 사용
