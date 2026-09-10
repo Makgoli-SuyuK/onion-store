@@ -14,5 +14,5 @@ public class ChatRoomListResponse {
     private String title;
     private ChatRoomStatus status;
     private Long customerId;
-    private LocalDateTime createdDate;
+    private LocalDateTime createdAt;
 }

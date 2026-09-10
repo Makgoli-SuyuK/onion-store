@@ -2,6 +2,7 @@ package com.example.onionstore.domain.user.service;
 
 import com.example.onionstore.domain.user.dto.SignupRequest;
 import com.example.onionstore.domain.user.dto.SignupResponse;
+import com.example.onionstore.domain.user.dto.UserMeResponse;
 import com.example.onionstore.domain.user.entity.User;
 import com.example.onionstore.domain.user.repository.UserRepository;
 import com.example.onionstore.global.exception.BusinessException;
@@ -45,5 +46,12 @@ public class AuthService {
             throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
         }
         return user;
+    }
+
+    @Transactional(readOnly = true)
+    public UserMeResponse getMe(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        return UserMeResponse.from(user);
     }
 }
