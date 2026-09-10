@@ -75,7 +75,7 @@ class SignupIntegrationTest {
 
     @Test
     void passwordValidationUsesUtf8Bytes() throws Exception {
-        for (String password : new String[]{"", "a".repeat(73), "가".repeat(25)}) {
+        for (String password : new String[]{"", "   ", "a".repeat(73), "가".repeat(25)}) {
             mvc.perform(post("/api/auth/signup").contentType(MediaType.APPLICATION_JSON).content(body(password)))
                     .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("COMMON_002"));
         }

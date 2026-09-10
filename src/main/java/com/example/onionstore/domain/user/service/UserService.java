@@ -38,6 +38,15 @@ public class UserService {
         user.updatePassword(passwordEncoder.encode(newPassword));
     }
 
+    @Transactional
+    public void withdraw(Long userId, String password) {
+        User user = findUser(userId);
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
+        }
+        user.withdraw();
+    }
+
     private User findUser(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
