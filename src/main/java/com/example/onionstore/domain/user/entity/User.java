@@ -68,4 +68,8 @@ public class User extends BaseTimeEntity {
         this.password = password;
     }
 
+    public void withdraw() {
+        this.status = UserStatus.DELETED;
+    }
+
 }
