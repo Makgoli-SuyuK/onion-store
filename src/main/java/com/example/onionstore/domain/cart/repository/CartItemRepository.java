@@ -8,6 +8,8 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
+import java.util.Optional;
+
 public interface CartItemRepository extends JpaRepository<CartItem, Long> {
 
     @Query("SELECT ci FROM CartItem ci JOIN FETCH ci.product WHERE ci.cart.user.id = :userId")
@@ -19,4 +21,8 @@ public interface CartItemRepository extends JpaRepository<CartItem, Long> {
     @Modifying
     @Query("DELETE FROM CartItem ci WHERE ci.id IN :ids AND ci.cart.user.id = :userId")
     int deleteAllByIdInAndCart_User_Id(@Param("ids") List<Long> ids, @Param("userId") Long userId);
+
+    Optional<CartItem> findByCartIdAndProductId(Long cartId, Long productId);
+
+
 }
