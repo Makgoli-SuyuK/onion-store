@@ -1,9 +1,9 @@
 package com.example.onionstore.domain.product.service;
 
 import com.example.onionstore.domain.category.entity.Category;
-import com.example.onionstore.domain.category.service.CategoryService;
 import com.example.onionstore.domain.product.dto.ProductCreateRequest;
 import com.example.onionstore.domain.product.entity.Product;
+import com.example.onionstore.domain.product.entity.ProductStatus;
 import com.example.onionstore.domain.product.repository.ProductRepository;
 import com.example.onionstore.global.exception.BusinessException;
 import com.example.onionstore.global.exception.ErrorCode;
@@ -58,5 +58,15 @@ public class ProductService {
     private Product findProductForUpdate(Long productId) {
         return productRepository.findByIdForUpdate(productId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
+    }
+
+    @Transactional(readOnly = true)
+    public Product getProductForCart(Long productId) { // 존재하고 판매 중인 상품만 장바구니 도메인에 전달한다.
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
+        if (product.isDeleted() || product.getStatus() != ProductStatus.SELLING) {
+            throw new BusinessException(ErrorCode.PRODUCT_NOT_SELLING);
+        }
+        return product;
     }
 }
