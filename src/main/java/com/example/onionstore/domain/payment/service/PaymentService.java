@@ -3,8 +3,10 @@ package com.example.onionstore.domain.payment.service;
 import com.example.onionstore.domain.order.entity.Order;
 import com.example.onionstore.domain.payment.dto.CreatePaymentResponse;
 import com.example.onionstore.domain.payment.dto.GetPaymentInfoResponse;
+import com.example.onionstore.domain.payment.dto.PaymentConfirmationInfo;
 import com.example.onionstore.domain.payment.dto.PaymentStateChangeResponse;
 import com.example.onionstore.domain.payment.entity.Payment;
+import com.example.onionstore.domain.payment.entity.PaymentStatus;
 import com.example.onionstore.domain.payment.repository.PaymentRepository;
 import com.example.onionstore.global.exception.BusinessException;
 import com.example.onionstore.global.exception.ErrorCode;
@@ -12,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -46,6 +47,28 @@ public class PaymentService {
                 .stream()
                 .map(GetPaymentInfoResponse::from)
                 .toList();
+    }
+
+    // 요청한 주문·결제 연결과 소유권, 검증 기준값을 조회한다.
+    @Transactional(readOnly = true)
+    public PaymentConfirmationInfo getPaymentConfirmationInfo(
+            Long userId,
+            Long orderId,
+            String portonePaymentId
+    ) {
+        Payment payment = paymentRepository.findByPortonePaymentIdAndOrderIdWithOrderAndUser(
+                        portonePaymentId,
+                        orderId
+                )
+                .orElseThrow(() -> new BusinessException(ErrorCode.PAYMENT_NOT_FOUND));
+        if (!payment.getOrder().getUser().getId().equals(userId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN_ROLE);
+        }
+        if (payment.getStatus() == PaymentStatus.FAILED
+                || payment.getStatus() == PaymentStatus.CANCELLED) {
+            throw new BusinessException(ErrorCode.PAYMENT_ALREADY_PROCESSED);
+        }
+        return PaymentConfirmationInfo.from(payment);
     }
 
     // 포트원 성공 결과 검증 결과를 내부 호출자가 사용
