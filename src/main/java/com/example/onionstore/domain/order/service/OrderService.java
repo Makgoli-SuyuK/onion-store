@@ -3,6 +3,7 @@ package com.example.onionstore.domain.order.service;
 import com.example.onionstore.domain.order.dto.*;
 import com.example.onionstore.domain.order.entity.Order;
 import com.example.onionstore.domain.order.entity.OrderItem;
+import com.example.onionstore.domain.order.entity.OrderStatus;
 import com.example.onionstore.domain.order.repository.OrderItemRepository;
 import com.example.onionstore.domain.order.repository.OrderRepository;
 import com.example.onionstore.domain.payment.dto.GetPaymentInfoResponse;
@@ -102,6 +103,7 @@ public class OrderService {
         });
     }
 
+    @Transactional
     public List<OrderItem> findOrderItemsByOrderId(Long orderId) {
         return orderItemRepository.findAllByOrderId(orderId);
     }
@@ -118,9 +120,21 @@ public class OrderService {
         return order.cancel();
     }
 
+    @Transactional
     public Order findById(Long orderId) {
         return orderRepository.findByIdForUpdate(orderId).
                 orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
+    }
+
+    // 주문 상태 변경
+    @Transactional
+    public ChangeOrderStatusResponse changeOrder(Long orderId, ChangeOrderStatusRequest request) {
+        Order order = orderRepository.findByIdForUpdate(orderId).orElseThrow(
+                () -> new BusinessException(ErrorCode.ORDER_NOT_FOUND)
+        );
+        OrderStatus previousStatus = order.getStatus();
+        order.adminChangeOrderStatus(request.status());
+        return ChangeOrderStatusResponse.from(order, previousStatus);
     }
 
     private Order findOrderForUpdate(Long orderId) {

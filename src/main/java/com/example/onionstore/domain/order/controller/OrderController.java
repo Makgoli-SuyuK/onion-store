@@ -3,7 +3,10 @@ package com.example.onionstore.domain.order.controller;
 import com.example.onionstore.domain.order.dto.*;
 import com.example.onionstore.domain.order.facade.OrderFacade;
 import com.example.onionstore.domain.order.service.OrderService;
+import com.example.onionstore.domain.user.entity.Role;
 import com.example.onionstore.global.dto.ApiResponse;
+import com.example.onionstore.global.exception.BusinessException;
+import com.example.onionstore.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -62,5 +65,19 @@ public class OrderController {
     ) {
         Long userId = Long.valueOf(jwt.getSubject());
         return ResponseEntity.ok(ApiResponse.success(orderFacade.cancelOrder(userId, orderId)));
+    }
+
+    // 관리자 주문 상태 변경
+    @PatchMapping("/admin/{orderId}")
+    public ResponseEntity<ApiResponse<ChangeOrderStatusResponse>> changeOrder(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable Long orderId,
+            @RequestBody ChangeOrderStatusRequest request
+    ) {
+        if (!jwt.getClaimAsString("role").equals(Role.ADMIN.toString())) {
+            throw new BusinessException(ErrorCode.FORBIDDEN_ROLE);
+        }
+        Long userId = Long.valueOf(jwt.getSubject());
+        return ResponseEntity.ok(ApiResponse.success(orderService.changeOrder(orderId, request)));
     }
 }

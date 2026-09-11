@@ -109,7 +109,7 @@ public class OrderFacade {
         Order order = orderService.findById(orderId);
 
         if (!order.getUser().getId().equals(userId)) {
-            throw new BusinessException(ErrorCode.FORBIDDEN_ROLE);
+            throw new BusinessException(ErrorCode.ORDER_ACCESS_DENIED);
         }
 
         Payment payment = paymentService.findByOrderId(orderId);

@@ -4,6 +4,7 @@ import com.example.onionstore.domain.category.entity.Category;
 import com.example.onionstore.domain.order.dto.*;
 import com.example.onionstore.domain.order.entity.Order;
 import com.example.onionstore.domain.order.entity.OrderItem;
+import com.example.onionstore.domain.order.entity.OrderStatus;
 import com.example.onionstore.domain.order.repository.OrderItemRepository;
 import com.example.onionstore.domain.order.repository.OrderRepository;
 import com.example.onionstore.domain.payment.dto.GetPaymentInfoResponse;
@@ -11,6 +12,7 @@ import com.example.onionstore.domain.payment.entity.Payment;
 import com.example.onionstore.domain.payment.entity.PaymentStatus;
 import com.example.onionstore.domain.payment.service.PaymentService;
 import com.example.onionstore.domain.product.entity.Product;
+import com.example.onionstore.domain.user.entity.Role;
 import com.example.onionstore.domain.user.entity.User;
 import com.example.onionstore.global.exception.BusinessException;
 import com.example.onionstore.global.exception.ErrorCode;
@@ -23,40 +25,28 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class OrderServiceTest {
 
-    @Mock
-    private OrderRepository orderRepository;
+    @Mock private OrderRepository orderRepository;
+    @Mock private OrderItemRepository orderItemRepository;
+    @Mock private PaymentService paymentService;
+    @Mock private User user;
+    @Mock private User user2;
+    @Mock private Order order;
+    @Mock private Order order2;
 
-    @Mock
-    private OrderItemRepository orderItemRepository;
-
-    @Mock
-    private PaymentService paymentService;
-
-    @Mock
-    private User user;
-
-    @Mock
-    private User user2;
-
-    @Mock
-    private Order order;
-
-    @Mock
-    private Order order2;
-
-    @InjectMocks
-    private OrderService orderService;
+    @InjectMocks private OrderService orderService;
 
     @Test
     void 정상적인_주문_상세조회() {
@@ -233,5 +223,43 @@ class OrderServiceTest {
         assertEquals(paymentInfo.paidAt(), orderResult.paidAt());
         assertEquals(order2.getId(), order2Result.orderId());
         assertNull(order2Result.paidAt());
+    }
+
+    @Test
+    void 관리자_주문상태_정상변경() {
+        // given
+        Long orderId = 1L;
+
+        User user = new User("test@test.com", "1234", "테스트", "010-0000-0000", Role.CUSTOMER);
+
+        Order order = new Order(user, 1000);
+        ReflectionTestUtils.setField(order, "id", orderId);
+        ChangeOrderStatusRequest request = new ChangeOrderStatusRequest(OrderStatus.PAID);
+        when(orderRepository.findByIdForUpdate(orderId)).thenReturn(Optional.of(order));
+
+        // when
+        ChangeOrderStatusResponse result = orderService.changeOrder(orderId, request);
+
+        // then
+        assertEquals(orderId, result.orderId());
+        assertEquals(OrderStatus.PENDING, result.previousStatus());
+        assertEquals(OrderStatus.PAID, result.status());
+        verify(orderRepository).findByIdForUpdate(orderId);
+    }
+
+    @Test
+    void 존재하지_않는_주문은_상태를_변경할_수_없다() {
+        // given
+        Long orderId = 1L;
+        ChangeOrderStatusRequest request = new ChangeOrderStatusRequest(OrderStatus.PAID);
+
+        when(orderRepository.findByIdForUpdate(orderId)).thenReturn(Optional.empty());
+
+        // when
+        BusinessException exception = assertThrows(BusinessException.class, () -> orderService.changeOrder(orderId, request));
+
+        // then
+        assertEquals(ErrorCode.ORDER_NOT_FOUND, exception.getErrorCode());
+        verify(orderRepository).findByIdForUpdate(orderId);
     }
 }
