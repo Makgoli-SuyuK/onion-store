@@ -1,11 +1,13 @@
 package com.example.onionstore.domain.product.controller;
 
+import com.example.onionstore.config.TestWebSecurityConfig;
 import com.example.onionstore.domain.category.entity.Category;
 import com.example.onionstore.domain.product.dto.ProductCreateRequest;
+import com.example.onionstore.domain.product.dto.ProductEditRequest;
 import com.example.onionstore.domain.product.dto.ProductResponse;
-import com.example.onionstore.domain.product.entity.Product;
-import com.example.onionstore.domain.product.facade.ProductFacade;
 import com.example.onionstore.domain.product.dto.ProductSimpleResponse;
+import com.example.onionstore.domain.product.entity.Product;
+import com.example.onionstore.domain.product.entity.ProductStatus;
 import com.example.onionstore.domain.product.facade.ProductFacade;
 import com.example.onionstore.domain.product.repository.dto.ProductSearchConditions;
 import com.example.onionstore.domain.product.service.ProductService;
@@ -17,22 +19,25 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.BDDMockito.given;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -45,14 +50,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
                 )
         }
 )
+@Import(TestWebSecurityConfig.class)
 class ProductControllerTest {
+
     @Autowired
     private MockMvc mockMvc;
     @MockitoBean
     private ProductService productService;
     @MockitoBean
     private ProductFacade productFacade;
-
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Test
@@ -160,5 +166,65 @@ class ProductControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.content.[0].name").value("name"))
                 .andExpect(jsonPath("$.data.content.[0].categoryName").value("category"));
+    }
+
+    @Test
+    @DisplayName("PATCH /api/products/{productId} - 상품 수정 api 테스트")
+    void 상품_수정_api_테스트() throws Exception {
+        //given
+        ProductEditRequest editRequest = new ProductEditRequest(
+                "name",
+                "description",
+                1000L,
+                10,
+                ProductStatus.SELLING.name()
+        );
+
+        ProductResponse res = new ProductResponse(
+                1L,
+                "category",
+                "name",
+                "description",
+                1000L,
+                10,
+                10L,
+                ProductStatus.SELLING.name(),
+                LocalDateTime.now(),
+                LocalDateTime.now()
+        );
+
+        given(productFacade.editProduct(anyLong(), anyLong(), any(ProductEditRequest.class))).willReturn(res);
+
+        //when&then
+        mockMvc.perform(patch("/api/products/1")
+                        .with(jwt().jwt(jwt -> jwt
+                                .tokenValue("mock-token")
+                                .subject("1"))
+                                .authorities(new SimpleGrantedAuthority("ROLE_ADMIN")))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(editRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.name").value("name"));
+    }
+
+    @Test
+    @DisplayName("PATCH /api/products/{productId} - 재고 값이 0보다 작으면 에러 반환")
+    void 상품_수정_시_재고_값이_0보다_작으면_에러_반환() throws Exception {
+        //given
+        ProductEditRequest editRequest = new ProductEditRequest(
+                "name",
+                "description",
+                1000L,
+                -1,
+                ProductStatus.SELLING.name()
+        );
+
+        //when&then
+        mockMvc.perform(patch("/api/products/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(editRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(ErrorCode.INVALID_INPUT_VALUE.getMessage()));
     }
 }
