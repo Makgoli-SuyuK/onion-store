@@ -79,6 +79,19 @@ public class ProductService {
     }
 
     @Transactional
+    public void deleteProduct(Long productId) {
+        Product toDelete = findProductForUpdate(productId);
+
+        if (toDelete.isDeleted()) {
+            throw new BusinessException(ErrorCode.PRODUCT_NOT_FOUND);
+        }
+
+        toDelete.markAsDeleted();
+
+        productRepository.save(toDelete);
+    }
+  
+    @Transactional
     public ProductResponse editProduct(Long productId, ProductEditRequest editRequest) {
         Product product = findProductForUpdate(productId);
 

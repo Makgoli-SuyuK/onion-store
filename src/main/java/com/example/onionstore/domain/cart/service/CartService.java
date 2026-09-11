@@ -55,6 +55,22 @@ public class CartService {
         return cartItemRepository.findByIdInAndCart_User_IdWithProduct(cartItemIds, userId);
     }
 
+    @Transactional(readOnly = true)
+    public CartItem findCartItem(Long userId, Long cartItemId) {
+        CartItem cartItem = cartItemRepository.findById(cartItemId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CART_ITEM_NOT_FOUND));
+        if (!cartItem.getCart().getUser().getId().equals(userId)) {
+            throw new BusinessException(ErrorCode.CART_ITEM_ACCESS_DENIED);
+        }
+        return cartItem;
+    }
+
+    @Transactional
+    public CartItemResponse updateQuantity(CartItem cartItem, int quantity) {
+        cartItem.updateQuantity(quantity);
+        return CartItemResponse.from(cartItem);
+    }
+
     private Cart findOrCreateCart(User user) { // 첫 상품 추가 요청이면 사용자 장바구니를 함께 만든다.
         return cartRepository.findByUserId(user.getId())
                 .orElseGet(() -> cartRepository.save(new Cart(user)));

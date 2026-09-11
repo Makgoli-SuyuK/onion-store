@@ -4,7 +4,6 @@ import com.example.onionstore.domain.product.dto.ProductCreateRequest;
 import com.example.onionstore.domain.product.dto.ProductEditRequest;
 import com.example.onionstore.domain.product.dto.ProductResponse;
 import com.example.onionstore.domain.product.dto.ProductResponse;
-import com.example.onionstore.domain.product.entity.Product;
 import com.example.onionstore.domain.product.dto.ProductSimpleResponse;
 import com.example.onionstore.domain.product.facade.ProductFacade;
 import com.example.onionstore.domain.product.repository.dto.ProductSearchConditions;
@@ -15,7 +14,6 @@ import com.example.onionstore.global.exception.ErrorCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -69,6 +67,23 @@ public class ProductController {
                 ApiResponse.success(productService.searchWithConditions(conditions, page, size)));
     }
 
+    @DeleteMapping("/{productId}")
+    public ResponseEntity<ApiResponse<Void>> deleteProduct(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable Long productId
+    ) {
+      
+        if (jwt == null || jwt.getSubject() == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED);
+        }
+
+        Long userId = Long.valueOf(jwt.getSubject());
+
+        productFacade.deleteProduct(userId, productId);
+      
+        return ResponseEntity.ok(ApiResponse.success("상품 삭제에 성공했습니다.", null));
+    }
+  
     @PatchMapping("/{productId}")
     public ResponseEntity<ApiResponse<ProductResponse>> editProduct(
             @AuthenticationPrincipal Jwt jwt,
