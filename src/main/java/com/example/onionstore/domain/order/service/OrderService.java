@@ -3,10 +3,12 @@ package com.example.onionstore.domain.order.service;
 import com.example.onionstore.domain.order.dto.*;
 import com.example.onionstore.domain.order.entity.Order;
 import com.example.onionstore.domain.order.entity.OrderItem;
+import com.example.onionstore.domain.order.entity.OrderStatus;
 import com.example.onionstore.domain.order.repository.OrderItemRepository;
 import com.example.onionstore.domain.order.repository.OrderRepository;
 import com.example.onionstore.domain.payment.dto.GetPaymentInfoResponse;
 import com.example.onionstore.domain.payment.service.PaymentService;
+import com.example.onionstore.domain.user.entity.Role;
 import com.example.onionstore.domain.user.entity.User;
 import com.example.onionstore.global.exception.BusinessException;
 import com.example.onionstore.global.exception.ErrorCode;
@@ -36,21 +38,19 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
-    // 개인회원 주문 상세 조회
-    public GetOrderResponse getOne(Long userId, Long orderId) {
+    // 개인회원 + 관리자 주문 상세 조회
+    public GetOrderResponse getOne(Long userId, Long orderId, Role role) {
 
         Order order = orderRepository.findById(orderId).orElseThrow(
                 () -> new BusinessException(ErrorCode.ORDER_NOT_FOUND)
         );
 
-        if (!userId.equals(order.getUser().getId())) {
+        if (!userId.equals(order.getUser().getId()) && role != Role.ADMIN) {
             throw new BusinessException(ErrorCode.FORBIDDEN_ROLE);
         }
 
         GetPaymentInfoResponse paymentInfo = paymentService.getPaymentByOrderId(orderId);
-
         List<OrderItem> orderItems = orderItemRepository.findAllByOrderId(orderId);
-
         List<GetOrderItemResponse> getOrderItems = orderItems.stream()
                 .map(GetOrderItemResponse::from)
                 .toList();
@@ -58,11 +58,24 @@ public class OrderService {
         return GetOrderResponse.from(order, paymentInfo, getOrderItems);
     }
 
-    // 개인회원 주문 전체 조회
-    public Page<GetOrderListResponse> getAll(Long userId, Pageable pageable, OrderSearchRequest request) {
-        Page<Order> orders = orderRepository.findAllByUser_IdWithKeyword(userId, pageable, request);
+    // 개인회원 + 관리자 주문 전체 조회
+    public Page<GetOrderListResponse> getAll(Long userId, Pageable pageable, OrderSearchRequest request, Long customerId, Role role) {
 
-        // 1. 현재 페이지의 주문 ID를 한 번에 추출
+        if (customerId == null && role == Role.CUSTOMER) {
+            customerId = userId;
+        }
+
+        if (role == Role.ADMIN && customerId == null) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+
+        if (!userId.equals(customerId) && role != Role.ADMIN) {
+            throw new BusinessException(ErrorCode.FORBIDDEN_ROLE);
+        }
+
+        Page<Order> orders = orderRepository.findAllByUser_IdWithKeyword(customerId, pageable, request);
+
+        // 1. 현재 페이지의 주문 ID를 한 번에 추출 -> getContent()는 페이지의 order들 뽑아냄
         List<Long> orderIds = orders.getContent().stream()
                 .map(Order::getId)
                 .toList();
@@ -91,6 +104,7 @@ public class OrderService {
                                 Function.identity()
                         ));
 
+        // 주문 + 주문상품 + 결제정보 다 합치기
         return orders.map(order -> {
             List<GetOrderListItemResponse> items =
                     orderItemsMap.getOrDefault(order.getId(), List.of());
@@ -102,6 +116,7 @@ public class OrderService {
         });
     }
 
+    @Transactional
     public List<OrderItem> findOrderItemsByOrderId(Long orderId) {
         return orderItemRepository.findAllByOrderId(orderId);
     }
@@ -118,9 +133,21 @@ public class OrderService {
         return order.cancel();
     }
 
+    @Transactional
     public Order findById(Long orderId) {
         return orderRepository.findByIdForUpdate(orderId).
                 orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
+    }
+
+    // 주문 상태 변경
+    @Transactional
+    public ChangeOrderStatusResponse changeOrder(Long orderId, ChangeOrderStatusRequest request) {
+        Order order = orderRepository.findByIdForUpdate(orderId).orElseThrow(
+                () -> new BusinessException(ErrorCode.ORDER_NOT_FOUND)
+        );
+        OrderStatus previousStatus = order.getStatus();
+        order.adminChangeOrderStatus(request.status());
+        return ChangeOrderStatusResponse.from(order, previousStatus);
     }
 
     private Order findOrderForUpdate(Long orderId) {

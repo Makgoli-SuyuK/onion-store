@@ -12,7 +12,6 @@ import com.example.onionstore.domain.order.entity.OrderStatus;
 import com.example.onionstore.domain.order.repository.OrderItemRepository;
 import com.example.onionstore.domain.order.service.OrderService;
 import com.example.onionstore.domain.payment.dto.CreatePaymentResponse;
-import com.example.onionstore.domain.payment.dto.GetPaymentInfoResponse;
 import com.example.onionstore.domain.payment.entity.Payment;
 import com.example.onionstore.domain.payment.entity.PaymentStatus;
 import com.example.onionstore.domain.payment.service.PaymentService;
@@ -72,9 +71,6 @@ public class OrderFacade {
 
         CreatePaymentResponse payment = paymentService.createPayment(order, order.getTotalPrice());
 
-        List<Long> orderedItemIds = cartItems.stream().map(CartItem::getId).toList();
-        cartService.clearCartItems(orderedItemIds, userId);
-
         List<GetOrderListItemResponse> items = orderItems.stream()
                 .map(orderItem -> GetOrderListItemResponse.from(orderItem))
                 .toList();
@@ -109,7 +105,7 @@ public class OrderFacade {
         Order order = orderService.findById(orderId);
 
         if (!order.getUser().getId().equals(userId)) {
-            throw new BusinessException(ErrorCode.FORBIDDEN_ROLE);
+            throw new BusinessException(ErrorCode.ORDER_ACCESS_DENIED);
         }
 
         Payment payment = paymentService.findByOrderId(orderId);
