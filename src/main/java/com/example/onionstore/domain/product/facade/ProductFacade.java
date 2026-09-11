@@ -27,6 +27,14 @@ public class ProductFacade {
         productService.createProduct(createRequest, category);
     }
 
+    public void deleteProduct(Long userId, Long productId) {
+        if (userService.findUser(userId).getRole() != Role.ADMIN) {
+            throw new BusinessException(ErrorCode.FORBIDDEN_ROLE);
+        }
+
+        productService.deleteProduct(productId);
+    }
+  
     public ProductResponse editProduct(Long userId, Long productId, ProductEditRequest editRequest) {
         User user = userService.findUser(userId);
 

@@ -169,6 +169,19 @@ class ProductControllerTest {
     }
 
     @Test
+    @DisplayName("DELETE /api/products/{productId} - 상품 삭제 api 테스트")
+    void 상품_삭제_api_테스트() throws Exception {
+        //when&then
+        mockMvc.perform(delete(("/api/products/1"))
+                        .with(jwt().jwt(jwt -> jwt
+                                        .tokenValue("mock-token")
+                                        .subject("1"))
+                                .authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("상품 삭제에 성공했습니다."));
+    }
+
+    @Test
     @DisplayName("PATCH /api/products/{productId} - 상품 수정 api 테스트")
     void 상품_수정_api_테스트() throws Exception {
         //given

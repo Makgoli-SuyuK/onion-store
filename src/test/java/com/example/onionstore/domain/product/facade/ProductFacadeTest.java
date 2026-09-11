@@ -1,13 +1,17 @@
 package com.example.onionstore.domain.product.facade;
 
+import com.example.onionstore.domain.category.entity.Category;
 import com.example.onionstore.domain.category.service.CategoryService;
 import com.example.onionstore.domain.product.dto.ProductEditRequest;
 import com.example.onionstore.domain.product.dto.ProductResponse;
+import com.example.onionstore.domain.product.entity.Product;
 import com.example.onionstore.domain.product.entity.ProductStatus;
 import com.example.onionstore.domain.product.service.ProductService;
 import com.example.onionstore.domain.user.entity.Role;
 import com.example.onionstore.domain.user.entity.User;
 import com.example.onionstore.domain.user.service.UserService;
+import com.example.onionstore.global.exception.BusinessException;
+import com.example.onionstore.global.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,12 +20,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 public class ProductFacadeTest {
@@ -33,6 +38,34 @@ public class ProductFacadeTest {
     private CategoryService categoryService;
     @InjectMocks
     private ProductFacade productFacade;
+
+    @Test
+    @DisplayName("수정 시도 시 현재 계정이 관리자가 아니면 FORBIDDEN_ROLE을 던진다")
+    void 수정_시_관리자가_아니면_FORBIDDEN_ROLE을_던진다() {
+        //given
+        User user = new User(
+                "test@emali.com",
+                "password",
+                "name",
+                "010-0000-0000",
+                Role.CUSTOMER
+        );
+
+        given(userService.findUser(anyLong())).willReturn(user);
+
+        ProductEditRequest editRequest = new ProductEditRequest(
+                "name",
+                "description",
+                1000L,
+                10,
+                ProductStatus.SELLING.name()
+        );
+
+        //when&then
+        assertThatThrownBy(() -> productFacade.editProduct(1L, 1L, editRequest))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.FORBIDDEN_ROLE.getMessage());
+    }
 
     @Test
     @DisplayName("상품 수정 로직 테스트")
@@ -47,10 +80,10 @@ public class ProductFacadeTest {
         );
 
         ProductEditRequest editRequest = new ProductEditRequest(
-                "test",
-                "desc",
-                1000L,
-                100,
+                "name",
+                "description",
+                10000L,
+                10,
                 ProductStatus.SELLING.name()
         );
 
@@ -77,5 +110,47 @@ public class ProductFacadeTest {
         assertThat(res.price()).isEqualTo(1000L);
         assertThat(res.description()).isEqualTo("description");
         assertThat(res.id()).isEqualTo(1L);
+    }
+
+    @Test
+    @DisplayName("상품 삭제 facade 테스트")
+    void 상품_삭제_성공_테스트() {
+        //given
+        User user = new User(
+                "test@email.com",
+                "password",
+                "name",
+                "010-0000-0000",
+                Role.ADMIN
+        );
+
+        given(userService.findUser(anyLong())).willReturn(user);
+
+        //when
+        productFacade.deleteProduct(1L, 1L);
+
+        //then
+        verify(productService).deleteProduct(1L);
+    }
+
+
+    @Test
+    @DisplayName("상품 삭제 facade 테스트 - 관리자 아님")
+    void 상품_삭제_시_관리자_계정이_아니면_에러_반환() {
+        //given
+        User user = new User(
+                "test@email.com",
+                "password",
+                "name",
+                "010-0000-0000",
+                Role.CUSTOMER
+        );
+
+        given(userService.findUser(anyLong())).willReturn(user);
+
+        //when&then
+        assertThatThrownBy(() -> productFacade.deleteProduct(1L, 1L))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.FORBIDDEN_ROLE.getMessage());
     }
 }
