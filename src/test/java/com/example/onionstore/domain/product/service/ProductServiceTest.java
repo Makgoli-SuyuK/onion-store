@@ -220,6 +220,8 @@ class ProductServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.PRODUCT_NOT_FOUND.getMessage());
     }
+
+    @Test
     @DisplayName("상품 수정 비즈니스 로직 테스트")
     void 상품_수정_성공_테스트() {
         //given

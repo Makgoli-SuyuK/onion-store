@@ -53,42 +53,19 @@ public class ProductFacadeTest {
 
         given(userService.findUser(anyLong())).willReturn(user);
 
+        ProductEditRequest editRequest = new ProductEditRequest(
+                "name",
+                "description",
+                1000L,
+                10,
+                ProductStatus.SELLING.name()
+        );
+
         //when&then
-        assertThatThrownBy(() -> productFacade.deleteProduct(1L, 1L))
+        assertThatThrownBy(() -> productFacade.editProduct(1L, 1L, editRequest))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.FORBIDDEN_ROLE.getMessage());
     }
-
-    @Test
-    @DisplayName("상품 삭제 facade 테스트")
-    void 상품_삭제_성공_테스트() {
-        //given
-        User user = new User(
-                "test@email.com",
-                "password",
-                "name",
-                "010-0000-0000",
-                Role.ADMIN
-        );
-
-        Product product = Product.create(
-                new Category("category"),
-                "name",
-                "description",
-                10000L,
-                10
-        );
-
-        given(userService.findUser(anyLong())).willReturn(user);
-
-        //when
-        productFacade.deleteProduct(1L, 1L);
-
-        //then
-        verify(productService).deleteProduct(anyLong());
-    }
-
-
 
     @Test
     @DisplayName("상품 수정 로직 테스트")
@@ -134,6 +111,28 @@ public class ProductFacadeTest {
         assertThat(res.description()).isEqualTo("description");
         assertThat(res.id()).isEqualTo(1L);
     }
+
+    @Test
+    @DisplayName("상품 삭제 facade 테스트")
+    void 상품_삭제_성공_테스트() {
+        //given
+        User user = new User(
+                "test@email.com",
+                "password",
+                "name",
+                "010-0000-0000",
+                Role.ADMIN
+        );
+
+        given(userService.findUser(anyLong())).willReturn(user);
+
+        //when
+        productFacade.deleteProduct(1L, 1L);
+
+        //then
+        verify(productService).deleteProduct(1L);
+    }
+
 
     @Test
     @DisplayName("상품 삭제 facade 테스트 - 관리자 아님")
