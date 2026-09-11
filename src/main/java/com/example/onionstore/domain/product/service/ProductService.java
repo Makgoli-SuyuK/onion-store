@@ -93,6 +93,15 @@ public class ProductService {
         productRepository.save(toDelete);
     }
 
+    @Transactional(readOnly = true)
+    public List<ProductSimpleResponse> find10OrderByLikeCountDesc() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        return productRepository.find10OrderByLikeCountDesc(pageable).stream()
+                .map(ProductSimpleResponse::from)
+                .toList();
+    }
+
     @Transactional
     public ProductResponse editProduct(Long productId, ProductEditRequest editRequest) {
         Product product = findProductForUpdate(productId);
@@ -103,13 +112,6 @@ public class ProductService {
         product.changeStock(editRequest.stock());
 
         return ProductResponse.from(productRepository.save(product));
-    }
-
-    @Transactional(readOnly = true)
-    public List<ProductSimpleResponse> find10OrderByLikeCountDesc() {
-        return productRepository.find10OrderByLikeCountDesc().stream()
-                .map(ProductSimpleResponse::from)
-                .toList();
     }
 
     @Transactional(readOnly = true)
