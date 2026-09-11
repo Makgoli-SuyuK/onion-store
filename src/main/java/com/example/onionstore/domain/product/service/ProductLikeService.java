@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class ProductLikeService {
@@ -19,7 +21,12 @@ public class ProductLikeService {
     }
 
     @Transactional(readOnly = true)
-    public boolean existsLikeProduct(Long userId, Long productId) {
-        return productLikeRepository.existsByUser_IdAndProduct_Id(userId, productId);
+    public Optional<ProductLike> getProductLike(Long userId, Long productId) {
+        return productLikeRepository.findByUser_IdAndProduct_Id(userId, productId);
+    }
+
+    @Transactional
+    public void deleteProductLike(Long userId, Long productId) {
+        productLikeRepository.deleteByUser_IdAndProduct_Id(userId, productId);
     }
 }

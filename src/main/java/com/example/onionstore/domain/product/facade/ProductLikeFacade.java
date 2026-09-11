@@ -1,6 +1,7 @@
 package com.example.onionstore.domain.product.facade;
 
 import com.example.onionstore.domain.product.entity.Product;
+import com.example.onionstore.domain.product.entity.ProductLike;
 import com.example.onionstore.domain.product.service.ProductLikeService;
 import com.example.onionstore.domain.product.service.ProductService;
 import com.example.onionstore.domain.user.entity.Role;
@@ -12,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Component
 @RequiredArgsConstructor
 public class ProductLikeFacade {
@@ -20,22 +23,21 @@ public class ProductLikeFacade {
     private final UserService userService;
 
     @Transactional
-    public void likeProduct(Long userId, Long productId) {
+    public void toggleLike(Long userId, Long productId) {
         User user = userService.findUser(userId);
         if (user.getRole() == Role.ADMIN) {
             throw new BusinessException(ErrorCode.LIKE_ADMIN_NOT_ALLOWED);
         }
 
-        Product product = productService.getProductById(productId);
-        if (product.isDeleted() || product.isHidden()) {
-            throw new BusinessException(ErrorCode.PRODUCT_LIKE_NOT_ALLOWED);
-        }
+        Product product = productService.findProductForUpdate(productId);
+        product.validateLikable();
 
-        if (productLikeService.existsLikeProduct(userId, productId)) {
-            throw new BusinessException(ErrorCode.ALREADY_LIKED_PRODUCT);
+        if (productLikeService.getProductLike(userId, productId).isPresent()) {
+            productLikeService.deleteProductLike(userId, productId);
+            productService.decreaseLikeCount(product);
+        } else {
+            productLikeService.likeProduct(user, product);
+            productService.increaseLikeCount(product);
         }
-
-        productLikeService.likeProduct(user, product);
-        productService.increaseLikeCount(product);
     }
 }
