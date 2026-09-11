@@ -22,6 +22,7 @@ import org.springframework.test.context.ActiveProfiles;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -183,5 +184,27 @@ class ProductRepositoryTest {
                 .allSatisfy(product -> {
                     assertThat(product.price()).isBetween(0L, 5000L);
                 });
+    }
+
+    @Test
+    @DisplayName("좋아요 순으로 상품을 정렬해 상위 10개만 반환한다")
+    void 좋아요_순으로_정렬해_상위_10개만_반환한다() {
+        //given
+        List<Product> products = new ArrayList<>();
+
+        for (int i = 1; i <= 40; i++) {
+            products.add(ProductFixture.createProduct(i, category));
+        }
+        productRepository.saveAllAndFlush(products);
+
+        //when
+        List<Product> res = productRepository.find10OrderByLikeCountDesc();
+
+        //then
+        assertThat(res.size()).isEqualTo(10);
+        assertThat(res.get(0).getLikeCount()).isEqualTo(40);
+        assertThat(res)
+                .extracting(Product::getLikeCount)
+                .isSortedAccordingTo(Comparator.reverseOrder());
     }
 }

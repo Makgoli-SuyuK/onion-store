@@ -2,6 +2,7 @@ package com.example.onionstore.domain.product.service;
 
 import com.example.onionstore.domain.category.entity.Category;
 import com.example.onionstore.domain.category.service.CategoryService;
+import com.example.onionstore.domain.product.ProductFixture;
 import com.example.onionstore.domain.product.dto.ProductCreateRequest;
 import com.example.onionstore.domain.product.dto.ProductEditRequest;
 import com.example.onionstore.domain.product.dto.ProductResponse;
@@ -24,6 +25,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -260,5 +263,28 @@ class ProductServiceTest {
         assertThat(res.description()).isEqualTo("desc");
         assertThat(res.price()).isEqualTo(1000);
         assertThat(res.stock()).isEqualTo(20);
+    }
+
+    @Test
+    @DisplayName("좋아요 순으로 상위 10개의 상품 정보만 조회한다")
+    void 좋아요_순으로_상위_10개의_상품_정보를_조회한다() {
+        //given
+        List<Product> list = new ArrayList<>();
+        for (int i = 10; i >= 1; i--) {
+            Product product = ProductFixture.createProduct(i, new Category("category"));
+            ReflectionTestUtils.setField(product, "id", 1L);
+            list.add(product);
+        }
+
+        given(productRepository.find10OrderByLikeCountDesc()).willReturn(list);
+
+        //when
+        List<ProductSimpleResponse> res = productService.find10OrderByLikeCountDesc();
+
+        //then
+        assertThat(res.size()).isEqualTo(10);
+        assertThat(res)
+                .extracting(ProductSimpleResponse::likeCount)
+                .isSortedAccordingTo(Comparator.reverseOrder());
     }
 }

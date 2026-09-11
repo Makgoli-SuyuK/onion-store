@@ -5,12 +5,18 @@ import com.example.onionstore.domain.product.entity.Product;
 
 public class ProductFixture {
     public static Product createProduct(int i, Category category) {
-        return Product.create(
+        Product product = Product.create(
                 category,
                 "name " + i,
                 "description " + i,
                 1000 * i,
                 5 * i
         );
+
+        for (int n = 0; n < i; n++) {
+            product.increaseLikeCount();
+        }
+
+        return product;
     }
 }
