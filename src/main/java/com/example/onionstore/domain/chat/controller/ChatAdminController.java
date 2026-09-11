@@ -18,7 +18,7 @@ public class ChatAdminController {
 
     private final ChatRoomService chatRoomService;
 
-    @PatchMapping("/rooms/{rooomId}/status")
+    @PatchMapping("/rooms/{roomId}/status")
     public ResponseEntity<ApiResponse<ChatRoomStatusUpdateResponse>> updateStatus(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable Long roomId,
