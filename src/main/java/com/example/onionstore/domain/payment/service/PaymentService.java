@@ -95,6 +95,12 @@ public class PaymentService {
         return new PaymentStateChangeResponse(changed, GetPaymentInfoResponse.from(payment));
     }
 
+    // 주문 취소시 payment 객체 필요
+    public Payment findByOrderId(Long orderId) {
+        return paymentRepository.findByOrderIdForUpdate(orderId).
+                orElseThrow(() -> new BusinessException(ErrorCode.PAYMENT_NOT_FOUND));
+    }
+
     private Payment findPaymentForUpdate(Long orderId) {
         return paymentRepository.findByOrderIdForUpdate(orderId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PAYMENT_NOT_FOUND));

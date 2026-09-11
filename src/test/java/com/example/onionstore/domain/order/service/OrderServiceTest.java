@@ -63,7 +63,7 @@ class OrderServiceTest {
         // given
         when(user.getId()).thenReturn(1L);
 
-        Order order = new Order("1", user, 5000);
+        Order order = new Order(user, 5000);
         Long orderId = 1L;
 
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
@@ -106,7 +106,7 @@ class OrderServiceTest {
         when(user.getId()).thenReturn(1L);
         when(user2.getId()).thenReturn(2L);
 
-        Order order = new Order("1", user2, 5000);
+        Order order = new Order(user2, 5000);
         Long orderId = 1L;
 
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
