@@ -67,7 +67,10 @@ public enum ErrorCode {
     INVALID_PAYMENT_STATUS(HttpStatus.BAD_REQUEST, "PAYMENT_003", "유효하지 않은 결제 상태 변경입니다."),
     PAYMENT_ALREADY_PROCESSED(HttpStatus.CONFLICT, "PAYMENT_004", "이미 처리된 결제입니다."),
     PAYMENT_FAILED(HttpStatus.BAD_REQUEST, "PAYMENT_005", "결제 처리에 실패했습니다."),
-    PAYMENT_ALREADY_CANCELLED(HttpStatus.CONFLICT, "PAYMENT_006", "이미 취소된 결제입니다."),
+    PAYMENT_GATEWAY_ERROR(HttpStatus.BAD_GATEWAY, "PAYMENT_006", "결제사 조회에 실패했습니다."),
+    PAYMENT_NOT_COMPLETED(HttpStatus.CONFLICT, "PAYMENT_007", "결제가 아직 완료되지 않았습니다."),
+    PAYMENT_CANCELLATION_FAILED(HttpStatus.BAD_GATEWAY, "PAYMENT_008", "결제사 취소에 실패했습니다."),
+    PAYMENT_ALREADY_CANCELLED(HttpStatus.CONFLICT, "PAYMENT_009", "이미 취소된 결제입니다."),
 
     // 이벤트
     EVENT_NOT_STARTED(HttpStatus.CONFLICT, "EVENT_001", "아직 타임세일 시작 전입니다."),

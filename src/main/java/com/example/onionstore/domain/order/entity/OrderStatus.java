@@ -10,7 +10,7 @@ public enum OrderStatus {
     PAID {
         @Override
         public boolean canTransitTo(OrderStatus target) {
-            return target == CANCELLED;
+            return false;
         }
     },
     CANCELLED {
