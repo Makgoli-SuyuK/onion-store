@@ -30,11 +30,13 @@ public class PaymentCommandService {
     // 검증 실패로 취소된 주문의 결제 상태와 재고를 함께 되돌린다.
     @Transactional
     public void cancelPaymentForAmountMismatch(Long orderId) {
+        boolean orderCancelled = orderService.cancelOrder(orderId);
         paymentService.applyCancellation(orderId);
-        orderService.cancelOrder(orderId);
 
-        for (OrderItem orderItem : orderItemRepository.findAllByOrderId(orderId)) {
-            productService.restoreStock(orderItem.getProduct().getId(), orderItem.getQuantity());
+        if (orderCancelled) {
+            for (OrderItem orderItem : orderItemRepository.findAllByOrderId(orderId)) {
+                productService.restoreStock(orderItem.getProduct().getId(), orderItem.getQuantity());
+            }
         }
     }
 }
