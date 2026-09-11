@@ -76,6 +76,19 @@ public class ProductService {
         product.restoreStock(quantity);
     }
 
+    @Transactional
+    public void deleteProduct(Long productId) {
+        Product toDelete = findProductForUpdate(productId);
+
+        if (toDelete.isDeleted()) {
+            throw new BusinessException(ErrorCode.PRODUCT_NOT_FOUND);
+        }
+
+        toDelete.markAsDeleted();
+
+        productRepository.save(toDelete);
+    }
+
     private Product findProductForUpdate(Long productId) {
         return productRepository.findByIdForUpdate(productId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
