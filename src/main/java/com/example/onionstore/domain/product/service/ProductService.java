@@ -19,6 +19,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -90,7 +92,7 @@ public class ProductService {
 
         productRepository.save(toDelete);
     }
-  
+
     @Transactional
     public ProductResponse editProduct(Long productId, ProductEditRequest editRequest) {
         Product product = findProductForUpdate(productId);
@@ -101,6 +103,13 @@ public class ProductService {
         product.changeStock(editRequest.stock());
 
         return ProductResponse.from(productRepository.save(product));
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProductSimpleResponse> find10OrderByLikeCountDesc() {
+        return productRepository.find10OrderByLikeCountDesc().stream()
+                .map(ProductSimpleResponse::from)
+                .toList();
     }
 
     @Transactional(readOnly = true)

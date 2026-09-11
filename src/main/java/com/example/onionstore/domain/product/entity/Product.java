@@ -138,4 +138,8 @@ public class Product extends BaseTimeEntity {
         this.deleted = true;
         this.status = ProductStatus.HIDDEN;
     }
+
+    public void increaseLikeCount() {
+        this.likeCount += 1;
+    }
 }

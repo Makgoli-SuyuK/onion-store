@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface ProductRepository extends JpaRepository<Product, Long>, ProductCustomRepository {
@@ -17,4 +18,7 @@ public interface ProductRepository extends JpaRepository<Product, Long>, Product
 
     @Query("SELECT p FROM Product p JOIN FETCH p.category WHERE p.id = :id AND p.deleted = false")
     Optional<Product> findByIdAndDeletedFalse(@Param("id") Long id);
+
+    @Query("SELECT p FROM Product p JOIN FETCH p.category WHERE p.deleted = false ORDER BY p.likeCount DESC LIMIT 10")
+    List<Product> find10OrderByLikeCountDesc();
 }
