@@ -143,6 +143,18 @@ public class Product extends BaseTimeEntity {
         this.likeCount += 1;
     }
 
+    public void decreaseLikeCount() {
+        if (this.likeCount > 0) {
+            this.likeCount -= 1;
+        }
+    }
+
+    public void validateLikable() {
+        if (isHidden() || isDeleted()) {
+            throw new BusinessException(ErrorCode.PRODUCT_LIKE_NOT_ALLOWED);
+        }
+    }
+
     public boolean isHidden() {
         return status == ProductStatus.HIDDEN;
     }
