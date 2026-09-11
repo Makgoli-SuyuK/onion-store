@@ -19,6 +19,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
@@ -45,6 +46,9 @@ public class Order extends BaseTimeEntity {
     @Column(nullable = false, length = 20)
     private OrderStatus status;
 
+    @Column(name = "cancelled_at")
+    private LocalDateTime cancelledAt;
+
     public Order(User user, long totalPrice) {
         this.user = user;
         this.totalPrice = totalPrice;
@@ -57,7 +61,12 @@ public class Order extends BaseTimeEntity {
     }
 
     public boolean cancel() {
-        return changeStatus(OrderStatus.CANCELLED);
+        if (this.status == OrderStatus.CANCELLED) {
+            return false;
+        }
+        changeStatus(OrderStatus.CANCELLED);
+        this.cancelledAt = LocalDateTime.now();
+        return true;
     }
 
     private boolean changeStatus(OrderStatus target) {
