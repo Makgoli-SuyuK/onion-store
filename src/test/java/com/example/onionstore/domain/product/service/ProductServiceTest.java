@@ -275,8 +275,9 @@ class ProductServiceTest {
             ReflectionTestUtils.setField(product, "id", 1L);
             list.add(product);
         }
+        Pageable pageable = PageRequest.of(0, 10);
 
-        given(productRepository.find10OrderByLikeCountDesc()).willReturn(list);
+        given(productRepository.find10OrderByLikeCountDesc(pageable)).willReturn(list);
 
         //when
         List<ProductSimpleResponse> res = productService.find10OrderByLikeCountDesc();

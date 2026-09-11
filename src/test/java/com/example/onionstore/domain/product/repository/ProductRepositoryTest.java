@@ -5,6 +5,7 @@ import com.example.onionstore.domain.category.repository.CategoryRepository;
 import com.example.onionstore.domain.product.ProductFixture;
 import com.example.onionstore.domain.product.dto.ProductSimpleResponse;
 import com.example.onionstore.domain.product.entity.Product;
+import com.example.onionstore.domain.product.entity.ProductStatus;
 import com.example.onionstore.domain.product.repository.dto.ProductSearchConditions;
 import com.example.onionstore.global.config.JpaConfig;
 import com.example.onionstore.global.config.QuerydslConfig;
@@ -17,7 +18,9 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -197,14 +200,51 @@ class ProductRepositoryTest {
         }
         productRepository.saveAllAndFlush(products);
 
+        Pageable pageable = PageRequest.of(0, 10);
+
         //when
-        List<Product> res = productRepository.find10OrderByLikeCountDesc();
+        List<Product> res = productRepository.find10OrderByLikeCountDesc(pageable);
 
         //then
         assertThat(res.size()).isEqualTo(10);
         assertThat(res.get(0).getLikeCount()).isEqualTo(40);
         assertThat(res)
                 .extracting(Product::getLikeCount)
+                .isSortedAccordingTo(Comparator.reverseOrder());
+    }
+
+    @Test
+    @DisplayName("좋아요 순 상품 조회는 삭제 처리된 상품 및 HIDDEN 상태의 상품은 제외된다.")
+    void 좋아요_상위_10개_상품_조회는_삭제처리된_상품_및_HIDDEN_상태의_상품은_제외한다() {
+        //given
+        List<Product> products = new ArrayList<>();
+
+        for (int i = 1; i <= 10; i++) {
+            if (i % 2 == 0) {
+                Product product = ProductFixture.createProduct(i, category);
+                product.markAsDeleted();
+
+                products.add(product);
+            } else {
+                products.add(ProductFixture.createProduct(i, category));
+            }
+        }
+
+        ReflectionTestUtils.setField(products.get(2), "status", ProductStatus.HIDDEN);
+        productRepository.saveAllAndFlush(products);
+        Pageable pageable = PageRequest.of(0, 10);
+
+        //when
+        List<Product> res = productRepository.find10OrderByLikeCountDesc(pageable);
+
+        for (Product product : res) {
+            System.out.println("id: " + product.getId());
+            System.out.println("status: " + product.getStatus());
+        }
+
+        //then
+        assertThat(res.size()).isEqualTo(4);
+        assertThat(res).extracting(Product::getLikeCount)
                 .isSortedAccordingTo(Comparator.reverseOrder());
     }
 }
