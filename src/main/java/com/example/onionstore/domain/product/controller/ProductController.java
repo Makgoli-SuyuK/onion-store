@@ -3,7 +3,6 @@ package com.example.onionstore.domain.product.controller;
 import com.example.onionstore.domain.product.dto.ProductCreateRequest;
 import com.example.onionstore.domain.product.dto.ProductEditRequest;
 import com.example.onionstore.domain.product.dto.ProductResponse;
-import com.example.onionstore.domain.product.dto.ProductResponse;
 import com.example.onionstore.domain.product.dto.ProductSimpleResponse;
 import com.example.onionstore.domain.product.facade.ProductFacade;
 import com.example.onionstore.domain.product.repository.dto.ProductSearchConditions;
@@ -18,6 +17,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/products")
@@ -72,7 +73,7 @@ public class ProductController {
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable Long productId
     ) {
-      
+
         if (jwt == null || jwt.getSubject() == null) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED);
         }
@@ -80,10 +81,10 @@ public class ProductController {
         Long userId = Long.valueOf(jwt.getSubject());
 
         productFacade.deleteProduct(userId, productId);
-      
+
         return ResponseEntity.ok(ApiResponse.success("상품 삭제에 성공했습니다.", null));
     }
-  
+
     @PatchMapping("/{productId}")
     public ResponseEntity<ApiResponse<ProductResponse>> editProduct(
             @AuthenticationPrincipal Jwt jwt,
@@ -97,6 +98,13 @@ public class ProductController {
 
         return ResponseEntity.ok(
                 ApiResponse.success(productFacade.editProduct(userId, productId, editRequest))
+        );
+    }
+
+    @GetMapping("/like-count-top-10")
+    public ResponseEntity<ApiResponse<List<ProductSimpleResponse>>> getProductLikeCountTop10() {
+        return ResponseEntity.ok(
+                ApiResponse.success(productService.find10OrderByLikeCountDesc())
         );
     }
 }

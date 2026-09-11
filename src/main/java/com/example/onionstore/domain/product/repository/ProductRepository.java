@@ -2,11 +2,13 @@ package com.example.onionstore.domain.product.repository;
 
 import com.example.onionstore.domain.product.entity.Product;
 import jakarta.persistence.LockModeType;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface ProductRepository extends JpaRepository<Product, Long>, ProductCustomRepository {
@@ -17,4 +19,12 @@ public interface ProductRepository extends JpaRepository<Product, Long>, Product
 
     @Query("SELECT p FROM Product p JOIN FETCH p.category WHERE p.id = :id AND p.deleted = false")
     Optional<Product> findByIdAndDeletedFalse(@Param("id") Long id);
+
+    @Query("""
+        SELECT p FROM Product p
+        JOIN FETCH p.category
+        WHERE p.deleted = false AND p.status <> HIDDEN
+        ORDER BY p.likeCount DESC, p.name DESC
+    """)
+    List<Product> find10OrderByLikeCountDesc(Pageable pageable);
 }

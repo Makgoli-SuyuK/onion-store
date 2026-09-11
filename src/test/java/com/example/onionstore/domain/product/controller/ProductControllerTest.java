@@ -38,6 +38,10 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -239,5 +243,31 @@ class ProductControllerTest {
                         .content(mapper.writeValueAsString(editRequest)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value(ErrorCode.INVALID_INPUT_VALUE.getMessage()));
+    }
+
+    @Test
+    @DisplayName("GET /api/products/like-count-top-10 - 상품 좋아요 순으로 상위 10개 반환")
+    void 상품_좋아요_순으로_상위_10개의_정보를_반환한다() throws Exception {
+        //given
+        List<ProductSimpleResponse> list = new ArrayList<>();
+        for (int i = 10; i >= 1; i--) {
+            list.add(new ProductSimpleResponse(
+                    i,
+                    "category",
+                    "name " + i,
+                    1000 * i,
+                    i
+            ));
+        }
+
+        given(productService.find10OrderByLikeCountDesc()).willReturn(list);
+
+        //when&then
+        mockMvc.perform(get("/api/products/like-count-top-10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.[0].likeCount").value(10))
+                .andExpect(jsonPath("$.data.[1].likeCount").value(9))
+                .andExpect(jsonPath("$.data.[2].likeCount").value(8))
+                .andExpect(jsonPath("$.data.[0].name").value("name 10"));
     }
 }
