@@ -3,6 +3,8 @@ package com.example.onionstore.domain.product.facade;
 import com.example.onionstore.domain.category.entity.Category;
 import com.example.onionstore.domain.category.service.CategoryService;
 import com.example.onionstore.domain.product.dto.ProductCreateRequest;
+import com.example.onionstore.domain.product.dto.ProductEditRequest;
+import com.example.onionstore.domain.product.dto.ProductResponse;
 import com.example.onionstore.domain.product.service.ProductService;
 import com.example.onionstore.domain.user.entity.Role;
 import com.example.onionstore.domain.user.entity.User;
@@ -31,5 +33,15 @@ public class ProductFacade {
         }
 
         productService.deleteProduct(productId);
+    }
+  
+    public ProductResponse editProduct(Long userId, Long productId, ProductEditRequest editRequest) {
+        User user = userService.findUser(userId);
+
+        if (user.getRole() != Role.ADMIN) {
+            throw new BusinessException(ErrorCode.FORBIDDEN_ROLE);
+        }
+
+        return productService.editProduct(productId, editRequest);
     }
 }

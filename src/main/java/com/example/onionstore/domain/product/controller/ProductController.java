@@ -1,6 +1,8 @@
 package com.example.onionstore.domain.product.controller;
 
 import com.example.onionstore.domain.product.dto.ProductCreateRequest;
+import com.example.onionstore.domain.product.dto.ProductEditRequest;
+import com.example.onionstore.domain.product.dto.ProductResponse;
 import com.example.onionstore.domain.product.dto.ProductResponse;
 import com.example.onionstore.domain.product.dto.ProductSimpleResponse;
 import com.example.onionstore.domain.product.facade.ProductFacade;
@@ -70,6 +72,7 @@ public class ProductController {
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable Long productId
     ) {
+      
         if (jwt == null || jwt.getSubject() == null) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED);
         }
@@ -77,8 +80,23 @@ public class ProductController {
         Long userId = Long.valueOf(jwt.getSubject());
 
         productFacade.deleteProduct(userId, productId);
-
+      
         return ResponseEntity.ok(ApiResponse.success("상품 삭제에 성공했습니다.", null));
     }
+  
+    @PatchMapping("/{productId}")
+    public ResponseEntity<ApiResponse<ProductResponse>> editProduct(
+            @AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody ProductEditRequest editRequest,
+            @PathVariable Long productId) {
+        if (jwt == null || jwt.getSubject() == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED);
+        }
 
+        Long userId = Long.valueOf(jwt.getSubject());
+
+        return ResponseEntity.ok(
+                ApiResponse.success(productFacade.editProduct(userId, productId, editRequest))
+        );
+    }
 }

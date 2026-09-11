@@ -3,9 +3,11 @@ package com.example.onionstore.domain.product.controller;
 import com.example.onionstore.config.TestWebSecurityConfig;
 import com.example.onionstore.domain.category.entity.Category;
 import com.example.onionstore.domain.product.dto.ProductCreateRequest;
+import com.example.onionstore.domain.product.dto.ProductEditRequest;
 import com.example.onionstore.domain.product.dto.ProductResponse;
 import com.example.onionstore.domain.product.dto.ProductSimpleResponse;
 import com.example.onionstore.domain.product.entity.Product;
+import com.example.onionstore.domain.product.entity.ProductStatus;
 import com.example.onionstore.domain.product.facade.ProductFacade;
 import com.example.onionstore.domain.product.repository.dto.ProductSearchConditions;
 import com.example.onionstore.domain.product.service.ProductService;
@@ -30,6 +32,10 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
@@ -55,7 +61,6 @@ class ProductControllerTest {
     private ProductService productService;
     @MockitoBean
     private ProductFacade productFacade;
-
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Test
@@ -176,5 +181,64 @@ class ProductControllerTest {
                                 .authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("상품 삭제에 성공했습니다."));
+    }
+  
+    @DisplayName("PATCH /api/products/{productId} - 상품 수정 api 테스트")
+    void 상품_수정_api_테스트() throws Exception {
+        //given
+        ProductEditRequest editRequest = new ProductEditRequest(
+                "name",
+                "description",
+                1000L,
+                10,
+                ProductStatus.SELLING.name()
+        );
+
+        ProductResponse res = new ProductResponse(
+                1L,
+                "category",
+                "name",
+                "description",
+                1000L,
+                10,
+                10L,
+                ProductStatus.SELLING.name(),
+                LocalDateTime.now(),
+                LocalDateTime.now()
+        );
+
+        given(productFacade.editProduct(anyLong(), anyLong(), any(ProductEditRequest.class))).willReturn(res);
+
+        //when&then
+        mockMvc.perform(patch("/api/products/1")
+                        .with(jwt().jwt(jwt -> jwt
+                                .tokenValue("mock-token")
+                                .subject("1"))
+                                .authorities(new SimpleGrantedAuthority("ROLE_ADMIN")))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(editRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.name").value("name"));
+    }
+
+    @Test
+    @DisplayName("PATCH /api/products/{productId} - 재고 값이 0보다 작으면 에러 반환")
+    void 상품_수정_시_재고_값이_0보다_작으면_에러_반환() throws Exception {
+        //given
+        ProductEditRequest editRequest = new ProductEditRequest(
+                "name",
+                "description",
+                1000L,
+                -1,
+                ProductStatus.SELLING.name()
+        );
+
+        //when&then
+        mockMvc.perform(patch("/api/products/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(editRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(ErrorCode.INVALID_INPUT_VALUE.getMessage()));
     }
 }

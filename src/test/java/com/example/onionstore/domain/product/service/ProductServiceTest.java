@@ -3,6 +3,7 @@ package com.example.onionstore.domain.product.service;
 import com.example.onionstore.domain.category.entity.Category;
 import com.example.onionstore.domain.category.service.CategoryService;
 import com.example.onionstore.domain.product.dto.ProductCreateRequest;
+import com.example.onionstore.domain.product.dto.ProductEditRequest;
 import com.example.onionstore.domain.product.dto.ProductResponse;
 import com.example.onionstore.domain.product.dto.ProductSimpleResponse;
 import com.example.onionstore.domain.product.entity.Product;
@@ -218,5 +219,44 @@ class ProductServiceTest {
         assertThatThrownBy(() -> productService.deleteProduct(1L))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.PRODUCT_NOT_FOUND.getMessage());
+    }
+    @DisplayName("상품 수정 비즈니스 로직 테스트")
+    void 상품_수정_성공_테스트() {
+        //given
+        ProductEditRequest editRequest = new ProductEditRequest(
+                "name",
+                "desc",
+                1000L,
+                20,
+                ProductStatus.SELLING.name()
+        );
+
+        Product product = Product.create(
+                new Category("category"),
+                "name213",
+                "description",
+                1000,
+                10
+        );
+
+        given(productRepository.findByIdForUpdate(anyLong())).willReturn(Optional.of(product));
+
+        product.changeName(editRequest.name());
+        product.changeDescription(editRequest.description());
+        product.changePrice(editRequest.price());
+        product.changeStock(editRequest.stock());
+        product.changeStatus(ProductStatus.valueOf(editRequest.status()));
+        ReflectionTestUtils.setField(product, "id", 1L);
+
+        given(productRepository.save(any(Product.class))).willReturn(product);
+
+        //when
+        ProductResponse res = productService.editProduct(1L, editRequest);
+
+        //then
+        assertThat(res.categoryName()).isEqualTo("category");
+        assertThat(res.description()).isEqualTo("desc");
+        assertThat(res.price()).isEqualTo(1000);
+        assertThat(res.stock()).isEqualTo(20);
     }
 }

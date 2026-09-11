@@ -3,6 +3,8 @@ package com.example.onionstore.domain.product.facade;
 import com.example.onionstore.domain.category.entity.Category;
 import com.example.onionstore.domain.category.service.CategoryService;
 import com.example.onionstore.domain.product.entity.Product;
+import com.example.onionstore.domain.product.dto.ProductEditRequest;
+import com.example.onionstore.domain.product.dto.ProductResponse;
 import com.example.onionstore.domain.product.entity.ProductStatus;
 import com.example.onionstore.domain.product.service.ProductService;
 import com.example.onionstore.domain.user.entity.Role;
@@ -22,6 +24,13 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doAnswer;
+import java.time.LocalDateTime;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
 public class ProductFacadeTest {
@@ -107,5 +116,44 @@ public class ProductFacadeTest {
         assertThatThrownBy(() -> productFacade.deleteProduct(1L, 1L))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.FORBIDDEN_ROLE.getMessage());
+        ProductEditRequest editRequest = new ProductEditRequest(
+                "test",
+                "desc",
+                1000L,
+                100,
+                ProductStatus.SELLING.name()
+        );
+    }
+      
+    @Test
+    @DisplayName("상품 수정 로직 테스트")
+    void 관리자_계정은_상품_정보를_수정할_수_있다() {
+        //given
+        User user = new User(
+                "email@test.com",
+
+        given(userService.findUser(anyLong())).willReturn(user);
+        given(productService.editProduct(anyLong(), any(ProductEditRequest.class)))
+                .willReturn(new ProductResponse(
+                        1L,
+                        "category",
+                        "name",
+                        "description",
+                        1000L,
+                        10,
+                        10,
+                        ProductStatus.SELLING.name(),
+                        LocalDateTime.now(),
+                        LocalDateTime.now()
+                ));
+
+        //when
+        ProductResponse res = productFacade.editProduct(1L, 1L, editRequest);
+
+        //then
+        assertThat(res.categoryName()).isEqualTo("category");
+        assertThat(res.price()).isEqualTo(1000L);
+        assertThat(res.description()).isEqualTo("description");
+        assertThat(res.id()).isEqualTo(1L);
     }
 }

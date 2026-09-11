@@ -1,7 +1,9 @@
 package com.example.onionstore.domain.product.service;
 
 import com.example.onionstore.domain.category.entity.Category;
+import com.example.onionstore.domain.category.service.CategoryService;
 import com.example.onionstore.domain.product.dto.ProductCreateRequest;
+import com.example.onionstore.domain.product.dto.ProductEditRequest;
 import com.example.onionstore.domain.product.dto.ProductResponse;
 import com.example.onionstore.domain.product.dto.ProductSimpleResponse;
 import com.example.onionstore.domain.product.entity.Product;
@@ -88,10 +90,17 @@ public class ProductService {
 
         productRepository.save(toDelete);
     }
+  
+    @Transactional
+    public ProductResponse editProduct(Long productId, ProductEditRequest editRequest) {
+        Product product = findProductForUpdate(productId);
 
-    private Product findProductForUpdate(Long productId) {
-        return productRepository.findByIdForUpdate(productId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
+        product.changeName(editRequest.name());
+        product.changeDescription(editRequest.description());
+        product.changePrice(editRequest.price());
+        product.changeStock(editRequest.stock());
+
+        return ProductResponse.from(productRepository.save(product));
     }
 
     @Transactional(readOnly = true)
@@ -105,5 +114,10 @@ public class ProductService {
             throw new BusinessException(ErrorCode.PRODUCT_OUT_OF_STOCK);
         }
         return product;
+    }
+
+    private Product findProductForUpdate(Long productId) {
+        return productRepository.findByIdForUpdate(productId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
     }
 }
