@@ -2,15 +2,19 @@ package com.example.onionstore.domain.order.facade;
 
 import com.example.onionstore.domain.cart.entity.CartItem;
 import com.example.onionstore.domain.cart.service.CartService;
+import com.example.onionstore.domain.order.dto.CancelOrderResponse;
 import com.example.onionstore.domain.order.dto.GetOrderListItemResponse;
 import com.example.onionstore.domain.order.dto.OrderCreateRequest;
 import com.example.onionstore.domain.order.dto.OrderCreateResponse;
 import com.example.onionstore.domain.order.entity.Order;
 import com.example.onionstore.domain.order.entity.OrderItem;
+import com.example.onionstore.domain.order.entity.OrderStatus;
 import com.example.onionstore.domain.order.repository.OrderItemRepository;
 import com.example.onionstore.domain.order.service.OrderService;
 import com.example.onionstore.domain.payment.dto.CreatePaymentResponse;
+import com.example.onionstore.domain.payment.dto.GetPaymentInfoResponse;
 import com.example.onionstore.domain.payment.entity.Payment;
+import com.example.onionstore.domain.payment.entity.PaymentStatus;
 import com.example.onionstore.domain.payment.service.PaymentService;
 import com.example.onionstore.domain.product.entity.Product;
 import com.example.onionstore.domain.product.service.ProductService;
@@ -37,6 +41,7 @@ public class OrderFacade {
     private final OrderItemRepository orderItemRepository;
     private final ProductService productService;
 
+    // 주문 생성
     @Transactional
     public OrderCreateResponse createOrder(Long userId, OrderCreateRequest request) {
         // request가 없으면 장바구니 전체주문
@@ -95,5 +100,40 @@ public class OrderFacade {
             throw new BusinessException(ErrorCode.CART_ITEM_NOT_FOUND);
         }
         return cartItems;
+    }
+
+    // 주문 취소
+    @Transactional
+    public CancelOrderResponse cancelOrder(Long userId, Long orderId) {
+
+        Order order = orderService.findById(orderId);
+
+        if (!order.getUser().getId().equals(userId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN_ROLE);
+        }
+
+        Payment payment = paymentService.findByOrderId(orderId);
+
+        if (order.getStatus().equals(OrderStatus.CANCELLED)) {
+            throw new BusinessException(ErrorCode.ORDER_ALREADY_CANCELED);
+        }
+        if (payment.getStatus().equals(PaymentStatus.CANCELLED)) {
+            throw new BusinessException(ErrorCode.PAYMENT_ALREADY_CANCELLED);
+        }
+
+        // 5. Payment 상태가 READY 또는 FAILED 경우 (결제 전)
+        if (order.getStatus().equals(OrderStatus.PENDING) && (payment.getStatus().equals(PaymentStatus.READY) || (payment.getStatus().equals(PaymentStatus.FAILED)))) {
+            order.cancel();
+            paymentService.applyCancellation(orderId);
+            List<OrderItem> orderItems = orderService.findOrderItemsByOrderId(orderId);
+            for (OrderItem orderItem : orderItems) {
+                Long productId = orderItem.getProduct().getId();
+                productService.restoreStock(productId, orderItem.getQuantity());
+            }
+        } else {
+            throw new BusinessException(ErrorCode.CANNOT_CANCEL_ORDER);
+        }
+
+        return CancelOrderResponse.from(order);
     }
 }

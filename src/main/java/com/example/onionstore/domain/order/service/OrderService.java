@@ -101,6 +101,10 @@ public class OrderService {
             return GetOrderListResponse.from(order, items, info);
         });
     }
+
+    public List<OrderItem> findOrderItemsByOrderId(Long orderId) {
+        return orderItemRepository.findAllByOrderId(orderId);
+    }
   
     @Transactional
     public boolean markAsPaid(Long orderId) {
@@ -114,8 +118,14 @@ public class OrderService {
         return order.cancel();
     }
 
+    public Order findById(Long orderId) {
+        return orderRepository.findByIdForUpdate(orderId).
+                orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
+    }
+
     private Order findOrderForUpdate(Long orderId) {
         return orderRepository.findByIdForUpdate(orderId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
     }
+
 }

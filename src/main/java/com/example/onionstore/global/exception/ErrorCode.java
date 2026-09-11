@@ -57,6 +57,7 @@ public enum ErrorCode {
     INVALID_ORDER_STATUS(HttpStatus.BAD_REQUEST, "ORDER_003", "유효하지 않은 주문 상태 변경입니다."),
     ORDER_ALREADY_CANCELED(HttpStatus.CONFLICT, "ORDER_004", "이미 취소된 주문입니다."),
     CANNOT_CANCEL_ORDER(HttpStatus.BAD_REQUEST, "ORDER_005", "현재 상태에서는 주문을 취소할 수 없습니다."),
+    ORDER_ACCESS_DENIED(HttpStatus.UNAUTHORIZED, "ORDER_006", "접근 권한이 없습니다."),
 
     // 결제
     PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "PAYMENT_001", "결제 정보를 찾을 수 없습니다."),
@@ -64,6 +65,7 @@ public enum ErrorCode {
     INVALID_PAYMENT_STATUS(HttpStatus.BAD_REQUEST, "PAYMENT_003", "유효하지 않은 결제 상태 변경입니다."),
     PAYMENT_ALREADY_PROCESSED(HttpStatus.CONFLICT, "PAYMENT_004", "이미 처리된 결제입니다."),
     PAYMENT_FAILED(HttpStatus.BAD_REQUEST, "PAYMENT_005", "결제 처리에 실패했습니다."),
+    PAYMENT_ALREADY_CANCELLED(HttpStatus.CONFLICT, "PAYMENT_006", "이미 취소된 결제입니다."),
 
     // 이벤트
     EVENT_NOT_STARTED(HttpStatus.CONFLICT, "EVENT_001", "아직 타임세일 시작 전입니다."),
