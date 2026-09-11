@@ -1,9 +1,11 @@
 package com.example.onionstore.domain.chat.service;
 
+import com.example.onionstore.domain.chat.dto.response.ChatMessageBroadcastResponse;
 import com.example.onionstore.domain.chat.dto.response.ChatMessageListResponse;
 import com.example.onionstore.domain.chat.dto.response.ChatMessageResponse;
 import com.example.onionstore.domain.chat.entity.ChatMessage;
 import com.example.onionstore.domain.chat.entity.ChatRoom;
+import com.example.onionstore.domain.chat.entity.ChatRoomStatus;
 import com.example.onionstore.domain.chat.repository.ChatMessageRepository;
 import com.example.onionstore.domain.chat.repository.ChatRoomRepository;
 import com.example.onionstore.domain.user.entity.Role;
@@ -63,6 +65,39 @@ public class ChatMessageService {
         }
 
         return new ChatMessageListResponse(messages, nextCursor, hasNext);
+    }
+
+    @Transactional
+    public ChatMessageBroadcastResponse sendMessage(Long userId, Long roomId, String content){
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        ChatRoom room = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CHAT_ROOM_NOT_FOUND));
+        if(user.getRole() == Role.CUSTOMER && !room.getUser().getId().equals(userId)){
+            throw new BusinessException(ErrorCode.CHAT_ROOM_ACCESS_DENIED);
+        }
+
+        if(content == null || content.isBlank()){
+            throw new BusinessException(ErrorCode.CHAT_MESSAGE_EMPTY);
+        }
+        if(content.length() > 1000){
+            throw new BusinessException(ErrorCode.INVALID_CHAT_MESSAGE_LENGTH);
+        }
+        if(room.getStatus() == ChatRoomStatus.COMPLETED){
+            throw new BusinessException(ErrorCode.CANNOT_SEND_TO_COMPLETED_CHAT_ROOM);
+        }
+
+        ChatMessage saved = chatMessageRepository.save(new ChatMessage(room, user, content));
+
+        return new ChatMessageBroadcastResponse(
+                roomId,
+                saved.getId(),
+                user.getId(),
+                user.getName(),
+                saved.getMessage(),
+                saved.getCreatedAt()
+        );
     }
 }
 
