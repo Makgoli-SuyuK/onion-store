@@ -52,17 +52,4 @@ class ProductLikeServiceTest {
         //then
         verify(productLikeRepository).save(any(ProductLike.class));
     }
-
-    @Test
-    @DisplayName("사용자 id와 상품 id로 좋아요가 존재하는지 확인할 수 있다.")
-    void existsLikeProduct() {
-        //given
-        given(productLikeRepository.existsByUser_IdAndProduct_Id(anyLong(), anyLong())).willReturn(Boolean.TRUE);
-
-        //when
-        boolean exists = productLikeService.existsLikeProduct(1L, 1L);
-
-        //then
-        assertTrue(exists);
-    }
 }

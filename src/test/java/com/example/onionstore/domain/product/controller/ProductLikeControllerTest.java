@@ -49,6 +49,6 @@ class ProductLikeControllerTest {
                 ))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("상품에 좋아요를 추가했습니다."));
-        verify(facade).likeProduct(anyLong(), anyLong());
+        verify(facade).toggleLike(anyLong(), anyLong());
     }
 }

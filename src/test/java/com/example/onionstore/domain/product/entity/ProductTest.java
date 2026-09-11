@@ -73,4 +73,43 @@ class ProductTest {
         assertThat(product.getStock()).isEqualTo(7);
         assertThat(product.getStatus()).isEqualTo(ProductStatus.SELLING);
     }
+
+    @Test
+    @DisplayName("상품 도메인 로직 테스트 - 상품 상태가 DELETED나 HIDDEN이라면 예외를 발생한다.")
+    void 상품_상태가_DELETE나_HIDDEN이라면_예외를_던진다() {
+        //given
+        Product product = Product.create(
+                new Category("Category"),
+                "name",
+                "description",
+                1000L,
+                10
+        );
+        product.changeStatus(ProductStatus.HIDDEN);
+
+        //when
+        assertThatThrownBy(product::validateLikable)
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.PRODUCT_LIKE_NOT_ALLOWED.getMessage());
+
+    }
+
+    @Test
+    @DisplayName("상품 도메인 로직 테스트 - 좋아요 감소 시 좋아요가 0이면 감소하지 않는다.")
+    void 좋아요가_0이면_감소하지_않는다() {
+        //given
+        Product product = Product.create(
+                new Category("category"),
+                "name",
+                "description",
+                1000L,
+                10
+        );
+
+        //when
+        product.decreaseLikeCount();
+
+        //then
+        assertThat(product.getLikeCount()).isEqualTo(0);
+    }
 }
