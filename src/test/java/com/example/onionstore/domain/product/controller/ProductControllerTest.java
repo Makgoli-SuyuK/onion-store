@@ -30,8 +30,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
-import java.util.List;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -182,7 +180,8 @@ class ProductControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("상품 삭제에 성공했습니다."));
     }
-  
+
+    @Test
     @DisplayName("PATCH /api/products/{productId} - 상품 수정 api 테스트")
     void 상품_수정_api_테스트() throws Exception {
         //given
