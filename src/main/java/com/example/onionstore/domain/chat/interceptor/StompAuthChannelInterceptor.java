@@ -1,6 +1,7 @@
 package com.example.onionstore.domain.chat.interceptor;
 
 import com.example.onionstore.domain.user.entity.User;
+import com.example.onionstore.domain.user.entity.UserStatus;
 import com.example.onionstore.domain.user.repository.UserRepository;
 import com.example.onionstore.global.exception.BusinessException;
 import com.example.onionstore.global.exception.ErrorCode;
@@ -39,8 +40,13 @@ public class StompAuthChannelInterceptor implements ChannelInterceptor {
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-            accessor.setUser(new AuthenticatedUser(user));
+            if (user.getStatus() == UserStatus.DELETED) {
+                throw new BusinessException(ErrorCode.UNAUTHORIZED);
+            }
+
+            accessor.setUser(new AuthenticatedUser(user.getId(),user.getRole()));
         }
+
         return message;
     }
 }
