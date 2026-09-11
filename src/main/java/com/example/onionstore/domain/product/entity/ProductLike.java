@@ -35,8 +35,12 @@ public class ProductLike extends BaseCreatedTimeEntity {
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
-    public ProductLike(User user, Product product) {
+    private ProductLike(User user, Product product) {
         this.user = user;
         this.product = product;
+    }
+
+    public static ProductLike create(User user, Product product) {
+        return new ProductLike(user, product);
     }
 }

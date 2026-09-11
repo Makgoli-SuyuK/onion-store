@@ -142,4 +142,8 @@ public class Product extends BaseTimeEntity {
     public void increaseLikeCount() {
         this.likeCount += 1;
     }
+
+    public boolean isHidden() {
+        return status == ProductStatus.HIDDEN;
+    }
 }
