@@ -106,13 +106,13 @@ public class OrderFacade {
     @Transactional
     public CancelOrderResponse cancelOrder(Long userId, Long orderId) {
 
-        Order order = orderService.findById(orderId);
+        Order order = orderService.findOrderForUpdate(orderId);
 
         if (!order.getUser().getId().equals(userId)) {
             throw new BusinessException(ErrorCode.FORBIDDEN_ROLE);
         }
 
-        Payment payment = paymentService.findByOrderId(orderId);
+        Payment payment = paymentService.findPaymentForUpdate(orderId);
 
         if (order.getStatus().equals(OrderStatus.CANCELLED)) {
             throw new BusinessException(ErrorCode.ORDER_ALREADY_CANCELED);

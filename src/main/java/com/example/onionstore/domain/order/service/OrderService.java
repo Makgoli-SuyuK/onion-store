@@ -118,12 +118,7 @@ public class OrderService {
         return order.cancel();
     }
 
-    public Order findById(Long orderId) {
-        return orderRepository.findByIdForUpdate(orderId).
-                orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
-    }
-
-    private Order findOrderForUpdate(Long orderId) {
+    public Order findOrderForUpdate(Long orderId) {
         return orderRepository.findByIdForUpdate(orderId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
     }
