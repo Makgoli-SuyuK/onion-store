@@ -124,6 +124,11 @@ public class ProductService {
         product.increaseLikeCount();
     }
 
+    @Transactional
+    public void decreaseLikeCount(Product product) {
+        product.decreaseLikeCount();
+    }
+
     @Transactional(readOnly = true)
     public Product getProductForCart(Long productId, int quantity) { // 존재하고 판매 중인 상품만 장바구니 도메인에 전달한다.
         Product product = productRepository.findById(productId)
@@ -137,7 +142,7 @@ public class ProductService {
         return product;
     }
 
-    private Product findProductForUpdate(Long productId) {
+    public Product findProductForUpdate(Long productId) {
         return productRepository.findByIdForUpdate(productId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
     }
