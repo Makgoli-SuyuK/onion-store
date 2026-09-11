@@ -30,20 +30,32 @@ public class PaymentFacade {
                 portonePaymentId
         );
         PaymentGatewayResponse gatewayPayment = paymentGateway.getPayment(portonePaymentId);
-        validatePayment(paymentInfo, gatewayPayment);
+        validatePaymentIdAndStatus(paymentInfo, gatewayPayment);
+        cancelMismatchedPayment(paymentInfo, gatewayPayment);
 
         return paymentCommandService.completePaymentSuccess(paymentInfo);
     }
 
-    private void validatePayment(PaymentConfirmationInfo paymentInfo, PaymentGatewayResponse gatewayPayment) {
+    private void validatePaymentIdAndStatus(
+            PaymentConfirmationInfo paymentInfo,
+            PaymentGatewayResponse gatewayPayment
+    ) {
         if (!paymentInfo.portonePaymentId().equals(gatewayPayment.portonePaymentId())) {
             throw new BusinessException(ErrorCode.PAYMENT_FAILED);
         }
         if (!gatewayPayment.paid()) {
             throw new BusinessException(ErrorCode.PAYMENT_NOT_COMPLETED);
         }
+    }
+
+    private void cancelMismatchedPayment(
+            PaymentConfirmationInfo paymentInfo,
+            PaymentGatewayResponse gatewayPayment
+    ) {
         if (gatewayPayment.totalAmount() == null
                 || paymentInfo.amount() != gatewayPayment.totalAmount()) {
+            paymentGateway.cancelPayment(paymentInfo.portonePaymentId(), "결제 금액 불일치 자동 취소");
+            paymentCommandService.cancelPaymentForAmountMismatch(paymentInfo.orderId());
             throw new BusinessException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);
         }
     }
