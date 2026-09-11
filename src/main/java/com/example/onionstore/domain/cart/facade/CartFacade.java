@@ -1,6 +1,8 @@
 package com.example.onionstore.domain.cart.facade;
 
 import com.example.onionstore.domain.cart.dto.request.AddCartItemRequest;
+import com.example.onionstore.domain.cart.dto.request.UpdateCartItemQuantityRequest;
+import com.example.onionstore.domain.cart.entity.CartItem;
 import com.example.onionstore.domain.cart.dto.response.CartItemResponse;
 import com.example.onionstore.domain.cart.dto.response.CartResponse;
 import com.example.onionstore.domain.cart.service.CartService;
@@ -25,6 +27,14 @@ public class CartFacade {
         User user = userService.findUser(userId);
         Product product = productService.getProductForCart(request.productId(), request.quantity());
         return cartService.addItem(user, product, request.quantity());
+    }
+
+    @Transactional
+    public CartItemResponse updateQuantity(Long userId, Long cartItemId, UpdateCartItemQuantityRequest request) {
+        userService.findUser(userId);
+        CartItem cartItem = cartService.findCartItem(userId, cartItemId);
+        productService.getProductForCart(cartItem.getProduct().getId(), request.quantity());
+        return cartService.updateQuantity(cartItem, request.quantity());
     }
 
     @Transactional(readOnly = true)
