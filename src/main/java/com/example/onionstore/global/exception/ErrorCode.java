@@ -44,6 +44,8 @@ public enum ErrorCode {
     // 상품 찜
     ALREADY_LIKED_PRODUCT(HttpStatus.CONFLICT, "LIKE_001", "이미 찜한 상품입니다."),
     PRODUCT_LIKE_NOT_FOUND(HttpStatus.NOT_FOUND, "LIKE_002", "찜 내역을 찾을 수 없습니다."),
+    LIKE_ADMIN_NOT_ALLOWED(HttpStatus.FORBIDDEN, "LIKE_003", "관리자 계정은 찜할 수 없습니다."),
+    PRODUCT_LIKE_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "LIKE_004", "삭제 처리된 상품은 찜할 수 없습니다."),
 
     // 장바구니
     CART_NOT_FOUND(HttpStatus.NOT_FOUND, "CART_001", "장바구니를 찾을 수 없습니다."),
