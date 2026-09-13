@@ -3,13 +3,18 @@ package com.example.onionstore.domain.category.controller;
 import com.example.onionstore.domain.category.dto.CategoryCreateRequest;
 import com.example.onionstore.domain.category.dto.CategoryEditRequest;
 import com.example.onionstore.domain.category.entity.Category;
+import com.example.onionstore.domain.category.facade.CategoryFacade;
 import com.example.onionstore.domain.category.service.CategoryService;
 import com.example.onionstore.global.dto.ApiResponse;
+import com.example.onionstore.global.exception.BusinessException;
+import com.example.onionstore.global.exception.ErrorCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class CategoryController {
     private final CategoryService categoryService;
+    private final CategoryFacade categoryFacade;
 
     @PostMapping
     public ResponseEntity<ApiResponse<Void>> addCategory(@Valid @RequestBody CategoryCreateRequest createRequest) {
@@ -31,17 +37,29 @@ public class CategoryController {
     }
 
     @PatchMapping("/{categoryId}")
-    public ResponseEntity<ApiResponse<Void>> editCategory(@PathVariable Long categoryId,
-                                          @Valid @RequestBody CategoryEditRequest categoryEditRequest) {
-        categoryService.editCategory(categoryId, categoryEditRequest);
+    public ResponseEntity<ApiResponse<Void>> editCategory(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable Long categoryId,
+            @Valid @RequestBody CategoryEditRequest categoryEditRequest) {
+        categoryFacade.editCategory(extractUserId(jwt), categoryId, categoryEditRequest);
 
         return ResponseEntity.ok(ApiResponse.success("카테고리 수정 성공", null));
     }
 
     @DeleteMapping("/{categoryId}")
-    public ResponseEntity<ApiResponse<Void>> deleteCategory(@PathVariable Long categoryId) {
-        categoryService.deleteCategory(categoryId);
+    public ResponseEntity<ApiResponse<Void>> deleteCategory(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable Long categoryId) {
+        categoryFacade.deleteCategory(extractUserId(jwt), categoryId);
 
         return ResponseEntity.ok(ApiResponse.success("카테고리 삭제 성공", null));
+    }
+
+    private Long extractUserId(Jwt jwt) {
+        if (jwt == null || jwt.getSubject() == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED);
+        }
+
+        return Long.valueOf(jwt.getSubject());
     }
 }
