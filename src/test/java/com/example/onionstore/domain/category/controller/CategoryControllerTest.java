@@ -1,8 +1,10 @@
 package com.example.onionstore.domain.category.controller;
 
+import com.example.onionstore.config.TestWebSecurityConfig;
 import com.example.onionstore.domain.category.dto.CategoryCreateRequest;
 import com.example.onionstore.domain.category.dto.CategoryEditRequest;
 import com.example.onionstore.domain.category.entity.Category;
+import com.example.onionstore.domain.category.facade.CategoryFacade;
 import com.example.onionstore.domain.category.service.CategoryService;
 import com.example.onionstore.global.exception.BusinessException;
 import com.example.onionstore.global.exception.ErrorCode;
@@ -20,11 +22,12 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
-import static org.mockito.BDDMockito.willThrow;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -38,11 +41,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
                 )
         }
 )
+@Import(TestWebSecurityConfig.class)
 class CategoryControllerTest {
     @Autowired
     private MockMvc mockMvc;
     @MockitoBean
     private CategoryService categoryService;
+    @MockitoBean
+    private CategoryFacade categoryFacade;
 
     private ObjectMapper mapper = new ObjectMapper();
 
@@ -56,8 +62,11 @@ class CategoryControllerTest {
 
         //when&then
         mockMvc.perform(post("/api/categories")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(createRequest)))
+                        .with(jwt().jwt(jwt -> jwt
+                                .tokenValue("mock_token")
+                                .subject("1")))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(createRequest)))
                 .andExpect(status().isOk());
     }
 
@@ -75,6 +84,9 @@ class CategoryControllerTest {
 
         //when&then
         mockMvc.perform(post("/api/categories")
+                        .with(jwt().jwt(jwt -> jwt
+                                .tokenValue("mock_token")
+                                .subject("1")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(createRequest)))
                 .andExpect(status().isConflict())
@@ -91,6 +103,9 @@ class CategoryControllerTest {
 
         //when&then
         mockMvc.perform(post("/api/categories")
+                        .with(jwt().jwt(jwt -> jwt
+                                .tokenValue("mock_token")
+                                .subject("1")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(createRequest)))
                 .andExpect(status().isBadRequest())
@@ -108,7 +123,10 @@ class CategoryControllerTest {
         given(categoryService.getAllCategories()).willReturn(list);
 
         //when&then
-        mockMvc.perform(get("/api/categories"))
+        mockMvc.perform(get("/api/categories")
+                        .with(jwt().jwt(jwt -> jwt
+                                .tokenValue("mock_token")
+                                .subject("1"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("data.[0].name").value("name1"))
                 .andExpect(jsonPath("data.[1].name").value("name2"));
@@ -125,6 +143,9 @@ class CategoryControllerTest {
 
         //when&then
         mockMvc.perform(patch("/api/categories/1")
+                        .with(jwt().jwt(jwt -> jwt
+                                .tokenValue("mock_token")
+                                .subject("1")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(editRequest)))
                 .andExpect(status().isOk());
@@ -139,11 +160,14 @@ class CategoryControllerTest {
 
         CategoryEditRequest editRequest = new CategoryEditRequest("edited");
         willThrow(new BusinessException(ErrorCode.DUPLICATE_CATEGORY))
-                .given(categoryService)
-                .editCategory(1L, editRequest);
+                .given(categoryFacade)
+                .editCategory(1L, 1L, editRequest);
 
         //when&then
         mockMvc.perform(patch("/api/categories/1")
+                        .with(jwt().jwt(jwt -> jwt
+                                .tokenValue("mock_token")
+                                .subject("1")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(editRequest)))
                 .andExpect(status().isConflict())
@@ -158,7 +182,10 @@ class CategoryControllerTest {
         ReflectionTestUtils.setField(category, "id", 1L);
 
         //when&then
-        mockMvc.perform(delete("/api/categories/1"))
+        mockMvc.perform(delete("/api/categories/1")
+                        .with(jwt().jwt(jwt -> jwt
+                                .tokenValue("mock_token")
+                                .subject("1"))))
                 .andExpect(status().isOk());
     }
 }
