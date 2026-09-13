@@ -2,6 +2,7 @@ package com.example.onionstore.domain.payment.facade;
 
 import com.example.onionstore.domain.payment.dto.PaymentConfirmResponse;
 import com.example.onionstore.domain.payment.dto.PaymentConfirmationInfo;
+import com.example.onionstore.domain.payment.port.GatewayPaymentStatus;
 import com.example.onionstore.domain.payment.port.PaymentGateway;
 import com.example.onionstore.domain.payment.port.PaymentGatewayResponse;
 import com.example.onionstore.domain.payment.service.PaymentCommandService;
@@ -33,6 +34,29 @@ public class PaymentFacade {
                 paymentService.getPaymentConfirmationInfoByPortonePaymentId(portonePaymentId);
         confirmPaidPayment(info);
     }
+    public boolean synchronizePaymentFailureFromWebhook(String portonePaymentId) {
+        PaymentConfirmationInfo info =
+                paymentService.getPaymentConfirmationInfoByPortonePaymentId(portonePaymentId);
+
+        PaymentGatewayResponse gatewayPayment = paymentGateway.getPayment(portonePaymentId);
+
+        if (!info.portonePaymentId().equals(gatewayPayment.portonePaymentId())) {
+            throw new BusinessException(ErrorCode.PAYMENT_FAILED);
+        }
+
+        if (gatewayPayment.status() == GatewayPaymentStatus.NOT_FOUND ||
+                gatewayPayment.status() == GatewayPaymentStatus.UNKNOWN) {
+            throw new BusinessException(ErrorCode.PAYMENT_GATEWAY_ERROR);
+        }
+
+        if (gatewayPayment.status() != GatewayPaymentStatus.FAILED) {
+            return false;
+        }
+
+        paymentCommandService.completePaymentFailure(info.orderId());
+        return true;
+    }
+
 
     private PaymentConfirmResponse confirmPaidPayment(PaymentConfirmationInfo paymentInfo) {
         PaymentGatewayResponse gatewayResponse = paymentGateway.getPayment(paymentInfo.portonePaymentId());
