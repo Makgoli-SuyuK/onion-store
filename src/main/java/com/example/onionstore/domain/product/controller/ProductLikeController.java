@@ -30,8 +30,12 @@ public class ProductLikeController {
 
         Long userId = Long.valueOf(jwt.getSubject());
 
-        productLikeFacade.toggleLike(userId, productId);
+        String message = "좋아요를 취소했습니다.";
 
-        return ResponseEntity.ok(ApiResponse.success("상품에 좋아요를 추가했습니다.", null));
+        if (productLikeFacade.toggleLike(userId, productId)) {
+            message = "상품에 좋아요를 추가했습니다.";
+        }
+
+        return ResponseEntity.ok(ApiResponse.success(message, null));
     }
 }

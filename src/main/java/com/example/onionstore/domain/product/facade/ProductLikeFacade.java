@@ -23,7 +23,7 @@ public class ProductLikeFacade {
     private final UserService userService;
 
     @Transactional
-    public void toggleLike(Long userId, Long productId) {
+    public boolean toggleLike(Long userId, Long productId) {
         User user = userService.findUser(userId);
         if (user.getRole() == Role.ADMIN) {
             throw new BusinessException(ErrorCode.LIKE_ADMIN_NOT_ALLOWED);
@@ -35,9 +35,13 @@ public class ProductLikeFacade {
         if (productLikeService.getProductLike(userId, productId).isPresent()) {
             productLikeService.deleteProductLike(userId, productId);
             productService.decreaseLikeCount(product);
+
+            return false;
         } else {
             productLikeService.likeProduct(user, product);
             productService.increaseLikeCount(product);
+
+            return true;
         }
     }
 }
