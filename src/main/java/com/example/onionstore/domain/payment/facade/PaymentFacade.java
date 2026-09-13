@@ -43,7 +43,7 @@ public class PaymentFacade {
         if (!paymentInfo.portonePaymentId().equals(gatewayPayment.portonePaymentId())) {
             throw new BusinessException(ErrorCode.PAYMENT_FAILED);
         }
-        if (!gatewayPayment.paid()) {
+        if (!gatewayPayment.isPaid()) {
             throw new BusinessException(ErrorCode.PAYMENT_NOT_COMPLETED);
         }
     }

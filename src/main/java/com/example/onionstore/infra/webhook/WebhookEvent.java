@@ -27,8 +27,8 @@ public class WebhookEvent extends BaseTimeEntity {
     @Column(name = "portone_payment_id", length = 255)
     private String portonePaymentId;
 
-    @Column(name = "raw_payload", nullable = false, columnDefinition = "TEXT")
-    private String rawPayload;
+    @Column(name = "payload", nullable = false, columnDefinition = "TEXT")
+    private String payload;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "processing_status", nullable = false, length = 20)
@@ -40,11 +40,11 @@ public class WebhookEvent extends BaseTimeEntity {
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
-    public WebhookEvent(String webhookId, String eventType, String portonePaymentId, String rawPayload) {
+    public WebhookEvent(String webhookId, String eventType, String portonePaymentId, String payload) {
         this.webhookId = webhookId;
         this.eventType = eventType;
         this.portonePaymentId = portonePaymentId;
-        this.rawPayload = rawPayload;
+        this.payload = payload;
         this.processingStatus = WebhookProcessingStatus.RECEIVED;
     }
 
