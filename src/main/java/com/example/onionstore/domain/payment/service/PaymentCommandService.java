@@ -22,6 +22,7 @@ public class PaymentCommandService {
     // 결제 성공과 주문 유료 상태를 함께 확정한다.
     @Transactional
     public PaymentConfirmResponse completePaymentSuccess(PaymentConfirmationInfo info) {
+        orderService.findOrderForUpdate(info.orderId());
         paymentService.applySuccess(info.orderId());
         orderService.markAsPaid(info.orderId());
         return PaymentConfirmResponse.success(info.orderId(), info.portonePaymentId());
