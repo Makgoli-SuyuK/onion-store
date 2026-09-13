@@ -1,9 +1,6 @@
 package com.example.onionstore.domain.product.controller;
 
-import com.example.onionstore.domain.product.dto.ProductCreateRequest;
-import com.example.onionstore.domain.product.dto.ProductEditRequest;
-import com.example.onionstore.domain.product.dto.ProductResponse;
-import com.example.onionstore.domain.product.dto.ProductSimpleResponse;
+import com.example.onionstore.domain.product.dto.*;
 import com.example.onionstore.domain.product.facade.ProductFacade;
 import com.example.onionstore.domain.product.repository.dto.ProductSearchConditions;
 import com.example.onionstore.domain.product.service.ProductService;
@@ -35,9 +32,14 @@ public class ProductController {
     }
 
     @GetMapping("/{productId}")
-    public ResponseEntity<ApiResponse<ProductResponse>> getProduct(@PathVariable Long productId) {
+    public ResponseEntity<ApiResponse<ProductDetailWithLiked>> getProduct(
+            @AuthenticationPrincipal() Jwt jwt,
+            @PathVariable Long productId
+    ) {
+        Long userId = (jwt == null ? null : extractUserId(jwt));
+
         return ResponseEntity.ok(
-                ApiResponse.success(productService.findById(productId))
+                ApiResponse.success(productFacade.getProductDetail(userId, productId))
         );
     }
 
@@ -73,12 +75,7 @@ public class ProductController {
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable Long productId
     ) {
-
-        if (jwt == null || jwt.getSubject() == null) {
-            throw new BusinessException(ErrorCode.UNAUTHORIZED);
-        }
-
-        Long userId = Long.valueOf(jwt.getSubject());
+        Long userId = extractUserId(jwt);
 
         productFacade.deleteProduct(userId, productId);
 
@@ -90,11 +87,7 @@ public class ProductController {
             @AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody ProductEditRequest editRequest,
             @PathVariable Long productId) {
-        if (jwt == null || jwt.getSubject() == null) {
-            throw new BusinessException(ErrorCode.UNAUTHORIZED);
-        }
-
-        Long userId = Long.valueOf(jwt.getSubject());
+        Long userId = extractUserId(jwt);
 
         return ResponseEntity.ok(
                 ApiResponse.success(productFacade.editProduct(userId, productId, editRequest))
@@ -106,5 +99,13 @@ public class ProductController {
         return ResponseEntity.ok(
                 ApiResponse.success(productService.find10OrderByLikeCountDesc())
         );
+    }
+
+    private Long extractUserId(Jwt jwt) {
+        if (jwt == null || jwt.getSubject() == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED);
+        }
+
+        return Long.valueOf(jwt.getSubject());
     }
 }

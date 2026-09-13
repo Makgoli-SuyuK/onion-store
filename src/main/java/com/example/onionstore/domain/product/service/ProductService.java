@@ -62,9 +62,9 @@ public class ProductService {
         return productRepository.searchWithConditions(conditions, pageable);
     }
 
-    /** 테스트용 가짜 메서드 **/
+    @Transactional(readOnly = true)
     public boolean existsByCategoryId(Long categoryId) {
-        return false;
+        return productRepository.existsByCategory_Id(categoryId);
     }
 
     @Transactional
