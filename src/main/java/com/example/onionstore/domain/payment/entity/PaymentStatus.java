@@ -16,7 +16,7 @@ public enum PaymentStatus {
     },
     FAILED {
         public boolean canTransitTo(PaymentStatus target) {
-            return target == CANCELLED;
+            return false;
         }
     },
     CANCELLED {
