@@ -20,6 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -62,11 +63,12 @@ class ProductLikeFacadeTest {
         given(productService.findProductForUpdate(anyLong())).willReturn(product);
 
         //when
-        productLikeFacade.toggleLike(1L, 1L);
+        boolean likeAdded = productLikeFacade.toggleLike(1L, 1L);
 
         //then
         verify(productLikeService).likeProduct(user, product);
         verify(productService).increaseLikeCount(product);
+        assertThat(likeAdded).isTrue();
     }
 
     @Test
@@ -180,10 +182,11 @@ class ProductLikeFacadeTest {
         given(productLikeService.getProductLike(anyLong(), anyLong())).willReturn(Optional.of(productLike));
 
         //when
-        productLikeFacade.toggleLike(1L, 1L);
+        boolean likeAdded = productLikeFacade.toggleLike(1L, 1L);
 
         //then
         verify(productLikeService).deleteProductLike(anyLong(), anyLong());
         verify(productService).decreaseLikeCount(any(Product.class));
+        assertThat(likeAdded).isFalse();
     }
 }

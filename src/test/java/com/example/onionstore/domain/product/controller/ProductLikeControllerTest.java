@@ -15,6 +15,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -36,10 +37,15 @@ class ProductLikeControllerTest {
     private MockMvc mockMvc;
     @MockitoBean
     private ProductLikeFacade facade;
+    @Autowired
+    private ProductLikeFacade productLikeFacade;
 
     @Test
     @DisplayName("POST /api/products/{productId}/like")
     void 상품_좋아요_추가_api_테스트() throws Exception {
+        //given
+        given(productLikeFacade.toggleLike(anyLong(), anyLong())).willReturn(true);
+
         //when&then
         mockMvc.perform(post("/api/products/1/like")
                 .with(jwt().jwt(jwt -> jwt
