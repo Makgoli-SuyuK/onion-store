@@ -12,7 +12,6 @@ import com.example.onionstore.domain.order.entity.OrderStatus;
 import com.example.onionstore.domain.order.repository.OrderItemRepository;
 import com.example.onionstore.domain.order.service.OrderService;
 import com.example.onionstore.domain.payment.dto.CreatePaymentResponse;
-import com.example.onionstore.domain.payment.dto.GetPaymentInfoResponse;
 import com.example.onionstore.domain.payment.entity.Payment;
 import com.example.onionstore.domain.payment.entity.PaymentStatus;
 import com.example.onionstore.domain.payment.service.PaymentService;

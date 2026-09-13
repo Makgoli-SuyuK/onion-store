@@ -1,7 +1,7 @@
 package com.example.onionstore.domain.payment.service;
 
-import com.example.onionstore.domain.order.service.OrderService;
 import com.example.onionstore.domain.order.entity.OrderItem;
+import com.example.onionstore.domain.order.service.OrderService;
 import com.example.onionstore.domain.payment.dto.PaymentConfirmResponse;
 import com.example.onionstore.domain.payment.dto.PaymentConfirmationInfo;
 import com.example.onionstore.domain.payment.dto.PaymentStateChangeResponse;
@@ -18,7 +18,8 @@ public class PaymentCommandService {
     private final OrderService orderService;
     private final ProductService productService;
 
-    // 결제 성공과 주문 결제 완료 상태를 함께 확정한다.    @Transactional
+    // 결제 성공과 주문 결제 완료 상태를 함께 확정한다.
+    @Transactional
     public PaymentConfirmResponse completePaymentSuccess(PaymentConfirmationInfo info) {
         orderService.findOrderForUpdate(info.orderId());
         paymentService.applySuccess(info.orderId());
