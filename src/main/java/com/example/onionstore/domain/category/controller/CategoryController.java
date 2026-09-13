@@ -25,8 +25,13 @@ public class CategoryController {
     private final CategoryFacade categoryFacade;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<Void>> addCategory(@Valid @RequestBody CategoryCreateRequest createRequest) {
-        categoryService.addCategory(createRequest);
+    public ResponseEntity<ApiResponse<Void>> addCategory(
+            @AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody CategoryCreateRequest createRequest
+    ) {
+        Long userId = extractUserId(jwt);
+
+        categoryFacade.addCategory(userId, createRequest);
 
         return ResponseEntity.ok(ApiResponse.success("카테고리 추가 성공", null));
     }

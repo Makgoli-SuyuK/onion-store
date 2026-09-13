@@ -1,5 +1,6 @@
 package com.example.onionstore.domain.category.facade;
 
+import com.example.onionstore.domain.category.dto.CategoryCreateRequest;
 import com.example.onionstore.domain.category.dto.CategoryEditRequest;
 import com.example.onionstore.domain.category.service.CategoryService;
 import com.example.onionstore.domain.user.entity.Role;
@@ -26,6 +27,12 @@ public class CategoryFacade {
         checkAdmin(userId);
 
         categoryService.deleteCategory(categoryId);
+    }
+
+    public void addCategory(Long userId, CategoryCreateRequest createRequest) {
+        checkAdmin(userId);
+
+        categoryService.addCategory(createRequest);
     }
 
     private void checkAdmin(Long userId) {
