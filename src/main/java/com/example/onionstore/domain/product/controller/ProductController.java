@@ -1,9 +1,6 @@
 package com.example.onionstore.domain.product.controller;
 
-import com.example.onionstore.domain.product.dto.ProductCreateRequest;
-import com.example.onionstore.domain.product.dto.ProductEditRequest;
-import com.example.onionstore.domain.product.dto.ProductResponse;
-import com.example.onionstore.domain.product.dto.ProductSimpleResponse;
+import com.example.onionstore.domain.product.dto.*;
 import com.example.onionstore.domain.product.facade.ProductFacade;
 import com.example.onionstore.domain.product.repository.dto.ProductSearchConditions;
 import com.example.onionstore.domain.product.service.ProductService;
@@ -12,7 +9,6 @@ import com.example.onionstore.global.exception.BusinessException;
 import com.example.onionstore.global.exception.ErrorCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -34,16 +30,21 @@ public class ProductController {
             @Valid @RequestBody ProductCreateRequest createRequest
     ) {
         Long userId = extractUserId(jwt);
-        
+
         productFacade.addProduct(userId, createRequest);
 
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @GetMapping("/{productId}")
-    public ResponseEntity<ApiResponse<ProductResponse>> getProduct(@PathVariable Long productId) {
+    public ResponseEntity<ApiResponse<ProductDetailWithLiked>> getProduct(
+            @AuthenticationPrincipal() Jwt jwt,
+            @PathVariable Long productId
+    ) {
+        Long userId = (jwt == null ? null : extractUserId(jwt));
+
         return ResponseEntity.ok(
-                ApiResponse.success(productService.findById(productId))
+                ApiResponse.success(productFacade.getProductDetail(userId, productId))
         );
     }
 
@@ -105,7 +106,7 @@ public class ProductController {
         );
     }
 
-    private static Long extractUserId(Jwt jwt) {
+    private Long extractUserId(Jwt jwt) {
         if (jwt == null || jwt.getSubject() == null) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED);
         }
