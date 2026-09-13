@@ -1,5 +1,6 @@
 package com.example.onionstore.domain.category.facade;
 
+import com.example.onionstore.domain.category.dto.CategoryCreateRequest;
 import com.example.onionstore.domain.category.dto.CategoryEditRequest;
 import com.example.onionstore.domain.category.service.CategoryService;
 import com.example.onionstore.domain.user.entity.Role;
@@ -113,5 +114,54 @@ class CategoryFacadeTest {
         assertThatThrownBy(() -> categoryFacade.deleteCategory(1L, 1L))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.FORBIDDEN_ROLE.getMessage());
+    }
+
+    @Test
+    @DisplayName("관리자 계정이 아니라면 카테고리를 추가할 수 없다.")
+    void 관리자_계정이_아니라면_카테고리를_추가할_수_없다() {
+        //given
+        User user = new User(
+                "test@email.com",
+                "password",
+                "name",
+                "010-0000-0000",
+                Role.CUSTOMER
+        );
+
+        CategoryCreateRequest createRequest = new CategoryCreateRequest(
+                "newName"
+        );
+
+        given(userService.findUser(anyLong())).willReturn(user);
+
+        //when&then
+        assertThatThrownBy(() -> categoryFacade.addCategory(1L, createRequest))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.FORBIDDEN_ROLE.getMessage());
+    }
+
+    @Test
+    @DisplayName("관리자 계정이라면 카테고리를 추가할 수 있다.")
+    void 관리자_계정이라면_카테고리를_추가할_수_있다() {
+        //given
+        User user = new User(
+                "test@email.com",
+                "password",
+                "name",
+                "010-0000-0000",
+                Role.ADMIN
+        );
+
+        CategoryCreateRequest createRequest = new CategoryCreateRequest(
+                "newName"
+        );
+
+        given(userService.findUser(anyLong())).willReturn(user);
+
+        //when
+        categoryFacade.addCategory(1L, createRequest);
+
+        //then
+        verify(categoryService).addCategory(any(CategoryCreateRequest.class));
     }
 }

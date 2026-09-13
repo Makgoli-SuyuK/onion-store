@@ -79,8 +79,8 @@ class CategoryControllerTest {
         );
 
         willThrow(new BusinessException(ErrorCode.DUPLICATE_CATEGORY))
-                .given(categoryService)
-                .addCategory(createRequest);
+                .given(categoryFacade)
+                .addCategory(1L, createRequest);
 
         //when&then
         mockMvc.perform(post("/api/categories")
