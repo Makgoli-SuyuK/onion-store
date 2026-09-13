@@ -95,6 +95,18 @@ public class PaymentService {
         return new PaymentStateChangeResponse(changed, GetPaymentInfoResponse.from(payment));
     }
 
+    // PaymentService.java
+
+    @Transactional(readOnly = true)
+    public PaymentConfirmationInfo getPaymentConfirmationInfoByPortonePaymentId(
+            String portonePaymentId
+    ) {
+        Payment payment = paymentRepository.findByPortonePaymentIdWithOrder(portonePaymentId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PAYMENT_NOT_FOUND));
+
+        return PaymentConfirmationInfo.from(payment);
+    }
+
     public Payment findPaymentForUpdate(Long orderId) {
         return paymentRepository.findByOrderIdForUpdate(orderId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PAYMENT_NOT_FOUND));

@@ -20,26 +20,30 @@ public class PaymentFacade {
     private final PaymentGateway paymentGateway;
 
     public PaymentConfirmResponse confirmPayment(
-            Long userId,
-            Long orderId,
-            String portonePaymentId
-    ) { // 결제사 결과를 검증한 뒤 결제와 주문을 확정한다.
+            Long userId, Long orderId, String portonePaymentId) {
         PaymentConfirmationInfo paymentInfo = paymentService.getPaymentConfirmationInfo(
-                userId,
-                orderId,
-                portonePaymentId
+                userId, orderId, portonePaymentId
         );
-        PaymentGatewayResponse gatewayPayment = paymentGateway.getPayment(portonePaymentId);
-        validatePaymentIdAndStatus(paymentInfo, gatewayPayment);
-        cancelMismatchedPayment(paymentInfo, gatewayPayment);
+
+        return confirmPaidPayment(paymentInfo);
+    }
+
+    public void confirmPaymentFromWebhook(String portonePaymentId) {
+        PaymentConfirmationInfo info =
+                paymentService.getPaymentConfirmationInfoByPortonePaymentId(portonePaymentId);
+        confirmPaidPayment(info);
+    }
+
+    private PaymentConfirmResponse confirmPaidPayment(PaymentConfirmationInfo paymentInfo) {
+        PaymentGatewayResponse gatewayResponse = paymentGateway.getPayment(paymentInfo.portonePaymentId());
+
+        validatePortonePaymentIdAndStatus(paymentInfo, gatewayResponse);
+        cancelMismatchedPayment(paymentInfo,gatewayResponse);
 
         return paymentCommandService.completePaymentSuccess(paymentInfo);
     }
 
-    private void validatePaymentIdAndStatus(
-            PaymentConfirmationInfo paymentInfo,
-            PaymentGatewayResponse gatewayPayment
-    ) {
+    private void validatePortonePaymentIdAndStatus(PaymentConfirmationInfo paymentInfo, PaymentGatewayResponse gatewayPayment) {
         if (!paymentInfo.portonePaymentId().equals(gatewayPayment.portonePaymentId())) {
             throw new BusinessException(ErrorCode.PAYMENT_FAILED);
         }
@@ -48,15 +52,12 @@ public class PaymentFacade {
         }
     }
 
-    private void cancelMismatchedPayment(
-            PaymentConfirmationInfo paymentInfo,
-            PaymentGatewayResponse gatewayPayment
-    ) {
-        if (gatewayPayment.totalAmount() == null
-                || paymentInfo.amount() != gatewayPayment.totalAmount()) {
+    private void cancelMismatchedPayment(PaymentConfirmationInfo paymentInfo, PaymentGatewayResponse gatewayPayment) {
+        if (gatewayPayment.totalAmount() == null || paymentInfo.amount() != gatewayPayment.totalAmount()) {
             paymentGateway.cancelPayment(paymentInfo.portonePaymentId(), "결제 금액 불일치 자동 취소");
             paymentCommandService.cancelPaymentForAmountMismatch(paymentInfo.orderId());
             throw new BusinessException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);
         }
     }
+
 }
