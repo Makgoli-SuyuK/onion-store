@@ -288,4 +288,14 @@ class ProductServiceTest {
                 .extracting(ProductSimpleResponse::likeCount)
                 .isSortedAccordingTo(Comparator.reverseOrder());
     }
+
+    @Test
+    @DisplayName("카테고리 Id를 통해 해당 카테고리에 상품이 존재하는지 확인한다")
+    void 카테고리_id로_상품이_존재하는지_확인한다() {
+        //given
+        given(productRepository.existsByCategory_Id(anyLong())).willReturn(Boolean.TRUE);
+
+        //when&then
+        assertThat(productService.existsByCategoryId(1L)).isTrue();
+    }
 }
