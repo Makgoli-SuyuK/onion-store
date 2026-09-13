@@ -79,10 +79,13 @@ public class PaymentService {
         return new PaymentStateChangeResponse(changed, GetPaymentInfoResponse.from(payment));
     }
 
-    // 결제 실패 확인 된 경우 사용
-    @Transactional
+    // 결제 실패가 확인된 경우 READY 상태에서만 FAILED로 전이한다.    @Transactional
     public PaymentStateChangeResponse applyFailure(Long orderId) {
         Payment payment = findPaymentForUpdate(orderId);
+
+        if (payment.getStatus() != PaymentStatus.READY) {
+            return new PaymentStateChangeResponse(false, GetPaymentInfoResponse.from(payment));
+        }
         boolean changed = payment.markAsFailed();
         return new PaymentStateChangeResponse(changed, GetPaymentInfoResponse.from(payment));
     }
