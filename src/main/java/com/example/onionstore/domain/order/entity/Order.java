@@ -69,6 +69,10 @@ public class Order extends BaseTimeEntity {
         return true;
     }
 
+    public boolean adminChangeOrderStatus(OrderStatus status) {
+        return changeStatus(status);
+    }
+
     private boolean changeStatus(OrderStatus target) {
         if (status == target) {
             return false;
