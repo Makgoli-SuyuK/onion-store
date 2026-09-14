@@ -117,8 +117,8 @@ public class OrderFacade {
             throw new BusinessException(ErrorCode.PAYMENT_ALREADY_CANCELLED);
         }
 
-        // 5. Payment 상태가 READY 또는 FAILED 경우 (결제 전)
-        if (order.getStatus().equals(OrderStatus.PENDING) && (payment.getStatus().equals(PaymentStatus.READY) || (payment.getStatus().equals(PaymentStatus.FAILED)))) {
+        // 5. Payment 상태가 READY 경우 (결제 전)
+        if (order.getStatus().equals(OrderStatus.PENDING) && (payment.getStatus().equals(PaymentStatus.READY))) {
             order.cancel();
             paymentService.applyCancellation(orderId);
             List<OrderItem> orderItems = orderService.findOrderItemsByOrderId(orderId);

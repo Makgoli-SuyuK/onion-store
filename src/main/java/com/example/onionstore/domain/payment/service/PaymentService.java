@@ -79,10 +79,14 @@ public class PaymentService {
         return new PaymentStateChangeResponse(changed, GetPaymentInfoResponse.from(payment));
     }
 
-    // 결제 실패 확인 된 경우 사용
+    // 결제 실패가 확인된 경우 READY 상태에서만 FAILED로 전이한다.
     @Transactional
     public PaymentStateChangeResponse applyFailure(Long orderId) {
         Payment payment = findPaymentForUpdate(orderId);
+
+        if (payment.getStatus() != PaymentStatus.READY) {
+            return new PaymentStateChangeResponse(false, GetPaymentInfoResponse.from(payment));
+        }
         boolean changed = payment.markAsFailed();
         return new PaymentStateChangeResponse(changed, GetPaymentInfoResponse.from(payment));
     }
@@ -93,6 +97,18 @@ public class PaymentService {
         Payment payment = findPaymentForUpdate(orderId);
         boolean changed = payment.markAsCancelled();
         return new PaymentStateChangeResponse(changed, GetPaymentInfoResponse.from(payment));
+    }
+
+    // PaymentService.java
+
+    @Transactional(readOnly = true)
+    public PaymentConfirmationInfo getPaymentConfirmationInfoByPortonePaymentId(
+            String portonePaymentId
+    ) {
+        Payment payment = paymentRepository.findByPortonePaymentIdWithOrder(portonePaymentId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PAYMENT_NOT_FOUND));
+
+        return PaymentConfirmationInfo.from(payment);
     }
 
     public Payment findPaymentForUpdate(Long orderId) {
