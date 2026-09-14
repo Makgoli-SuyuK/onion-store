@@ -2,6 +2,7 @@ package com.example.onionstore.domain.product.facade;
 
 import com.example.onionstore.domain.category.entity.Category;
 import com.example.onionstore.domain.category.service.CategoryService;
+import com.example.onionstore.domain.product.dto.ProductDetailWithLiked;
 import com.example.onionstore.domain.product.dto.ProductCreateRequest;
 import com.example.onionstore.domain.product.dto.ProductDetailWithLiked;
 import com.example.onionstore.domain.product.dto.ProductEditRequest;
@@ -162,64 +163,6 @@ public class ProductFacadeTest {
     }
 
     @Test
-    @DisplayName("상품 추가 facade 테스트 - 관리자 계정")
-    void 관리자_계정으로_상품을_추가할_수_있다() {
-        //given
-        User user = new User(
-                "test@email.com",
-                "password",
-                "name",
-                "010-0000-0000",
-                Role.ADMIN
-        );
-
-        ProductCreateRequest createRequest = new ProductCreateRequest(
-                "category",
-                "name",
-                "description",
-                10000L,
-                10
-        );
-
-        given(userService.findUser(anyLong())).willReturn(user);
-        given(categoryService.getCategoryByName(anyString())).willReturn(new Category("category"));
-
-        //when
-        productFacade.addProduct(1L, createRequest);
-
-        //then
-        verify(productService).createProduct(any(ProductCreateRequest.class), any(Category.class));
-    }
-
-    @Test
-    @DisplayName("상품 추가 facade 테스트 - 관리자 계정 아닌 경우")
-    void 관리자_계정이_아니라면_상품을_추가할_수_없다() {
-        //given
-        User user = new User(
-                "test@email.com",
-                "password",
-                "name",
-                "010-0000-0000",
-                Role.CUSTOMER
-        );
-
-        ProductCreateRequest createRequest = new ProductCreateRequest(
-                "category",
-                "name",
-                "description",
-                10000L,
-                10
-        );
-
-        given(userService.findUser(anyLong())).willReturn(user);
-
-        //when&then
-        assertThatThrownBy(() -> productFacade.addProduct(1L, createRequest))
-                .isInstanceOf(BusinessException.class)
-                .hasMessage(ErrorCode.FORBIDDEN_ROLE.getMessage());
-    }
-
-    @Test
     @DisplayName("상품 상세 조회 facade 테스트 - 일반 사용자")
     void 상품_상세_조회_시_상품_정보_및_좋아요_여부를_조회한다() {
         //given
@@ -316,5 +259,63 @@ public class ProductFacadeTest {
         assertThat(res.productInfo().description()).isEqualTo(product.getDescription());
         assertThat(res.productInfo().price()).isEqualTo(product.getPrice());
         assertThat(res.liked()).isFalse();
+    }
+
+    @Test
+    @DisplayName("상품 추가 facade 테스트 - 관리자 계정")
+    void 관리자_계정으로_상품을_추가할_수_있다() {
+        //given
+        User user = new User(
+                "test@email.com",
+                "password",
+                "name",
+                "010-0000-0000",
+                Role.ADMIN
+        );
+
+        ProductCreateRequest createRequest = new ProductCreateRequest(
+                "category",
+                "name",
+                "description",
+                10000L,
+                10
+        );
+
+        given(userService.findUser(anyLong())).willReturn(user);
+        given(categoryService.getCategoryByName(anyString())).willReturn(new Category("category"));
+
+        //when
+        productFacade.addProduct(1L, createRequest);
+
+        //then
+        verify(productService).createProduct(any(ProductCreateRequest.class), any(Category.class));
+    }
+
+    @Test
+    @DisplayName("상품 추가 facade 테스트 - 관리자 계정 아닌 경우")
+    void 관리자_계정이_아니라면_상품을_추가할_수_없다() {
+        //given
+        User user = new User(
+                "test@email.com",
+                "password",
+                "name",
+                "010-0000-0000",
+                Role.CUSTOMER
+        );
+
+        ProductCreateRequest createRequest = new ProductCreateRequest(
+                "category",
+                "name",
+                "description",
+                10000L,
+                10
+        );
+
+        given(userService.findUser(anyLong())).willReturn(user);
+
+        //when&then
+        assertThatThrownBy(() -> productFacade.addProduct(1L, createRequest))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.FORBIDDEN_ROLE.getMessage());
     }
 }
