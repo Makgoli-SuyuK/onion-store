@@ -22,9 +22,9 @@ public interface CartItemRepository extends JpaRepository<CartItem, Long> {
     @Query("DELETE FROM CartItem ci WHERE ci.id IN :ids AND ci.cart.user.id = :userId")
     int deleteAllByIdInAndCart_User_Id(@Param("ids") List<Long> ids, @Param("userId") Long userId);
 
-    @Override
     @EntityGraph(attributePaths = {"product", "cart"})
-    Optional<CartItem> findById(Long id);
+    @Query("SELECT ci FROM CartItem ci WHERE ci.id = :id")
+    Optional<CartItem> findByIdWithProductAndCart(@Param("id") Long id);
 
     Optional<CartItem> findByCartIdAndProductId(Long cartId, Long productId);
 

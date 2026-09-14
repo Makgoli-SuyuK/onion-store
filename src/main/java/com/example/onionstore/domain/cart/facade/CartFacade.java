@@ -25,16 +25,20 @@ public class CartFacade {
     @Transactional
     public CartItemResponse addItem(Long userId, AddCartItemRequest request) {
         User user = userService.findUser(userId);
-        Product product = productService.getProductForCart(request.productId(), request.quantity());
+        Product product = productService.getProductById(request.productId());
         return cartService.addItem(user, product, request.quantity());
     }
 
     @Transactional
     public CartItemResponse updateQuantity(Long userId, Long cartItemId, UpdateCartItemQuantityRequest request) {
-        userService.findUser(userId);
         CartItem cartItem = cartService.findCartItem(userId, cartItemId);
-        productService.getProductForCart(cartItem.getProduct().getId(), request.quantity());
-        return cartService.updateQuantity(cartItem, request.quantity());
+        Product product = productService.getProductById(cartItem.getProduct().getId());
+        return cartService.updateQuantity(cartItem, product, request.quantity());
+    }
+
+    @Transactional
+    public void deleteItem(Long userId, Long cartItemId) {
+        cartService.deleteItem(userId, cartItemId);
     }
 
     @Transactional(readOnly = true)
