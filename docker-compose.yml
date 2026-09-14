@@ -14,6 +14,10 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/onion_store?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
       SPRING_DATASOURCE_USERNAME: onion
       SPRING_DATASOURCE_PASSWORD: onion
+      PORTONE_API_SECRET: ${PORTONE_API_SECRET}
+      PORTONE_STORE_ID: ${PORTONE_STORE_ID}
+      PORTONE_CHANNEL_KEY: ${PORTONE_CHANNEL_KEY}
+      PORTONE_WEBHOOK_SECRET: ${PORTONE_WEBHOOK_SECRET}
     depends_on:
       mysql:
         condition: service_healthy
