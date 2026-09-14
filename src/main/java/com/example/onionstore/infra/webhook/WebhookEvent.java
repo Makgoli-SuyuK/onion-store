@@ -24,7 +24,7 @@ public class WebhookEvent extends BaseTimeEntity {
     @Column(name = "event_type", nullable = false, length = 100)
     private String eventType;
 
-    @Column(name = "portone_payment_id", length = 255)
+    @Column(name = "portone_payment_id")
     private String portonePaymentId;
 
     @Column(name = "payload", nullable = false, columnDefinition = "TEXT")
@@ -37,6 +37,9 @@ public class WebhookEvent extends BaseTimeEntity {
     @Column(name = "processing_message", length = 500)
     private String processingMessage;
 
+    @Column(name = "processing_started_at")
+    private LocalDateTime processingStartedAt;
+
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
@@ -46,6 +49,21 @@ public class WebhookEvent extends BaseTimeEntity {
         this.portonePaymentId = portonePaymentId;
         this.payload = payload;
         this.processingStatus = WebhookProcessingStatus.RECEIVED;
+    }
+
+    // 호출자는 같은 트랜잭션에서 이벤트 락을 획득해야 한다.
+    public WebhookClaimResult claimProcessing() {
+        if (isTerminal()) {
+            return WebhookClaimResult.ALREADY_COMPLETED;
+        }
+        if (processingStatus == WebhookProcessingStatus.PROCESSING) {
+            return WebhookClaimResult.ALREADY_PROCESSING;
+        }
+        this.processingStatus = WebhookProcessingStatus.PROCESSING;
+        this.processingStartedAt = LocalDateTime.now();
+        this.processingMessage = null;
+        this.completedAt = null;
+        return WebhookClaimResult.CLAIMED;
     }
 
     public boolean markProcessed() {
