@@ -79,6 +79,9 @@ class ProductControllerTest {
 
         //when&then
         mockMvc.perform(post("/api/products")
+                        .with(jwt().jwt((jwt) -> jwt
+                                .tokenValue("token")
+                                .subject("1")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(createRequest)))
                 .andExpect(status().isOk());
@@ -98,6 +101,9 @@ class ProductControllerTest {
 
         //when&then
         mockMvc.perform(post("/api/products")
+                        .with(jwt().jwt((jwt) -> jwt
+                                .tokenValue("token")
+                                .subject("1")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(createRequest)))
                 .andExpect(status().isBadRequest())
