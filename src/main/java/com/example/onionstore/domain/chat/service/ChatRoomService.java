@@ -3,6 +3,8 @@ package com.example.onionstore.domain.chat.service;
 import com.example.onionstore.domain.chat.dto.request.ChatRoomCreateRequest;
 import com.example.onionstore.domain.chat.dto.response.ChatRoomCreateResponse;
 import com.example.onionstore.domain.chat.dto.response.ChatRoomListResponse;
+import com.example.onionstore.domain.chat.dto.response.ChatRoomDetailResponse;
+import com.example.onionstore.domain.chat.dto.response.ChatRoomStatusUpdateResponse;
 import com.example.onionstore.domain.chat.entity.ChatRoom;
 import com.example.onionstore.domain.chat.entity.ChatRoomStatus;
 import com.example.onionstore.domain.chat.repository.ChatRoomRepository;
@@ -68,6 +70,43 @@ public class ChatRoomService {
         ));
     }
 
+
+    public ChatRoomDetailResponse getRoom(Long userId, Long roomId){
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CHAT_ROOM_NOT_FOUND));
+
+        if(user.getRole() == Role.CUSTOMER && !chatRoom.getUser().getId().equals(userId)){
+            throw new BusinessException(ErrorCode.CHAT_ROOM_ACCESS_DENIED);
+        }
+
+        return new ChatRoomDetailResponse(
+                chatRoom.getId(),
+                chatRoom.getTitle(),
+                chatRoom.getStatus(),
+                chatRoom.getUser().getId(),
+                chatRoom.getUser().getName(),
+                chatRoom.getCreatedAt()
+        );
+    }
+    @Transactional
+    public ChatRoomStatusUpdateResponse updateStatus(Long userId, Long roomId, ChatRoomStatus status){
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        if(user.getRole() != Role.ADMIN) {
+            throw new BusinessException(ErrorCode.CHAT_ROOM_STATUS_CHANGE_ADMIN_ONLY);
+        }
+        ChatRoom room = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CHAT_ROOM_NOT_FOUND));
+
+        room.changeStatus(status);
+        chatRoomRepository.saveAndFlush(room);
+
+        return new ChatRoomStatusUpdateResponse(room.getId(), room.getStatus(), room.getUpdatedAt());
+    }
 }
 
 

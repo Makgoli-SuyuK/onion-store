@@ -10,7 +10,7 @@ public class MysqlSupport {
     @Bean
     @ServiceConnection
     public MySQLContainer mysqlContainer() {
-        return new MySQLContainer("mysql:latest")
+        return new MySQLContainer("mysql:8.4")
                 .withDatabaseName("onionstore")
                 .withUsername("test")
                 .withPassword("test");

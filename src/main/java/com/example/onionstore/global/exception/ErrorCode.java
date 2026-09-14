@@ -44,6 +44,8 @@ public enum ErrorCode {
     // 상품 찜
     ALREADY_LIKED_PRODUCT(HttpStatus.CONFLICT, "LIKE_001", "이미 찜한 상품입니다."),
     PRODUCT_LIKE_NOT_FOUND(HttpStatus.NOT_FOUND, "LIKE_002", "찜 내역을 찾을 수 없습니다."),
+    LIKE_ADMIN_NOT_ALLOWED(HttpStatus.FORBIDDEN, "LIKE_003", "관리자 계정은 찜할 수 없습니다."),
+    PRODUCT_LIKE_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "LIKE_004", "삭제 처리된 상품은 찜할 수 없습니다."),
 
     // 장바구니
     CART_NOT_FOUND(HttpStatus.NOT_FOUND, "CART_001", "장바구니를 찾을 수 없습니다."),
@@ -51,12 +53,15 @@ public enum ErrorCode {
     CART_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "CART_003", "장바구니 상품을 찾을 수 없습니다."),
     INVALID_CART_ITEM_QUANTITY(HttpStatus.BAD_REQUEST, "CART_004", "수량은 1개 이상이어야 합니다."),
 
+    CART_ITEM_ACCESS_DENIED(HttpStatus.FORBIDDEN, "CART_005", "본인의 장바구니 상품만 변경하거나 삭제할 수 있습니다."),
+
     // 주문
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "ORDER_001", "주문을 찾을 수 없습니다."),
     ORDER_NOT_PAYABLE(HttpStatus.CONFLICT, "ORDER_002", "현재 결제할 수 없는 주문입니다."),
     INVALID_ORDER_STATUS(HttpStatus.BAD_REQUEST, "ORDER_003", "유효하지 않은 주문 상태 변경입니다."),
     ORDER_ALREADY_CANCELED(HttpStatus.CONFLICT, "ORDER_004", "이미 취소된 주문입니다."),
     CANNOT_CANCEL_ORDER(HttpStatus.BAD_REQUEST, "ORDER_005", "현재 상태에서는 주문을 취소할 수 없습니다."),
+    ORDER_ACCESS_DENIED(HttpStatus.FORBIDDEN, "ORDER_006", "접근 권한이 없습니다."),
 
     // 결제
     PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "PAYMENT_001", "결제 정보를 찾을 수 없습니다."),
@@ -64,7 +69,15 @@ public enum ErrorCode {
     INVALID_PAYMENT_STATUS(HttpStatus.BAD_REQUEST, "PAYMENT_003", "유효하지 않은 결제 상태 변경입니다."),
     PAYMENT_ALREADY_PROCESSED(HttpStatus.CONFLICT, "PAYMENT_004", "이미 처리된 결제입니다."),
     PAYMENT_FAILED(HttpStatus.BAD_REQUEST, "PAYMENT_005", "결제 처리에 실패했습니다."),
+    PAYMENT_GATEWAY_ERROR(HttpStatus.BAD_GATEWAY, "PAYMENT_006", "결제사 조회에 실패했습니다."),
+    PAYMENT_NOT_COMPLETED(HttpStatus.CONFLICT, "PAYMENT_007", "결제가 아직 완료되지 않았습니다."),
+    PAYMENT_CANCELLATION_FAILED(HttpStatus.BAD_GATEWAY, "PAYMENT_008", "결제사 취소에 실패했습니다."),
+    PAYMENT_ALREADY_CANCELLED(HttpStatus.CONFLICT, "PAYMENT_009", "이미 취소된 결제입니다."),
 
+    // webhook
+    WEBHOOK_VERIFICATION_FAILED(HttpStatus.BAD_REQUEST, "WEBHOOK_001", "웹훅 서명검증에 실패했습니다"),
+    WEBHOOK_EVENT_NOT_FOUND(HttpStatus.NOT_FOUND, "WEBHOOK_002","웹훅 이벤트를 찾을 수 없습니다."),
+    WEBHOOK_ALREADY_PROCESSING(HttpStatus.SERVICE_UNAVAILABLE, "WEBHOOK_003", "웹훅을 처리 중입니다. 잠시 후 다시 시도해주세요."),
     // 이벤트
     EVENT_NOT_STARTED(HttpStatus.CONFLICT, "EVENT_001", "아직 타임세일 시작 전입니다."),
     EVENT_ENDED(HttpStatus.CONFLICT, "EVENT_002", "타임세일이 종료되었습니다."),

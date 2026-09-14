@@ -11,12 +11,12 @@ public enum PaymentStatus {
     SUCCESS {
         @Override
         public boolean canTransitTo(PaymentStatus target) {
-            return target == CANCELLED;
+            return false;
         }
     },
     FAILED {
         public boolean canTransitTo(PaymentStatus target) {
-            return target == CANCELLED;
+            return false;
         }
     },
     CANCELLED {

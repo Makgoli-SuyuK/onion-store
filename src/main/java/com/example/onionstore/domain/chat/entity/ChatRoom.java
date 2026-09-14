@@ -2,6 +2,8 @@ package com.example.onionstore.domain.chat.entity;
 
 import com.example.onionstore.global.entity.BaseTimeEntity;
 import com.example.onionstore.domain.user.entity.User;
+import com.example.onionstore.global.exception.BusinessException;
+import com.example.onionstore.global.exception.ErrorCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -17,6 +19,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+
 @Getter
 @Entity
 @Table(name = "chat_rooms")
@@ -26,6 +29,7 @@ public class ChatRoom extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
 
     @Column(nullable = false, length = 50)
     private String title;
@@ -42,5 +46,12 @@ public class ChatRoom extends BaseTimeEntity {
         this.user = user;
         this.title = title;
         this.status = ChatRoomStatus.WAITING;
+    }
+
+    public void changeStatus(ChatRoomStatus next) {
+        if (this.status == ChatRoomStatus.COMPLETED) {
+            throw new BusinessException(ErrorCode.INVALID_CHAT_ROOM_STATUS_TRANSITION);
+        }
+        this.status = next;
     }
 }

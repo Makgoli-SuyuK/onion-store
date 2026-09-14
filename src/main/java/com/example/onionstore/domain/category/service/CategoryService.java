@@ -33,7 +33,7 @@ public class CategoryService {
 
     @Transactional
     public void editCategory(Long id, CategoryEditRequest editRequest) {
-        Category toEdit = findCategory(id);
+        Category toEdit = findCategoryForUpdate(id);
 
         if (toEdit.isDeleted()) {
             throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);
@@ -47,7 +47,7 @@ public class CategoryService {
 
     @Transactional
     public void deleteCategory(Long id) {
-        Category toDelete = findCategory(id);
+        Category toDelete = findCategoryForUpdate(id);
 
         if (toDelete.isDeleted()) {
             throw new BusinessException(ErrorCode.CATEGORY_ALREADY_DELETED);
@@ -67,8 +67,8 @@ public class CategoryService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
     }
 
-    private Category findCategory(Long id) {
-        return categoryRepository.findById(id)
+    private Category findCategoryForUpdate(Long id) {
+        return categoryRepository.findForUpdateById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
     }
 

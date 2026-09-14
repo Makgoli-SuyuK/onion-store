@@ -21,4 +21,27 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     @Query("SELECT p FROM Payment p WHERE p.order.id IN :orderIds")
     List<Payment> findAllByOrder_IdIn(@Param("orderIds") List<Long> orderIds);
+
+    @Query("""
+        select p from Payment p
+        join fetch p.order o
+        join fetch o.user
+        where p.portonePaymentId = :portonePaymentId
+          and o.id = :orderId
+        """)
+    Optional<Payment> findByPortonePaymentIdAndOrderIdWithOrderAndUser(
+            @Param("portonePaymentId") String portonePaymentId,
+            @Param("orderId") Long orderId
+    );
+
+    // PaymentRepository.java
+
+    @Query("""
+    select p from Payment p
+    join fetch p.order
+    where p.portonePaymentId = :portonePaymentId
+    """)
+    Optional<Payment> findByPortonePaymentIdWithOrder(
+            @Param("portonePaymentId") String portonePaymentId
+    );
 }

@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PortOne 결제창 테스트</title>
+    <style>
+        :root { color-scheme: light; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+        body { max-width: 640px; margin: 40px auto; padding: 0 20px; color: #1f2937; background: #f8fafc; }
+        section { margin: 16px 0; padding: 20px; background: white; border: 1px solid #e2e8f0; border-radius: 12px; }
+        h1 { margin-bottom: 8px; }
+        p { line-height: 1.55; }
+        form { display: grid; gap: 12px; }
+        label { display: grid; gap: 6px; font-size: 14px; font-weight: 600; }
+        input { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font: inherit; }
+        button { padding: 10px 14px; border: 0; border-radius: 6px; color: white; background: #2563eb; font: inherit; cursor: pointer; }
+        button:disabled { cursor: not-allowed; background: #94a3b8; }
+        code { background: #e2e8f0; padding: 2px 4px; border-radius: 4px; }
+        #status { min-height: 24px; font-weight: 600; }
+        .error { color: #dc2626; }
+        .success { color: #15803d; }
+        .muted { color: #64748b; font-size: 14px; }
+    </style>
+</head>
+<body>
+<h1>PortOne 결제창 테스트</h1>
+<p class="muted">주문 생성 API 응답에서 받은 값을 입력해 결제창을 엽니다. 결제가 끝나면 Swagger에서 결제 완료 확인 API를 호출하세요.</p>
+
+<section>
+    <form id="payment-form">
+        <label>
+            주문 ID
+            <input id="order-id" type="number" min="1" step="1" placeholder="주문 생성 응답의 orderId" required>
+        </label>
+        <label>
+            PortOne 결제 ID
+            <input id="payment-id" type="text" placeholder="주문 생성 응답의 portonePaymentId" required>
+        </label>
+        <label>
+            주문명
+            <input id="order-name" type="text" placeholder="예: 양파즙 1개" required>
+        </label>
+        <label>
+            결제 금액
+            <input id="total-amount" type="number" min="1" placeholder="주문 생성 응답의 totalPrice" required>
+        </label>
+        <label>
+            구매자 이름
+            <input id="customer-name" type="text" placeholder="회원가입에 사용한 이름" required>
+        </label>
+        <label>
+            구매자 휴대폰 번호
+            <input id="customer-phone-number" type="tel" inputmode="numeric" placeholder="01012345678" required>
+        </label>
+        <label>
+            구매자 이메일
+            <input id="customer-email" type="email" placeholder="회원가입에 사용한 이메일" required>
+        </label>
+        <button id="pay-button" type="submit">포트원 결제창 열기</button>
+    </form>
+</section>
+
+<section>
+    <p id="status" aria-live="polite">포트원 설정을 불러오는 중입니다.</p>
+    <p class="muted">결제가 끝나면 Swagger의 Authorize로 인증한 뒤 <code>POST /api/payments/confirm</code> 요청 본문에 주문 ID와 결제 ID를 넣으세요.</p>
+</section>
+
+<script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
+<script>
+    let portoneConfig = null;
+
+    const paymentForm = document.getElementById('payment-form');
+    const payButton = document.getElementById('pay-button');
+    const statusElement = document.getElementById('status');
+
+    function setStatus(message, type = '') {
+        statusElement.textContent = message;
+        statusElement.className = type;
+    }
+
+    async function loadPortoneConfig() {
+        const response = await fetch('/api/config/portone');
+        const body = await response.json();
+        if (!response.ok || !body.success) {
+            throw new Error(body.message || '포트원 설정을 불러오지 못했습니다.');
+        }
+        return body.data;
+    }
+
+    paymentForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (!portoneConfig) {
+            setStatus('포트원 설정을 불러오지 못했습니다.', 'error');
+            return;
+        }
+
+        const orderId = Number(document.getElementById('order-id').value);
+        const paymentId = document.getElementById('payment-id').value.trim();
+        if (!paymentId || !Number.isSafeInteger(orderId) || orderId < 1) {
+            setStatus('주문 ID와 결제 ID를 확인하세요.', 'error');
+            return;
+        }
+
+        payButton.disabled = true;
+        try {
+            setStatus('포트원 결제창을 여는 중입니다.');
+            const payment = await PortOne.requestPayment({
+                storeId: portoneConfig.storeId,
+                channelKey: portoneConfig.channelKey,
+                paymentId,
+                orderName: document.getElementById('order-name').value,
+                totalAmount: Number(document.getElementById('total-amount').value),
+                currency: 'KRW',
+                payMethod: 'CARD',
+                customer: {
+                    fullName: document.getElementById('customer-name').value,
+                    phoneNumber: document.getElementById('customer-phone-number').value,
+                    email: document.getElementById('customer-email').value
+                }
+            });
+
+            if (!payment) {
+                throw new Error('결제창 응답을 받지 못했습니다.');
+            }
+            if (payment.code !== undefined) {
+                throw new Error(payment.message || '결제가 완료되지 않았습니다.');
+            }
+            const confirmedPaymentId = payment.paymentId || paymentId;
+            setStatus(
+                    `결제창 처리가 완료되었습니다. Swagger에서 orderId=${orderId}, portonePaymentId=${confirmedPaymentId}로 결제 완료 확인을 호출하세요.`,
+                    'success'
+            );
+        } catch (error) {
+            setStatus(error.message, 'error');
+        } finally {
+            payButton.disabled = false;
+        }
+    });
+
+    loadPortoneConfig()
+            .then((config) => {
+                portoneConfig = config;
+                setStatus('주문 생성 API 응답의 값을 입력하세요.');
+            })
+            .catch((error) => setStatus(error.message, 'error'));
+</script>
+</body>
+</html>

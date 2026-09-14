@@ -11,7 +11,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 @Constraint(validatedBy = PasswordValidator.class)
 public @interface ValidPassword {
-    String message() default "비밀번호는 비어 있을 수 없으며 UTF-8 기준 72바이트 이하여야 합니다.";
+    String message() default "비밀번호를 입력해주세요.";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 }
