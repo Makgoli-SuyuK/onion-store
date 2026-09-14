@@ -52,7 +52,9 @@ class CartQuantityUpdateTest {
     @ValueSource(ints = {1, 2, 5})
     void replacesQuantityInsteadOfAdding(int quantity) {
         CartItem item = item();
-        given(cartItemRepository.findById(10L)).willReturn(Optional.of(item));
+        given(cartItemRepository.findByIdWithProductAndCart(10L)).willReturn(Optional.of(item));
+
+        given(productService.getProductById(item.getProduct().getId())).willReturn(item.getProduct());
 
         var response = facade().updateQuantity(1L, 10L, new UpdateCartItemQuantityRequest(quantity));
 
@@ -62,7 +64,7 @@ class CartQuantityUpdateTest {
 
     @Test
     void rejectsMissingItem() {
-        given(cartItemRepository.findById(10L)).willReturn(Optional.empty());
+        given(cartItemRepository.findByIdWithProductAndCart(10L)).willReturn(Optional.empty());
         assertThatThrownBy(() -> facade().updateQuantity(1L, 10L, new UpdateCartItemQuantityRequest(3)))
                 .isInstanceOfSatisfying(BusinessException.class,
                         e -> assertThat(e.getErrorCode()).isEqualTo(ErrorCode.CART_ITEM_NOT_FOUND));
@@ -71,7 +73,7 @@ class CartQuantityUpdateTest {
     @Test
     void rejectsOtherUsersItemWithoutChangingQuantity() {
         CartItem item = item();
-        given(cartItemRepository.findById(10L)).willReturn(Optional.of(item));
+        given(cartItemRepository.findByIdWithProductAndCart(10L)).willReturn(Optional.of(item));
 
         assertThatThrownBy(() -> facade().updateQuantity(2L, 10L, new UpdateCartItemQuantityRequest(3)))
                 .isInstanceOfSatisfying(BusinessException.class,
@@ -83,9 +85,8 @@ class CartQuantityUpdateTest {
     @Test
     void keepsQuantityWhenStockValidationFails() {
         CartItem item = item();
-        given(cartItemRepository.findById(10L)).willReturn(Optional.of(item));
-        given(productService.getProductForCart(item.getProduct().getId(), 11))
-                .willThrow(new BusinessException(ErrorCode.PRODUCT_OUT_OF_STOCK));
+        given(cartItemRepository.findByIdWithProductAndCart(10L)).willReturn(Optional.of(item));
+        given(productService.getProductById(item.getProduct().getId())).willReturn(item.getProduct());
 
         assertThatThrownBy(() -> facade().updateQuantity(1L, 10L, new UpdateCartItemQuantityRequest(11)))
                 .isInstanceOfSatisfying(BusinessException.class,
