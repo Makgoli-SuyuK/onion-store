@@ -74,9 +74,18 @@ public enum ErrorCode {
     PAYMENT_CANCELLATION_FAILED(HttpStatus.BAD_GATEWAY, "PAYMENT_008", "결제사 취소에 실패했습니다."),
     PAYMENT_ALREADY_CANCELLED(HttpStatus.CONFLICT, "PAYMENT_009", "이미 취소된 결제입니다."),
 
+    // 환불
+    REFUND_NOT_FOUND(HttpStatus.NOT_FOUND, "REFUND_001", "환불 정보를 찾을 수 없습니다."),
+    REFUND_ALREADY_IN_PROGRESS(HttpStatus.CONFLICT, "REFUND_002", "처리 중인 환불 요청이 이미 있습니다."),
+    REFUND_NOT_ALLOWED(HttpStatus.CONFLICT, "REFUND_003", "현재 결제 상태에서는 환불을 요청할 수 없습니다."),
+    EXCEEDS_REFUNDABLE_QUANTITY(HttpStatus.CONFLICT, "REFUND_004", "환불 가능한 수량을 초과했습니다."),
+    INVALID_REFUND_STATUS(HttpStatus.CONFLICT, "REFUND_005", "현재 환불 상태에서는 처리할 수 없습니다."),
+    CANCELLATION_ALREADY_LINKED(HttpStatus.CONFLICT, "REFUND_006", "기존 취소 이력과 PortOne 취소 ID가 일치하지 않습니다."),
+    INVALID_CANCELLATION_ID(HttpStatus.BAD_REQUEST, "REFUND_007", "유효하지 않은 PortOne 취소 ID입니다."),
+
     // webhook
     WEBHOOK_VERIFICATION_FAILED(HttpStatus.BAD_REQUEST, "WEBHOOK_001", "웹훅 서명검증에 실패했습니다"),
-    WEBHOOK_EVENT_NOT_FOUND(HttpStatus.NOT_FOUND, "WEBHOOK_002","웹훅 이벤트를 찾을 수 없습니다."),
+    WEBHOOK_EVENT_NOT_FOUND(HttpStatus.NOT_FOUND, "WEBHOOK_002", "웹훅 이벤트를 찾을 수 없습니다."),
     WEBHOOK_ALREADY_PROCESSING(HttpStatus.SERVICE_UNAVAILABLE, "WEBHOOK_003", "웹훅을 처리 중입니다. 잠시 후 다시 시도해주세요."),
     // 이벤트
     EVENT_NOT_STARTED(HttpStatus.CONFLICT, "EVENT_001", "아직 타임세일 시작 전입니다."),
@@ -89,10 +98,10 @@ public enum ErrorCode {
     CHAT_MESSAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT_003", "채팅 메시지를 찾을 수 없습니다."),
     CHAT_MESSAGE_EMPTY(HttpStatus.BAD_REQUEST, "CHAT_004", "메시지 내용이 비어있습니다."),
     CHAT_ROOM_CREATE_FORBIDDEN_FOR_ADMIN(HttpStatus.FORBIDDEN, "CHAT_005", "관리자는 문의방을 생성할 수 없습니다."),
-    CHAT_ROOM_STATUS_CHANGE_ADMIN_ONLY(HttpStatus.FORBIDDEN,"CHAT_006", "관리자만 상태를 변경할 수 있습니다."),
-    INVALID_CHAT_ROOM_STATUS_TRANSITION(HttpStatus.CONFLICT,"CHAT_007","완료된 문의는 상태를 되돌릴 수 없습니다."),
-    INVALID_CHAT_MESSAGE_LENGTH(HttpStatus.BAD_REQUEST,"CHAT_008","메시지는 1~1000자여야 합니다."),
-    CANNOT_SEND_TO_COMPLETED_CHAT_ROOM(HttpStatus.CONFLICT,"CHAT_009","완료된 문의에는 메시지를 보낼 수 없습니다.");
+    CHAT_ROOM_STATUS_CHANGE_ADMIN_ONLY(HttpStatus.FORBIDDEN, "CHAT_006", "관리자만 상태를 변경할 수 있습니다."),
+    INVALID_CHAT_ROOM_STATUS_TRANSITION(HttpStatus.CONFLICT, "CHAT_007", "완료된 문의는 상태를 되돌릴 수 없습니다."),
+    INVALID_CHAT_MESSAGE_LENGTH(HttpStatus.BAD_REQUEST, "CHAT_008", "메시지는 1~1000자여야 합니다."),
+    CANNOT_SEND_TO_COMPLETED_CHAT_ROOM(HttpStatus.CONFLICT, "CHAT_009", "완료된 문의에는 메시지를 보낼 수 없습니다.");
 
 
     private final HttpStatus status;

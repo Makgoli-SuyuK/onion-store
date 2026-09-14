@@ -99,7 +99,15 @@ public class PaymentService {
         return new PaymentStateChangeResponse(changed, GetPaymentInfoResponse.from(payment));
     }
 
-    // PaymentService.java
+    @Transactional
+    public PaymentStateChangeResponse applyPartialCancellation(Long orderId) {
+        Payment payment = findPaymentForUpdate(orderId);
+        boolean changed = payment.markAsPartiallyCancelled();
+        return new PaymentStateChangeResponse(
+                changed,
+                GetPaymentInfoResponse.from(payment)
+        );
+    }
 
     @Transactional(readOnly = true)
     public PaymentConfirmationInfo getPaymentConfirmationInfoByPortonePaymentId(
