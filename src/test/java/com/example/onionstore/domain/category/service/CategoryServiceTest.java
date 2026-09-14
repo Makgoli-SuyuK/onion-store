@@ -99,7 +99,7 @@ class CategoryServiceTest {
 
         CategoryEditRequest editRequest = new CategoryEditRequest("edited");
 
-        given(categoryRepository.findById(1L)).willReturn(Optional.of(category));
+        given(categoryRepository.findForUpdateById(1L)).willReturn(Optional.of(category));
         given(categoryRepository.save(any())).willReturn(category);
 
         //when
@@ -118,7 +118,7 @@ class CategoryServiceTest {
 
         CategoryEditRequest editRequest = new CategoryEditRequest("exists");
 
-        given(categoryRepository.findById(1L)).willReturn(Optional.of(category));
+        given(categoryRepository.findForUpdateById(1L)).willReturn(Optional.of(category));
         given(categoryRepository.existsByName(anyString())).willReturn(Boolean.TRUE);
 
         //when&then
@@ -137,7 +137,7 @@ class CategoryServiceTest {
 
         CategoryEditRequest editRequest = new CategoryEditRequest("deleted");
 
-        given(categoryRepository.findById(1L)).willReturn(Optional.of(category));
+        given(categoryRepository.findForUpdateById(1L)).willReturn(Optional.of(category));
 
         //when&then
         assertThatThrownBy(() -> categoryService.editCategory(1L, editRequest))
@@ -152,7 +152,7 @@ class CategoryServiceTest {
         Category category = new Category("new category");
         ReflectionTestUtils.setField(category, "id", 1L);
 
-        given(categoryRepository.findById(1L)).willReturn(Optional.of(category));
+        given(categoryRepository.findForUpdateById(1L)).willReturn(Optional.of(category));
         given(productService.existsByCategoryId(1L)).willReturn(Boolean.FALSE);
 
         //when
@@ -170,7 +170,7 @@ class CategoryServiceTest {
         ReflectionTestUtils.setField(category, "id", 1L);
         category.markAsDeleted();
 
-        given(categoryRepository.findById(1L)).willReturn(Optional.of(category));
+        given(categoryRepository.findForUpdateById(1L)).willReturn(Optional.of(category));
 
         //when&then
         assertThatThrownBy(() -> categoryService.deleteCategory(1L))
@@ -185,7 +185,7 @@ class CategoryServiceTest {
         Category category = new Category("new category");
         ReflectionTestUtils.setField(category, "id", 1L);
 
-        given(categoryRepository.findById(1L)).willReturn(Optional.of(category));
+        given(categoryRepository.findForUpdateById(1L)).willReturn(Optional.of(category));
         given(productService.existsByCategoryId(1L)).willReturn(Boolean.TRUE);
 
         //when&then
