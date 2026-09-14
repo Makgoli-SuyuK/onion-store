@@ -1,8 +1,10 @@
 package com.example.onionstore.domain.chat.service;
 
+import com.example.onionstore.domain.chat.dto.response.ChatMessageBroadcastResponse;
 import com.example.onionstore.domain.chat.dto.response.ChatMessageListResponse;
 import com.example.onionstore.domain.chat.entity.ChatMessage;
 import com.example.onionstore.domain.chat.entity.ChatRoom;
+import com.example.onionstore.domain.chat.entity.ChatRoomStatus;
 import com.example.onionstore.domain.chat.repository.ChatMessageRepository;
 import com.example.onionstore.domain.chat.repository.ChatRoomRepository;
 import com.example.onionstore.domain.user.entity.Role;
@@ -83,11 +85,75 @@ class ChatMessageServiceTest {
                 .isInstanceOf(BusinessException.class);
     }
     @Test
-    @DisplayName("존재하지 않는 채팅방 메시지를 조회하면 예외가 발생한다")
+    @DisplayName("존재하지 않는 채팅방 메시지를 조회하면 예외가 발생한다.")
     void getMessages_roomNotFound() {
         User customer = userRepository.save(new User("m6@test.com", "pw", "고객", "01000000006", Role.CUSTOMER));
 
         assertThatThrownBy(() -> chatMessageService.getMessages(customer.getId(), 999L, null, 10))
+                .isInstanceOf(BusinessException.class);
+    }
+    @Test
+    @DisplayName("메시지를 보내면 저장되고 응답 만들어짐.")
+    void sendMessage_success(){
+        User customer = userRepository.save(new User("sm1@test.com", "pw","고객","01000000021",Role.CUSTOMER));
+        ChatRoom room = chatRoomRepository.save(new ChatRoom(customer, "문의"));
+
+        ChatMessageBroadcastResponse response =
+                chatMessageService.sendMessage(customer.getId(), room.getId(), "배송 언제 오나요?");
+
+        assertThat(response.getMessageId()).isNotNull();
+        assertThat(response.getRoomId()).isEqualTo(room.getId());
+        assertThat(response.getSenderId()).isEqualTo(customer.getId());
+        assertThat(response.getMessage()).isEqualTo("배송 언제 오나요?");
+        assertThat(response.getType()).isEqualTo("TALK");
+    }
+    @Test
+    @DisplayName("빈 메시지는 보낼 수 없다.")
+    void sendMessage_empty_rejected(){
+        User customer = userRepository.save(new User ("sm2@test.com","pw","고객","01000000022",Role.CUSTOMER));
+        ChatRoom room = chatRoomRepository.save(new ChatRoom(customer, "문의"));
+
+        assertThatThrownBy(() -> chatMessageService.sendMessage(customer.getId(), room.getId(), " "))
+                .isInstanceOf(BusinessException.class);
+    }
+    @Test
+    @DisplayName("1000자 넘는 메시지는 보낼 수 없다.")
+    void sendMessage_tooLong_rejected(){
+        User customer = userRepository.save(new User ("sm3@test.com", "pw","고객","01000000023",Role.CUSTOMER));
+        ChatRoom room = chatRoomRepository.save(new ChatRoom(customer, "문의"));
+        String longMessage ="a".repeat(1001);
+
+        assertThatThrownBy(() -> chatMessageService.sendMessage(customer.getId(), room.getId(), longMessage))
+                .isInstanceOf(BusinessException.class);
+    }
+    @Test
+    @DisplayName("완료된 문의에는 메시지를 보낼 수 없다.")
+    void sendMessage_completedRoom_rejected(){
+        User customer = userRepository.save(new User("sm4@test.com","pw","고객","01000000024",Role.CUSTOMER));
+        ChatRoom room = chatRoomRepository.save(new ChatRoom(customer, "문의"));
+        room.changeStatus(ChatRoomStatus.IN_PROGRESS);
+        room.changeStatus(ChatRoomStatus.COMPLETED);
+        chatRoomRepository.save(room);
+
+        assertThatThrownBy(() -> chatMessageService.sendMessage(customer.getId(), room.getId(), "안녕하세요"))
+                .isInstanceOf(BusinessException.class);
+    }
+    @Test
+    @DisplayName("고객이 남의 채팅방에 메시지를 보내면 거부된다.")
+    void sendMessage_otherRoom_rejected(){
+        User owner = userRepository.save(new User("sm5@test.com", "pw", "주인", "01000000025", Role.CUSTOMER));
+        User stranger = userRepository.save(new User("sm6@test.com", "pw", "남", "01000000026", Role.CUSTOMER));
+        ChatRoom room = chatRoomRepository.save(new ChatRoom(owner, "문의" ));
+
+        assertThatThrownBy(() -> chatMessageService.sendMessage(stranger.getId(),room.getId(),"안녕"))
+                .isInstanceOf(BusinessException.class);
+    }
+    @Test
+    @DisplayName("존재하지 않는 방에 메시지를 보내면 예외가 발생한다.")
+    void sendMessage_roomNotFound(){
+        User customer = userRepository.save(new User("sm7@test.com","pw", "고객", "01000000027", Role.CUSTOMER));
+
+        assertThatThrownBy(() -> chatMessageService.sendMessage(customer.getId(), 999L,"안녕"))
                 .isInstanceOf(BusinessException.class);
     }
 }

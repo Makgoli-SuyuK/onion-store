@@ -149,8 +149,8 @@ public class OrderService {
         order.adminChangeOrderStatus(request.status());
         return ChangeOrderStatusResponse.from(order, previousStatus);
     }
-
-    private Order findOrderForUpdate(Long orderId) {
+  
+    public Order findOrderForUpdate(Long orderId) {
         return orderRepository.findByIdForUpdate(orderId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
     }
