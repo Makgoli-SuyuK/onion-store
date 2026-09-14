@@ -1,6 +1,8 @@
 package com.example.onionstore.infra.webhook;
 
 import com.example.onionstore.domain.payment.facade.PaymentFacade;
+import com.example.onionstore.global.exception.BusinessException;
+import com.example.onionstore.global.exception.ErrorCode;
 import io.portone.sdk.server.webhook.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -17,6 +19,7 @@ class PaymentWebhookHandlerTest {
     void prepare(Webhook webhook) {
         ReflectionTestUtils.setField(event, "id", 1L);
         when(events.registerOrGet(eq("id"), anyString(), nullable(String.class), eq("{}"))).thenReturn(event);
+        when(events.claimProcessing(1L)).thenReturn(WebhookClaimResult.CLAIMED);
     }
 
     @Test
@@ -30,22 +33,42 @@ class PaymentWebhookHandlerTest {
 
         // then
         var order = inOrder(facade, events);
+        order.verify(events).claimProcessing(1L);
         order.verify(facade).confirmPaymentFromWebhook("pay");
         order.verify(events).markProcessed(1L);
     }
 
     @Test
-    void 이미처리한_웹훅은_중복확정하지_않는다() {
+    void 완료된_웹훅은_중복확정하지_않는다() {
         // given
         when(paid.getData().getPaymentId()).thenReturn("pay");
         prepare(paid);
-        event.markProcessed();
+        when(events.claimProcessing(1L)).thenReturn(WebhookClaimResult.ALREADY_COMPLETED);
 
         // when
         handler.handle("id", paid, "{}");
 
         // then
         verifyNoInteractions(facade);
+        verify(events, never()).markProcessed(anyLong());
+        verify(events, never()).markFailed(anyLong(), anyString());
+    }
+
+    @Test
+    void 처리중인_웹훅은_중복처리하지_않고_충돌오류를_반환한다() {
+        // given
+        when(paid.getData().getPaymentId()).thenReturn("pay");
+        prepare(paid);
+        when(events.claimProcessing(1L)).thenReturn(WebhookClaimResult.ALREADY_PROCESSING);
+
+        // when
+        var exception = assertThrows(BusinessException.class,
+                () -> handler.handle("id", paid, "{}"));
+
+        // then
+        assertEquals(ErrorCode.WEBHOOK_ALREADY_PROCESSING, exception.getErrorCode());
+        verifyNoInteractions(facade);
+        verify(events, never()).markFailed(anyLong(), anyString());
         verify(events, never()).markProcessed(anyLong());
     }
 

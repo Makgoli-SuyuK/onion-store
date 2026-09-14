@@ -82,6 +82,33 @@ class WebhookEventServiceTest {
     }
 
     @Test
+    void 잠금조회한_이벤트의_처리를_선점한다() {
+        // given
+        when(repository.findByIdForUpdate(1L)).thenReturn(Optional.of(event));
+
+        // when
+        WebhookClaimResult result = service.claimProcessing(1L);
+
+        // then
+        assertEquals(WebhookClaimResult.CLAIMED, result);
+        assertEquals(WebhookProcessingStatus.PROCESSING, event.getProcessingStatus());
+        assertNotNull(event.getProcessingStartedAt());
+    }
+
+    @Test
+    void 없는이벤트는_처리선점을_할수_없다() {
+        // given
+        when(repository.findByIdForUpdate(1L)).thenReturn(Optional.empty());
+
+        // when
+        var exception = assertThrows(BusinessException.class,
+                () -> service.claimProcessing(1L));
+
+        // then
+        assertEquals(ErrorCode.WEBHOOK_EVENT_NOT_FOUND, exception.getErrorCode());
+    }
+
+    @Test
     void 잠금조회한_이벤트의_상태를_변경한다() {
         // given
         when(repository.findByIdForUpdate(1L)).thenReturn(Optional.of(event));

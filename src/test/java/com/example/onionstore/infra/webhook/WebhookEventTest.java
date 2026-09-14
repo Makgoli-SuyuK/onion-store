@@ -6,6 +6,71 @@ import static org.junit.jupiter.api.Assertions.*;
 class WebhookEventTest {
 
     @Test
+    void 수신이벤트를_선점하면_처리중상태와_시작시각을_기록한다() {
+        // given
+        var event = new WebhookEvent("id", "type", "pay", "{}");
+
+        // when
+        WebhookClaimResult result = event.claimProcessing();
+
+        // then
+        assertEquals(WebhookClaimResult.CLAIMED, result);
+        assertEquals(WebhookProcessingStatus.PROCESSING, event.getProcessingStatus());
+        assertNotNull(event.getProcessingStartedAt());
+        assertNull(event.getProcessingMessage());
+        assertNull(event.getCompletedAt());
+    }
+
+    @Test
+    void 처리중인_이벤트는_다시_선점할수_없다() {
+        // given
+        var event = new WebhookEvent("id", "type", "pay", "{}");
+        event.claimProcessing();
+        var processingStartedAt = event.getProcessingStartedAt();
+
+        // when
+        WebhookClaimResult result = event.claimProcessing();
+
+        // then
+        assertEquals(WebhookClaimResult.ALREADY_PROCESSING, result);
+        assertEquals(WebhookProcessingStatus.PROCESSING, event.getProcessingStatus());
+        assertEquals(processingStartedAt, event.getProcessingStartedAt());
+    }
+
+    @Test
+    void 완료된_이벤트는_다시_선점할수_없다() {
+        // given
+        var event = new WebhookEvent("id", "type", "pay", "{}");
+        event.claimProcessing();
+        event.markProcessed();
+
+        // when
+        WebhookClaimResult result = event.claimProcessing();
+
+        // then
+        assertEquals(WebhookClaimResult.ALREADY_COMPLETED, result);
+        assertEquals(WebhookProcessingStatus.PROCESSED, event.getProcessingStatus());
+    }
+
+    @Test
+    void 실패이벤트는_재선점할때_이전실패정보를_초기화한다() {
+        // given
+        var event = new WebhookEvent("id", "type", "pay", "{}");
+        event.claimProcessing();
+        event.markFailed("gateway down");
+
+        // when
+        WebhookClaimResult result = event.claimProcessing();
+
+        // then
+        assertEquals(WebhookClaimResult.CLAIMED, result);
+        assertEquals(WebhookProcessingStatus.PROCESSING, event.getProcessingStatus());
+        assertNull(event.getProcessingMessage());
+        assertNull(event.getCompletedAt());
+        assertNotNull(event.getProcessingStartedAt());
+    }
+
+    @Test
     void 실패이벤트는_재처리할수_있다() {
         // given
         var event = new WebhookEvent("id", "type", "pay", "{}");
