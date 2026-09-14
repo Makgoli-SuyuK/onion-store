@@ -44,6 +44,8 @@ public enum ErrorCode {
     // 상품 찜
     ALREADY_LIKED_PRODUCT(HttpStatus.CONFLICT, "LIKE_001", "이미 찜한 상품입니다."),
     PRODUCT_LIKE_NOT_FOUND(HttpStatus.NOT_FOUND, "LIKE_002", "찜 내역을 찾을 수 없습니다."),
+    LIKE_ADMIN_NOT_ALLOWED(HttpStatus.FORBIDDEN, "LIKE_003", "관리자 계정은 찜할 수 없습니다."),
+    PRODUCT_LIKE_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "LIKE_004", "삭제 처리된 상품은 찜할 수 없습니다."),
 
     // 장바구니
     CART_NOT_FOUND(HttpStatus.NOT_FOUND, "CART_001", "장바구니를 찾을 수 없습니다."),
@@ -59,7 +61,7 @@ public enum ErrorCode {
     INVALID_ORDER_STATUS(HttpStatus.BAD_REQUEST, "ORDER_003", "유효하지 않은 주문 상태 변경입니다."),
     ORDER_ALREADY_CANCELED(HttpStatus.CONFLICT, "ORDER_004", "이미 취소된 주문입니다."),
     CANNOT_CANCEL_ORDER(HttpStatus.BAD_REQUEST, "ORDER_005", "현재 상태에서는 주문을 취소할 수 없습니다."),
-    ORDER_ACCESS_DENIED(HttpStatus.UNAUTHORIZED, "ORDER_006", "접근 권한이 없습니다."),
+    ORDER_ACCESS_DENIED(HttpStatus.FORBIDDEN, "ORDER_006", "접근 권한이 없습니다."),
 
     // 결제
     PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "PAYMENT_001", "결제 정보를 찾을 수 없습니다."),
@@ -75,6 +77,7 @@ public enum ErrorCode {
     // webhook
     WEBHOOK_VERIFICATION_FAILED(HttpStatus.BAD_REQUEST, "WEBHOOK_001", "웹훅 서명검증에 실패했습니다"),
     WEBHOOK_EVENT_NOT_FOUND(HttpStatus.NOT_FOUND, "WEBHOOK_002","웹훅 이벤트를 찾을 수 없습니다."),
+    WEBHOOK_ALREADY_PROCESSING(HttpStatus.SERVICE_UNAVAILABLE, "WEBHOOK_003", "웹훅을 처리 중입니다. 잠시 후 다시 시도해주세요."),
     // 이벤트
     EVENT_NOT_STARTED(HttpStatus.CONFLICT, "EVENT_001", "아직 타임세일 시작 전입니다."),
     EVENT_ENDED(HttpStatus.CONFLICT, "EVENT_002", "타임세일이 종료되었습니다."),

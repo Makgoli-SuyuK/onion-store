@@ -4,6 +4,7 @@ import com.example.onionstore.domain.category.entity.Category;
 import com.example.onionstore.domain.order.dto.*;
 import com.example.onionstore.domain.order.entity.Order;
 import com.example.onionstore.domain.order.entity.OrderItem;
+import com.example.onionstore.domain.order.entity.OrderStatus;
 import com.example.onionstore.domain.order.repository.OrderItemRepository;
 import com.example.onionstore.domain.order.repository.OrderRepository;
 import com.example.onionstore.domain.payment.dto.GetPaymentInfoResponse;
@@ -11,6 +12,7 @@ import com.example.onionstore.domain.payment.entity.Payment;
 import com.example.onionstore.domain.payment.entity.PaymentStatus;
 import com.example.onionstore.domain.payment.service.PaymentService;
 import com.example.onionstore.domain.product.entity.Product;
+import com.example.onionstore.domain.user.entity.Role;
 import com.example.onionstore.domain.user.entity.User;
 import com.example.onionstore.global.exception.BusinessException;
 import com.example.onionstore.global.exception.ErrorCode;
@@ -23,40 +25,28 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class OrderServiceTest {
 
-    @Mock
-    private OrderRepository orderRepository;
+    @Mock private OrderRepository orderRepository;
+    @Mock private OrderItemRepository orderItemRepository;
+    @Mock private PaymentService paymentService;
+    @Mock private User user;
+    @Mock private User user2;
+    @Mock private Order order;
+    @Mock private Order order2;
 
-    @Mock
-    private OrderItemRepository orderItemRepository;
-
-    @Mock
-    private PaymentService paymentService;
-
-    @Mock
-    private User user;
-
-    @Mock
-    private User user2;
-
-    @Mock
-    private Order order;
-
-    @Mock
-    private Order order2;
-
-    @InjectMocks
-    private OrderService orderService;
+    @InjectMocks private OrderService orderService;
 
     @Test
     void 정상적인_주문_상세조회() {
@@ -78,7 +68,7 @@ class OrderServiceTest {
         when(orderItemRepository.findAllByOrderId(orderId)).thenReturn(List.of(orderItem));
 
         // when
-        GetOrderResponse result = orderService.getOne(1L, orderId);
+        GetOrderResponse result = orderService.getOne(1L, orderId, Role.CUSTOMER);
 
         // then
         assertEquals(order.getOrderNumber(), result.orderNumber());
@@ -96,7 +86,7 @@ class OrderServiceTest {
         when(orderRepository.findById(1L)).thenReturn(Optional.empty());
 
         // when & then
-        BusinessException exception = assertThrows(BusinessException.class, () -> orderService.getOne(1L, 1L));
+        BusinessException exception = assertThrows(BusinessException.class, () -> orderService.getOne(1L, 1L, Role.CUSTOMER));
         assertEquals(ErrorCode.ORDER_NOT_FOUND, exception.getErrorCode());
     }
 
@@ -112,7 +102,7 @@ class OrderServiceTest {
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
 
         // when & then
-        BusinessException exception = assertThrows(BusinessException.class, () -> orderService.getOne(user.getId(), orderId));
+        BusinessException exception = assertThrows(BusinessException.class, () -> orderService.getOne(user.getId(), orderId, Role.CUSTOMER));
         assertEquals(ErrorCode.FORBIDDEN_ROLE, exception.getErrorCode());
     }
 
@@ -121,33 +111,29 @@ class OrderServiceTest {
         // given
         when(user.getId()).thenReturn(1L);
         Pageable pageable = PageRequest.of(0, 10);
-
+        OrderSearchRequest request = new OrderSearchRequest();
         when(order.getId()).thenReturn(1L);
         when(order2.getId()).thenReturn(2L);
-
         List<Order> orders = List.of(order, order2);
         Page<Order> orderPage = new PageImpl<>(orders, pageable, 2);
 
-        OrderSearchRequest request = new OrderSearchRequest();
-        when(orderRepository.findAllByUser_IdWithKeyword(user.getId(), pageable, request)).thenReturn(orderPage);
+        // customerId = 1L인 고객의 주문 조회
+        when(orderRepository.findAllByUser_IdWithKeyword(1L, pageable, request)).thenReturn(orderPage);
 
         Category category = new Category("양파");
         Product product = Product.create(category, "양파즙", "역대급 양파즙", 5000, 10);
         OrderItem orderItem = new OrderItem(order, product, product.getName(), product.getPrice(), 1);
         OrderItem orderItem2 = new OrderItem(order2, product, product.getName(), product.getPrice(), 1);
-        when(orderItemRepository.findAllByOrderId(order.getId())).thenReturn(List.of(orderItem));
-        when(orderItemRepository.findAllByOrderId(order2.getId())).thenReturn(List.of(orderItem2));
 
+        when(orderItemRepository.findAllByOrder_IdIn(List.of(1L, 2L))).thenReturn(List.of(orderItem, orderItem2));
         Payment payment = new Payment(order, 5000);
         GetPaymentInfoResponse paymentInfo = GetPaymentInfoResponse.from(payment);
-        when(paymentService.getPaymentByOrderId(order.getId())).thenReturn(paymentInfo);
-
         Payment payment2 = new Payment(order2, 5000);
         GetPaymentInfoResponse paymentInfo2 = GetPaymentInfoResponse.from(payment2);
-        when(paymentService.getPaymentByOrderId(order2.getId())).thenReturn(paymentInfo2);
+        when(paymentService.getPaymentsByOrderIds(List.of(1L, 2L))).thenReturn(List.of(paymentInfo, paymentInfo2));
 
         // when
-        Page<GetOrderListResponse> result = orderService.getAll(user.getId(), pageable, request);
+        Page<GetOrderListResponse> result = orderService.getAll(user.getId(), pageable, request, 1L, Role.CUSTOMER);
         GetOrderListResponse resultOrder = result.getContent().get(0);
         GetOrderListItemResponse resultItem = resultOrder.items().get(0);
 
@@ -162,29 +148,28 @@ class OrderServiceTest {
 
     @Test
     void 주문목록_키워드검색_테스트() {
+        // given
         when(user.getId()).thenReturn(1L);
         Pageable pageable = PageRequest.of(0, 10);
-
         when(order.getId()).thenReturn(1L);
-
         List<Order> orders = List.of(order);
         Page<Order> orderPage = new PageImpl<>(orders, pageable, 1);
-
         OrderSearchRequest request = new OrderSearchRequest();
         request.setKeyword("양파즙");
-        when(orderRepository.findAllByUser_IdWithKeyword(user.getId(), pageable, request)).thenReturn(orderPage);
+
+        when(orderRepository.findAllByUser_IdWithKeyword(1L, pageable, request)).thenReturn(orderPage);
 
         Category category = new Category("양파");
         Product product = Product.create(category, "양파즙", "역대급 양파즙", 5000, 10);
-        OrderItem orderItem = new OrderItem(order, product, product.getName(), product.getPrice(), 1);
-        when(orderItemRepository.findAllByOrderId(order.getId())).thenReturn(List.of(orderItem));
+        OrderItem orderItem = new OrderItem(order, product,product.getName(),product.getPrice(), 1);
 
+        when(orderItemRepository.findAllByOrder_IdIn(List.of(1L))).thenReturn(List.of(orderItem));
         Payment payment = new Payment(order, 5000);
         GetPaymentInfoResponse paymentInfo = GetPaymentInfoResponse.from(payment);
-        when(paymentService.getPaymentByOrderId(order.getId())).thenReturn(paymentInfo);
+        when(paymentService.getPaymentsByOrderIds(List.of(1L))).thenReturn(List.of(paymentInfo));
 
         // when
-        Page<GetOrderListResponse> result = orderService.getAll(user.getId(), pageable, request);
+        Page<GetOrderListResponse> result = orderService.getAll(user.getId(), pageable, request, 1L, Role.CUSTOMER);
         GetOrderListResponse resultOrder = result.getContent().get(0);
         GetOrderListItemResponse resultItem = resultOrder.items().get(0);
 
@@ -222,7 +207,7 @@ class OrderServiceTest {
         when(paymentService.getPaymentsByOrderIds(List.of(1L, 2L))).thenReturn(List.of(paymentInfo));
 
         // when
-        Page<GetOrderListResponse> result = orderService.getAll(user.getId(), pageable, request);
+        Page<GetOrderListResponse> result = orderService.getAll(user.getId(), pageable, request, 1L, Role.CUSTOMER);
 
         // then
         assertEquals(2, result.getContent().size());
@@ -233,5 +218,79 @@ class OrderServiceTest {
         assertEquals(paymentInfo.paidAt(), orderResult.paidAt());
         assertEquals(order2.getId(), order2Result.orderId());
         assertNull(order2Result.paidAt());
+    }
+
+    @Test
+    void 관리자_주문상태_정상변경() {
+        // given
+        Long orderId = 1L;
+
+        User user = new User("test@test.com", "1234", "테스트", "010-0000-0000", Role.CUSTOMER);
+
+        Order order = new Order(user, 1000);
+        ReflectionTestUtils.setField(order, "id", orderId);
+        ChangeOrderStatusRequest request = new ChangeOrderStatusRequest(OrderStatus.PAID);
+        when(orderRepository.findByIdForUpdate(orderId)).thenReturn(Optional.of(order));
+
+        // when
+        ChangeOrderStatusResponse result = orderService.changeOrder(orderId, request);
+
+        // then
+        assertEquals(orderId, result.orderId());
+        assertEquals(OrderStatus.PENDING, result.previousStatus());
+        assertEquals(OrderStatus.PAID, result.status());
+        verify(orderRepository).findByIdForUpdate(orderId);
+    }
+
+    @Test
+    void 존재하지_않는_주문은_상태를_변경할_수_없다() {
+        // given
+        Long orderId = 1L;
+        ChangeOrderStatusRequest request = new ChangeOrderStatusRequest(OrderStatus.PAID);
+
+        when(orderRepository.findByIdForUpdate(orderId)).thenReturn(Optional.empty());
+
+        // when
+        BusinessException exception = assertThrows(BusinessException.class, () -> orderService.changeOrder(orderId, request));
+
+        // then
+        assertEquals(ErrorCode.ORDER_NOT_FOUND, exception.getErrorCode());
+        verify(orderRepository).findByIdForUpdate(orderId);
+    }
+
+    @Test
+    void 관리자는_다른_사용자의_주문을_조회할_수_있다() {
+        // given
+        when(user.getId()).thenReturn(1L);
+        when(user2.getId()).thenReturn(2L);
+
+        Order order = new Order(user2, 5000);
+        Long orderId = 1L;
+        ReflectionTestUtils.setField(order, "id", orderId);
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+
+        Payment payment = new Payment(order, 5000);
+        GetPaymentInfoResponse paymentInfo = GetPaymentInfoResponse.from(payment);
+
+        when(paymentService.getPaymentByOrderId(orderId)).thenReturn(paymentInfo);
+
+        Category category = new Category("양파");
+        Product product = Product.create(category, "양파즙", "역대급 양파즙", 5000, 10);
+
+        OrderItem orderItem = new OrderItem(order, product, product.getName(), product.getPrice(), 1);
+
+        when(orderItemRepository.findAllByOrderId(orderId)).thenReturn(List.of(orderItem));
+
+        // when
+        GetOrderResponse result = orderService.getOne(user.getId(), orderId, Role.ADMIN);
+
+        // then
+        assertEquals(order.getOrderNumber(), result.orderNumber());
+        assertEquals(order.getTotalPrice(), result.totalPrice());
+        assertEquals(paymentInfo.status(), result.paymentStatus());
+        assertEquals(1, result.orderItems().size());
+        GetOrderItemResponse resultItem = result.orderItems().get(0);
+        assertEquals(orderItem.getProductName(), resultItem.productName());
     }
 }

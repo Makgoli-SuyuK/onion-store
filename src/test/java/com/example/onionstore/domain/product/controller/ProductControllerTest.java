@@ -2,10 +2,7 @@ package com.example.onionstore.domain.product.controller;
 
 import com.example.onionstore.config.TestWebSecurityConfig;
 import com.example.onionstore.domain.category.entity.Category;
-import com.example.onionstore.domain.product.dto.ProductCreateRequest;
-import com.example.onionstore.domain.product.dto.ProductEditRequest;
-import com.example.onionstore.domain.product.dto.ProductResponse;
-import com.example.onionstore.domain.product.dto.ProductSimpleResponse;
+import com.example.onionstore.domain.product.dto.*;
 import com.example.onionstore.domain.product.entity.Product;
 import com.example.onionstore.domain.product.entity.ProductStatus;
 import com.example.onionstore.domain.product.facade.ProductFacade;
@@ -42,6 +39,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -79,6 +77,9 @@ class ProductControllerTest {
 
         //when&then
         mockMvc.perform(post("/api/products")
+                        .with(jwt().jwt((jwt) -> jwt
+                                .tokenValue("token")
+                                .subject("1")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(createRequest)))
                 .andExpect(status().isOk());
@@ -98,6 +99,9 @@ class ProductControllerTest {
 
         //when&then
         mockMvc.perform(post("/api/products")
+                        .with(jwt().jwt((jwt) -> jwt
+                                .tokenValue("token")
+                                .subject("1")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(createRequest)))
                 .andExpect(status().isBadRequest())
@@ -117,14 +121,22 @@ class ProductControllerTest {
         );
         ReflectionTestUtils.setField(product, "id", 1L);
 
-        given(productService.findById(anyLong())).willReturn(ProductResponse.from(product));
+        given(productFacade.getProductDetail(anyLong(), anyLong()))
+                .willReturn(ProductDetailWithLiked.from(
+                        ProductResponse.from(product),
+                        true
+                ));
 
         //when&then
-        mockMvc.perform(get("/api/products/1"))
+        mockMvc.perform(get("/api/products/1")
+                        .with(jwt().jwt(jwt -> jwt
+                                .tokenValue("token")
+                                .subject("1"))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(1))
-                .andExpect(jsonPath("$.data.name").value("name"))
-                .andExpect(jsonPath("$.data.description").value("desc"));
+                .andExpect(jsonPath("$.data.productInfo.id").value(1))
+                .andExpect(jsonPath("$.data.productInfo.name").value("name"))
+                .andExpect(jsonPath("$.data.productInfo.description").value("desc"))
+                .andDo(print());
     }
 
     @Test
@@ -269,5 +281,37 @@ class ProductControllerTest {
                 .andExpect(jsonPath("$.data.[1].likeCount").value(9))
                 .andExpect(jsonPath("$.data.[2].likeCount").value(8))
                 .andExpect(jsonPath("$.data.[0].name").value("name 10"));
+    }
+
+    @Test
+    @DisplayName("GET /api/products/{productId} - 상품 단일 조회 - 로그인하지 않으면 isLiked가 false로 반환된다")
+    void 상품_단일_조회_로그인하지_않으면_isLiked가_반환된다() throws Exception {
+        //given
+        ProductResponse productResponse = new ProductResponse(
+                1L,
+                "category",
+                "name",
+                "description",
+                10000L,
+                10,
+                10,
+                ProductStatus.SELLING.name(),
+                LocalDateTime.now(),
+                LocalDateTime.now()
+        );
+
+        ProductDetailWithLiked productDetailWithLiked = new ProductDetailWithLiked(
+                productResponse,
+                false
+        );
+
+        given(productFacade.getProductDetail(any(), anyLong())).willReturn(productDetailWithLiked);
+
+        //when&then
+        mockMvc.perform(get("/api/products/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.productInfo.id").value(1))
+                .andExpect(jsonPath("$.data.productInfo.name").value("name"))
+                .andExpect(jsonPath("$.data.liked").value(false));;
     }
 }

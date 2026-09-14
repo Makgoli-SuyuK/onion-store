@@ -247,4 +247,35 @@ class ProductRepositoryTest {
         assertThat(res).extracting(Product::getLikeCount)
                 .isSortedAccordingTo(Comparator.reverseOrder());
     }
+
+    @Test
+    @DisplayName("해당 id의 카테고리에 상품이 존재하는지 반환한다")
+    void 해당_카테고리_id에_상품이_존재하는지_반환한다() {
+        //given
+        productRepository.saveAndFlush(
+                Product.create(
+                        category,
+                        "name",
+                        "description",
+                        1000L,
+                        10
+                )
+        );
+
+        //when
+        boolean res = productRepository.existsById(1L);
+
+        //then
+        assertThat(res).isTrue();
+    }
+
+    @Test
+    @DisplayName("해당 id의 카테고리에 상품이 없으면 false를 반환한다")
+    void 해당_카테고리_id에_상품이_없으면_false를_반환한다() {
+        //when
+        boolean res = productRepository.existsById(1L);
+
+        //then
+        assertThat(res).isFalse();
+    }
 }

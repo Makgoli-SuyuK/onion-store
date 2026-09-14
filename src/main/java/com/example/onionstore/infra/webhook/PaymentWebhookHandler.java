@@ -1,6 +1,8 @@
 package com.example.onionstore.infra.webhook;
 
 import com.example.onionstore.domain.payment.facade.PaymentFacade;
+import com.example.onionstore.global.exception.BusinessException;
+import com.example.onionstore.global.exception.ErrorCode;
 import io.portone.sdk.server.webhook.Webhook;
 import io.portone.sdk.server.webhook.WebhookTransactionFailed;
 import io.portone.sdk.server.webhook.WebhookTransactionPaid;
@@ -23,11 +25,13 @@ public class PaymentWebhookHandler {
         WebhookEvent event = webhookEventService.registerOrGet(
                 webhookId, eventType, portonePaymentId, Payload);
 
-        // 이미 최종 처리된 웹훅은 중복 처리하지 않는다.
-        // FAILED는 재전송 시 다시 처리할 수 있도록 제외한다.
-        if (event.getProcessingStatus() == WebhookProcessingStatus.PROCESSED
-                || event.getProcessingStatus() == WebhookProcessingStatus.IGNORED) {
+        WebhookClaimResult claimResult = webhookEventService.claimProcessing(event.getId());
+        if (claimResult == WebhookClaimResult.ALREADY_COMPLETED) {
             return;
+        }
+        // 선점하지 못한 요청은 처리 중인 이벤트를 FAILED로 변경해서는 안 된다.
+        if (claimResult == WebhookClaimResult.ALREADY_PROCESSING) {
+            throw new BusinessException(ErrorCode.WEBHOOK_ALREADY_PROCESSING);
         }
 
         try {

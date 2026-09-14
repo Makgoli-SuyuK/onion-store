@@ -27,4 +27,6 @@ public interface ProductRepository extends JpaRepository<Product, Long>, Product
         ORDER BY p.likeCount DESC, p.name DESC
     """)
     List<Product> find10OrderByLikeCountDesc(Pageable pageable);
+
+    boolean existsByCategory_Id(Long categoryId);
 }

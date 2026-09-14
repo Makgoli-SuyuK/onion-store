@@ -4,6 +4,10 @@ import com.example.onionstore.domain.cart.controller.CartController;
 import com.example.onionstore.domain.cart.facade.CartFacade;
 import com.example.onionstore.global.exception.GlobalExceptionHandler;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import com.example.onionstore.global.exception.BusinessException;
+import com.example.onionstore.global.exception.ErrorCode;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -16,12 +20,15 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.doThrow;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-class CartQuantityControllerTest {
+class CartControllerTest {
     private CartFacade cartFacade;
     private MockMvc mockMvc;
 
@@ -65,6 +72,26 @@ class CartQuantityControllerTest {
                 .andExpect(jsonPath("$.data").value(org.hamcrest.Matchers.nullValue()));
 
         verifyNoInteractions(cartFacade);
+    }
+
+    @Test
+    void deletesItemUsingAuthenticatedUserId() throws Exception {
+        mockMvc.perform(delete("/api/carts/items/{cartItemId}", 10L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("장바구니 상품을 삭제했습니다."))
+                .andExpect(jsonPath("$.data").value(org.hamcrest.Matchers.nullValue()));
+        verify(cartFacade).deleteItem(1L, 10L);
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = ErrorCode.class, names = {"CART_ITEM_NOT_FOUND", "CART_ITEM_ACCESS_DENIED"})
+    void returnsDeletionError(ErrorCode errorCode) throws Exception {
+        doThrow(new BusinessException(errorCode)).when(cartFacade).deleteItem(1L, 10L);
+        mockMvc.perform(delete("/api/carts/items/{cartItemId}", 10L))
+                .andExpect(status().is(errorCode.getStatus().value()))
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value(errorCode.getCode()));
     }
 
     private void assertQuantityValidationFailure(String body, String expectedMessage) throws Exception {

@@ -34,6 +34,13 @@ public class WebhookEventService {
 
     }
 
+    // 선점 상태를 먼저 커밋하고, 외부 API 호출 중에는 DB 락을 유지하지 않는다.
+    // 오래된 PROCESSING도 자동 재선점하지 않는다. 기존 처리 종료와 결제 상태 확인이 필요하다.
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public WebhookClaimResult claimProcessing(Long eventId) {
+        return findForUpdate(eventId).claimProcessing();
+    }
+
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public boolean markProcessed(Long eventId) {
         return findForUpdate(eventId).markProcessed();
