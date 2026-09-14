@@ -220,10 +220,10 @@ public class RefundCustomRepositoryImpl implements RefundCustomRepository {
             builder.and(refund.status.eq(condition.status()));
         }
         if (condition.from() != null) {
-            builder.and(refund.createdAt.goe(condition.from()));
+            builder.and(refund.createdAt.goe(condition.from().atStartOfDay()));
         }
         if (condition.to() != null) {
-            builder.and(refund.createdAt.lt(condition.to()));
+            builder.and(refund.createdAt.lt(condition.to().plusDays(1).atStartOfDay()));
         }
         if (StringUtils.hasText(condition.keyword())) {
             builder.and(order.orderNumber.contains(condition.keyword()).or(user.name.contains(condition.keyword())));
