@@ -23,6 +23,42 @@ public class CacheConfig {
     }
 
     @Bean
+    public Cache<Long, ProductDto> productInfoCache() {
+        return Caffeine.newBuilder()
+                .maximumSize(5000)
+                .expireAfterWrite(Duration.ofMinutes(10))
+                .recordStats()
+                .build();
+    }
+
+    @Bean
+    public Cache<Long, Long> productLikeCache() {
+        return Caffeine.newBuilder()
+                .maximumSize(5000)
+                .expireAfterWrite(Duration.ofMinutes(10))
+                .recordStats()
+                .build();
+    }
+
+    @Bean
+    public Cache<Long, Integer> productStockCache() {
+        return Caffeine.newBuilder()
+                .maximumSize(5000)
+                .expireAfterWrite(Duration.ofMinutes(10))
+                .recordStats()
+                .build();
+    }
+
+    @Bean
+    public Cache<String, List<ProductSimpleResponse>> productPopularCache() {
+        return Caffeine.newBuilder()
+                .maximumSize(1)
+                .expireAfterWrite(Duration.ofMinutes(60))
+                .recordStats()
+                .build();
+    }
+
+    @Bean
     public Cache<String, List<Category>> categoryListCache() {
         return Caffeine.newBuilder()
                 .maximumSize(1)
