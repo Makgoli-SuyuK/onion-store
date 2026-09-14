@@ -2,11 +2,15 @@ package com.example.onionstore.domain.product.facade;
 
 import com.example.onionstore.domain.category.entity.Category;
 import com.example.onionstore.domain.category.service.CategoryService;
+import com.example.onionstore.domain.product.dto.ProductDetailWithLiked;
 import com.example.onionstore.domain.product.dto.ProductCreateRequest;
+import com.example.onionstore.domain.product.dto.ProductDetailWithLiked;
 import com.example.onionstore.domain.product.dto.ProductEditRequest;
 import com.example.onionstore.domain.product.dto.ProductResponse;
 import com.example.onionstore.domain.product.entity.Product;
+import com.example.onionstore.domain.product.entity.ProductLike;
 import com.example.onionstore.domain.product.entity.ProductStatus;
+import com.example.onionstore.domain.product.service.ProductLikeService;
 import com.example.onionstore.domain.product.service.ProductService;
 import com.example.onionstore.domain.user.entity.Role;
 import com.example.onionstore.domain.user.entity.User;
@@ -19,8 +23,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -36,6 +42,8 @@ public class ProductFacadeTest {
     private UserService userService;
     @Mock
     private CategoryService categoryService;
+    @Mock
+    private ProductLikeService productLikeService;
     @InjectMocks
     private ProductFacade productFacade;
 
@@ -152,6 +160,105 @@ public class ProductFacadeTest {
         assertThatThrownBy(() -> productFacade.deleteProduct(1L, 1L))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.FORBIDDEN_ROLE.getMessage());
+    }
+
+    @Test
+    @DisplayName("상품 상세 조회 facade 테스트 - 일반 사용자")
+    void 상품_상세_조회_시_상품_정보_및_좋아요_여부를_조회한다() {
+        //given
+        User user = new User(
+                "test@email.com",
+                "password",
+                "name",
+                "010-0000-0000",
+                Role.CUSTOMER
+        );
+        ReflectionTestUtils.setField(user, "id", 1L);
+
+        Product product = Product.create(
+                new Category("category"),
+                "name",
+                "description",
+                1000L,
+                10
+        );
+        ReflectionTestUtils.setField(product, "id", 1L);
+
+        given(userService.findUser(anyLong())).willReturn(user);
+        given(productService.findById(anyLong())).willReturn(ProductResponse.from(product));
+        given(productLikeService.getProductLike(anyLong(), anyLong())).willReturn(
+                Optional.of(ProductLike.create(user, product))
+        );
+
+        //when
+        ProductDetailWithLiked res = productFacade.getProductDetail(1L,1L);
+
+        //then
+        assertThat(res.productInfo().categoryName()).isEqualTo(product.getCategory().getName());
+        assertThat(res.productInfo().description()).isEqualTo(product.getDescription());
+        assertThat(res.productInfo().price()).isEqualTo(product.getPrice());
+        assertThat(res.liked()).isTrue();
+    }
+
+    @Test
+    @DisplayName("상품 상세 조회 facade 테스트 - 관리자면 isLiked가 항상 false다")
+    void 상품_상세_조회_시_현재_계정이_관리자면_isLiked가_항상_false다() {
+        //given
+        User user = new User(
+                "test@email.com",
+                "password",
+                "name",
+                "010-0000-0000",
+                Role.ADMIN
+        );
+        ReflectionTestUtils.setField(user, "id", 1L);
+
+        Product product = Product.create(
+                new Category("category"),
+                "name",
+                "description",
+                1000L,
+                10
+        );
+        ReflectionTestUtils.setField(product, "id", 1L);
+
+        given(userService.findUser(anyLong())).willReturn(user);
+        given(productService.findById(anyLong())).willReturn(ProductResponse.from(product));
+
+        //when
+        ProductDetailWithLiked res = productFacade.getProductDetail(1L,1L);
+
+        //then
+        assertThat(res.productInfo().categoryName()).isEqualTo(product.getCategory().getName());
+        assertThat(res.productInfo().description()).isEqualTo(product.getDescription());
+        assertThat(res.productInfo().price()).isEqualTo(product.getPrice());
+        assertThat(res.liked()).isFalse();
+    }
+
+    @Test
+    @DisplayName("상품 상세 조회 facade 테스트 - userId가 null이면 liked가 항상 false다")
+    void 상품_상세_조회_시_userId가_null이면_liked가_항상_false다() {
+        //given
+
+        Product product = Product.create(
+                new Category("category"),
+                "name",
+                "description",
+                1000L,
+                10
+        );
+        ReflectionTestUtils.setField(product, "id", 1L);
+
+        given(productService.findById(anyLong())).willReturn(ProductResponse.from(product));
+
+        //when
+        ProductDetailWithLiked res = productFacade.getProductDetail(null,1L);
+
+        //then
+        assertThat(res.productInfo().categoryName()).isEqualTo(product.getCategory().getName());
+        assertThat(res.productInfo().description()).isEqualTo(product.getDescription());
+        assertThat(res.productInfo().price()).isEqualTo(product.getPrice());
+        assertThat(res.liked()).isFalse();
     }
 
     @Test
