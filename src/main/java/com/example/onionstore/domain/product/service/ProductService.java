@@ -1,13 +1,14 @@
 package com.example.onionstore.domain.product.service;
 
 import com.example.onionstore.domain.category.entity.Category;
-import com.example.onionstore.domain.product.dto.ProductCreateRequest;
-import com.example.onionstore.domain.product.dto.ProductEditRequest;
-import com.example.onionstore.domain.product.dto.ProductResponse;
-import com.example.onionstore.domain.product.dto.ProductSimpleResponse;
+import com.example.onionstore.domain.product.dto.*;
 import com.example.onionstore.domain.product.entity.Product;
 import com.example.onionstore.domain.product.entity.ProductStatus;
-import com.example.onionstore.domain.product.repository.ProductRepository;
+import com.example.onionstore.domain.product.repository.*;
+import com.example.onionstore.domain.product.repository.cache.ProductInfoCache;
+import com.example.onionstore.domain.product.repository.cache.ProductLikeCache;
+import com.example.onionstore.domain.product.repository.cache.ProductPopularCache;
+import com.example.onionstore.domain.product.repository.cache.ProductStockCache;
 import com.example.onionstore.domain.product.repository.dto.ProductSearchConditions;
 import com.example.onionstore.global.exception.BusinessException;
 import com.example.onionstore.global.exception.ErrorCode;
@@ -25,6 +26,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProductService {
     private final ProductRepository productRepository;
+
+    private final ProductInfoCache productInfoCache;
+    private final ProductStockCache productStockCache;
+    private final ProductLikeCache productLikeCache;
+    private final ProductPopularCache productPopularCache;
 
     @Transactional
     public void createProduct(ProductCreateRequest createRequest, Category category) {
@@ -49,10 +55,33 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public ProductResponse findById(Long id) {
-        Product product = productRepository.findByIdAndDeletedFalse(id)
+        ProductDto dto = productInfoCache.get(id);
+        Integer stock = productStockCache.get(id);
+        Long likeCount = productLikeCache.get(id);
+
+        if (dto != null && stock != null && likeCount != null) {
+            return ProductResponse.from(dto, stock, likeCount);
+        }
+
+        Product product = productRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
 
-        return ProductResponse.from(product);
+        if (dto == null) {
+            dto = ProductDto.from(product);
+            productInfoCache.put(id, dto);
+        }
+
+        if (stock == null) {
+            stock = product.getStock();
+            productStockCache.put(id, stock);
+        }
+
+        if (likeCount == null) {
+            likeCount = product.getLikeCount();
+            productLikeCache.put(id, likeCount);
+        }
+
+        return ProductResponse.from(dto, stock, likeCount);
     }
 
     @Transactional(readOnly = true)
@@ -71,12 +100,16 @@ public class ProductService {
     public void decreaseStock(Long productId, int quantity) {
         Product product = findProductForUpdate(productId);
         product.decreaseStock(quantity);
+
+        productStockCache.evict(productId);
     }
 
     @Transactional
     public void restoreStock(Long productId, int quantity) {
         Product product = findProductForUpdate(productId);
         product.restoreStock(quantity);
+
+        productStockCache.evict(productId);
     }
 
     @Transactional
@@ -90,15 +123,30 @@ public class ProductService {
         toDelete.markAsDeleted();
 
         productRepository.save(toDelete);
+
+        productInfoCache.evict(productId);
+        productLikeCache.evict(productId);
+        productStockCache.evict(productId);
+        productPopularCache.evict();
     }
 
     @Transactional(readOnly = true)
     public List<ProductSimpleResponse> find10OrderByLikeCountDesc() {
+        List<ProductSimpleResponse> popular = productPopularCache.get();
+
+        if (popular != null) {
+            return popular;
+        }
+
         Pageable pageable = PageRequest.of(0, 10);
 
-        return productRepository.find10OrderByLikeCountDesc(pageable).stream()
+        popular = productRepository.find10OrderByLikeCountDesc(pageable).stream()
                 .map(ProductSimpleResponse::from)
                 .toList();
+
+        productPopularCache.put(popular);
+
+        return popular;
     }
 
     @Transactional
@@ -109,6 +157,10 @@ public class ProductService {
         product.changeDescription(editRequest.description());
         product.changePrice(editRequest.price());
         product.changeStock(editRequest.stock());
+
+        productInfoCache.evict(productId);
+        productStockCache.evict(productId);
+        productPopularCache.evict();
 
         return ProductResponse.from(productRepository.save(product));
     }
@@ -122,11 +174,17 @@ public class ProductService {
     @Transactional
     public void increaseLikeCount(Product product) {
         product.increaseLikeCount();
+
+        productLikeCache.evict(product.getId());
+        productPopularCache.evict();
     }
 
     @Transactional
     public void decreaseLikeCount(Product product) {
         product.decreaseLikeCount();
+
+        productLikeCache.evict(product.getId());
+        productPopularCache.evict();
     }
 
     @Transactional(readOnly = true)
