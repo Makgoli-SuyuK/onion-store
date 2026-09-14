@@ -1,9 +1,10 @@
-package com.example.onionstore.domain.refund.dto.response;
+package com.example.onionstore.domain.refund.dto.customer.response;
 
 import com.example.onionstore.domain.refund.entity.RefundStatus;
 
 import java.time.LocalDateTime;
 
+// 고객 환불 목록 조회용 요약 응답
 public record CustomerRefundSummaryResponse(
         Long refundId,
         RefundStatus status,

@@ -6,7 +6,8 @@ import com.example.onionstore.domain.refund.entity.RefundStatus;
 
 import java.time.LocalDateTime;
 
-public record AdminRefundDetailHeader(
+// 고객 환불 상세 응답 조립에 사용하는 조회 결과
+public record CustomerRefundDetailProjection(
         Long orderId,
         String orderNumber,
         long orderAmount,
@@ -18,11 +19,6 @@ public record AdminRefundDetailHeader(
         long requestedAmount,
         LocalDateTime requestedAt,
         LocalDateTime reviewedAt,
-        String rejectionReason,
-        String customerName,
-        String phoneNumber,
-        String email,
-        String reviewerName,
-        String portoneCancellationId
+        String rejectionReason
 ) {
 }

@@ -1,16 +1,17 @@
-package com.example.onionstore.domain.refund.dto.response;
+package com.example.onionstore.domain.refund.dto.common;
 
 import com.example.onionstore.domain.refund.repository.dto.OrderItemSummaryRow;
 
 import java.util.List;
 
-public record RefundOrderSummaryResponse(
+// 환불 상세 조회용 주문 요약 정보
+public record RefundOrderInfoResponse(
         String orderNumber,
         String productSummaryName,
         int totalOrderQuantity,
         long orderAmount
 ) {
-    public static RefundOrderSummaryResponse from(
+    public static RefundOrderInfoResponse from(
             String orderNumber,
             long orderAmount,
             List<OrderItemSummaryRow> rows
@@ -24,7 +25,7 @@ public record RefundOrderSummaryResponse(
                 .mapToInt(OrderItemSummaryRow::orderedQuantity)
                 .sum();
 
-        return new RefundOrderSummaryResponse(
+        return new RefundOrderInfoResponse(
                 orderNumber,
                 productSummaryName,
                 totalOrderQuantity,

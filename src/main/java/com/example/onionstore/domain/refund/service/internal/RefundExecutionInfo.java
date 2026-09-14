@@ -2,6 +2,10 @@ package com.example.onionstore.domain.refund.service.internal;
 
 import com.example.onionstore.domain.refund.entity.Refund;
 
+/**
+ * 트랜잭션에서 확정한 환불 정보를
+ * PortOne 취소 실행 단계로 전달하는 내부 데이터.
+ */
 public record RefundExecutionInfo(
         Long refundId,
         String portonePaymentId,

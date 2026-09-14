@@ -1,9 +1,10 @@
-package com.example.onionstore.domain.refund.dto.response;
+package com.example.onionstore.domain.refund.dto.admin.response;
 
 import org.springframework.data.domain.Page;
 
 import java.util.List;
 
+// 관리자 환불 목록 페이징 응답
 public record AdminRefundPageResponse(
         List<AdminRefundListResponse> content,
         int page,

@@ -1,10 +1,11 @@
-package com.example.onionstore.domain.refund.dto.response;
+package com.example.onionstore.domain.refund.dto.admin.response;
 
 import com.example.onionstore.domain.refund.entity.Refund;
 import com.example.onionstore.domain.refund.entity.RefundStatus;
 
 import java.time.LocalDateTime;
 
+// 관리자 환불 승인·거절 처리 결과 응답
 public record RefundReviewResponse(
         Long refundId,
         RefundStatus status,

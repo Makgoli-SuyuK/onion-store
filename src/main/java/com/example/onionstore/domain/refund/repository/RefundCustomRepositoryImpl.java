@@ -1,11 +1,11 @@
 package com.example.onionstore.domain.refund.repository;
 
-import com.example.onionstore.domain.refund.dto.request.AdminRefundSearchCondition;
-import com.example.onionstore.domain.refund.dto.response.AdminRefundListResponse;
-import com.example.onionstore.domain.refund.dto.response.CustomerRefundSummaryResponse;
-import com.example.onionstore.domain.refund.dto.response.RefundItemDetailResponse;
-import com.example.onionstore.domain.refund.repository.dto.AdminRefundDetailHeader;
-import com.example.onionstore.domain.refund.repository.dto.CustomerRefundDetailHeader;
+import com.example.onionstore.domain.refund.dto.admin.request.AdminRefundSearchCondition;
+import com.example.onionstore.domain.refund.dto.admin.response.AdminRefundListResponse;
+import com.example.onionstore.domain.refund.dto.common.RefundItemDetailResponse;
+import com.example.onionstore.domain.refund.dto.customer.response.CustomerRefundSummaryResponse;
+import com.example.onionstore.domain.refund.repository.dto.AdminRefundDetailProjection;
+import com.example.onionstore.domain.refund.repository.dto.CustomerRefundDetailProjection;
 import com.example.onionstore.domain.refund.repository.dto.OrderItemSummaryRow;
 import com.example.onionstore.domain.user.entity.QUser;
 import com.querydsl.core.BooleanBuilder;
@@ -61,12 +61,12 @@ public class RefundCustomRepositoryImpl implements RefundCustomRepository {
                 .fetch();
     }
 
-    // 환불ID와 사용자ID를 조건으로 다른사용자의 환불 상세조회 방지
+    // 환불 ID와 사용자 ID를 함께 조건으로 사용해 다른 사용자의 상세 조회를 막는다.
     @Override
-    public Optional<CustomerRefundDetailHeader> findCustomerRefundHeader(Long refundId, Long userId) {
+    public Optional<CustomerRefundDetailProjection> findCustomerRefundDetailProjection(Long refundId, Long userId) {
         return Optional.ofNullable(queryFactory
                 .select(Projections.constructor(
-                        CustomerRefundDetailHeader.class,
+                        CustomerRefundDetailProjection.class,
                         order.id,
                         order.orderNumber,
                         order.totalPrice,
@@ -94,7 +94,7 @@ public class RefundCustomRepositoryImpl implements RefundCustomRepository {
     // 환불 상품 조회
     // =========================
 
-    // 주문 전체 상품의 이름과 주문 수량 조회
+    // 주문 전체 상품의 이름과 주문 수량을 조회한다.
     @Override
     public List<OrderItemSummaryRow> findOrderItemSummaryRows(Long orderId) {
         return queryFactory
@@ -111,7 +111,7 @@ public class RefundCustomRepositoryImpl implements RefundCustomRepository {
 
     }
 
-    // 특정환불에 포함된 상품과 환불 수량 조회
+    // 특정 환불에 포함된 상품과 환불 수량을 조회한다.
     @Override
     public List<RefundItemDetailResponse> findRefundItemDetails(Long refundId) {
         return queryFactory
@@ -134,7 +134,7 @@ public class RefundCustomRepositoryImpl implements RefundCustomRepository {
     // 관리자 환불 조회
     // =========================
 
-    // 상태, 요청기간, 주문번호, 고객명으로 관리자용 환불 목록조회
+    // 상태·요청 기간·주문 번호·고객명으로 관리자 환불 목록을 조회한다.
     @Override
     public Page<AdminRefundListResponse> searchAdminRefunds(AdminRefundSearchCondition condition, Pageable pageable) {
         BooleanBuilder conditions = allConditions(condition);
@@ -171,12 +171,12 @@ public class RefundCustomRepositoryImpl implements RefundCustomRepository {
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
 
-    // 관리자 환불 상세 화면에 필요한 주문,고객,환불,검토 관리자 조회
+    // 관리자 환불 상세 화면에 필요한 주문·고객·환불·검토 관리자 정보를 조회한다.
     @Override
-    public Optional<AdminRefundDetailHeader> findAdminRefundDetailHeader(Long refundId) {
+    public Optional<AdminRefundDetailProjection> findAdminRefundDetailProjection(Long refundId) {
         return Optional.ofNullable(queryFactory
                 .select(Projections.constructor(
-                        AdminRefundDetailHeader.class,
+                        AdminRefundDetailProjection.class,
                         order.id,
                         order.orderNumber,
                         order.totalPrice,
