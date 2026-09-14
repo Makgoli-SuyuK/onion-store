@@ -12,6 +12,7 @@ import com.example.onionstore.global.exception.BusinessException;
 import com.example.onionstore.global.exception.ErrorCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -28,8 +29,13 @@ public class ProductController {
     private final ProductFacade productFacade;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<Void>> addProduct(@Valid @RequestBody ProductCreateRequest createRequest) {
-        productFacade.addProduct(createRequest);
+    public ResponseEntity<ApiResponse<Void>> addProduct(
+            @AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody ProductCreateRequest createRequest
+    ) {
+        Long userId = extractUserId(jwt);
+        
+        productFacade.addProduct(userId, createRequest);
 
         return ResponseEntity.ok(ApiResponse.success(null));
     }
@@ -73,12 +79,7 @@ public class ProductController {
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable Long productId
     ) {
-
-        if (jwt == null || jwt.getSubject() == null) {
-            throw new BusinessException(ErrorCode.UNAUTHORIZED);
-        }
-
-        Long userId = Long.valueOf(jwt.getSubject());
+        Long userId = extractUserId(jwt);
 
         productFacade.deleteProduct(userId, productId);
 
@@ -90,11 +91,7 @@ public class ProductController {
             @AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody ProductEditRequest editRequest,
             @PathVariable Long productId) {
-        if (jwt == null || jwt.getSubject() == null) {
-            throw new BusinessException(ErrorCode.UNAUTHORIZED);
-        }
-
-        Long userId = Long.valueOf(jwt.getSubject());
+        Long userId = extractUserId(jwt);
 
         return ResponseEntity.ok(
                 ApiResponse.success(productFacade.editProduct(userId, productId, editRequest))
@@ -106,5 +103,13 @@ public class ProductController {
         return ResponseEntity.ok(
                 ApiResponse.success(productService.find10OrderByLikeCountDesc())
         );
+    }
+
+    private static Long extractUserId(Jwt jwt) {
+        if (jwt == null || jwt.getSubject() == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED);
+        }
+
+        return Long.valueOf(jwt.getSubject());
     }
 }

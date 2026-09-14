@@ -21,7 +21,11 @@ public class ProductFacade {
     private final CategoryService categoryService;
     private final UserService userService;
 
-    public void addProduct(ProductCreateRequest createRequest) {
+    public void addProduct(Long userId, ProductCreateRequest createRequest) {
+        if (userService.findUser(userId).getRole() != Role.ADMIN) {
+            throw new BusinessException(ErrorCode.FORBIDDEN_ROLE);
+        }
+
         Category category = categoryService.getCategoryByName(createRequest.category());
 
         productService.createProduct(createRequest, category);
