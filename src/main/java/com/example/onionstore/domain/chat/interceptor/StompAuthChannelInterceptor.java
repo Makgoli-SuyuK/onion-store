@@ -19,9 +19,15 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.stereotype.Component;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 @Component
 @RequiredArgsConstructor
 public class StompAuthChannelInterceptor implements ChannelInterceptor {
+
+    private static final Pattern ROOM_DESTINATION_PATTERN =
+            Pattern.compile("^/sub/chats/rooms/(\\d+)$");
 
     private final JwtDecoder jwtDecoder;
     private final UserRepository userRepository;
@@ -56,7 +62,11 @@ public class StompAuthChannelInterceptor implements ChannelInterceptor {
             accessor.setUser(new AuthenticatedUser(user.getId(),user.getRole()));
         }
         else if (StompCommand.SUBSCRIBE.equals(accessor.getCommand())){
-            AuthenticatedUser authenticatedUser = (AuthenticatedUser) accessor.getUser();
+            Object rawPrincipal = accessor.getUser();
+            if(!(rawPrincipal instanceof AuthenticatedUser)){
+                throw new BusinessException(ErrorCode.UNAUTHORIZED);
+            }
+            AuthenticatedUser authenticatedUser = (AuthenticatedUser) rawPrincipal;
 
             Long roomId = extractRoomId(accessor.getDestination());
 
@@ -72,7 +82,13 @@ public class StompAuthChannelInterceptor implements ChannelInterceptor {
     }
 
     private Long extractRoomId(String destination){
-        String[] parts = destination.split("/");
-        return Long.valueOf(parts[parts.length - 1]);
+        if(destination == null){
+            throw new BusinessException(ErrorCode.INVALID_REQUEST);
+        }
+        Matcher matcher = ROOM_DESTINATION_PATTERN.matcher(destination);
+        if(!matcher.matches()){
+            throw new BusinessException(ErrorCode.INVALID_REQUEST);
+        }
+        return Long.valueOf(matcher.group(1));
     }
 }
