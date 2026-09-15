@@ -13,3 +13,6 @@ logging:
     org.springframework.web: info
     org.hibernate.SQL: info
     org.hibernate.orm.jdbc.bind: trace
+
+portone:
+  webhook-secret: whsec_dGVzdC13ZWJob29rLXNlY3JldA==
