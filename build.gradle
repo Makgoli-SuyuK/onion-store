@@ -9,6 +9,7 @@ version = '0.0.1-SNAPSHOT'
 description = 'onion-store'
 
 def querydslVersion = '7.6'
+def springCloudAwsVersion = '4.1.1'
 
 java {
     toolchain {
@@ -64,8 +65,13 @@ dependencies {
     testCompileOnly 'org.projectlombok:lombok'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testAnnotationProcessor 'org.projectlombok:lombok'
+
+    // AWS Parameter Store
+    implementation platform("io.awspring.cloud:spring-cloud-aws-dependencies:${springCloudAwsVersion}")
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-parameter-store'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+    systemProperty 'spring.profiles.active', 'test'
 }
