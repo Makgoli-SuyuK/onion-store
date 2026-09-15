@@ -103,11 +103,7 @@ class ProductRepositoryTest {
                 "name",
                 0L,
                 1000000L,
-                0,
-                "price",
-                "asc",
-                1,
-                10
+                0
         );
 
         //when
@@ -163,11 +159,7 @@ class ProductRepositoryTest {
                 null,
                 0L,
                 5000L,
-                0,
-                "price",
-                "desc",
-                1,
-                10
+                0
         );
 
         //when
