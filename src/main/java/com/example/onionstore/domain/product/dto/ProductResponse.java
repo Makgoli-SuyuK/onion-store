@@ -30,4 +30,19 @@ public record ProductResponse(
                 product.getUpdatedAt()
         );
     }
+
+    public static ProductResponse from(ProductDto dto, Integer stock, Long likeCount) {
+        return new ProductResponse(
+                dto.id(),
+                dto.category(),
+                dto.name(),
+                dto.description(),
+                dto.price(),
+                stock,
+                likeCount,
+                dto.status(),
+                dto.createdAt(),
+                dto.updatedAt()
+        );
+    }
 }

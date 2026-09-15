@@ -4,6 +4,7 @@ import com.example.onionstore.domain.category.dto.CategoryCreateRequest;
 import com.example.onionstore.domain.category.dto.CategoryEditRequest;
 import com.example.onionstore.domain.category.entity.Category;
 import com.example.onionstore.domain.category.repository.CategoryRepository;
+import com.example.onionstore.domain.category.repository.cache.CategoryCache;
 import com.example.onionstore.domain.product.service.ProductService;
 import com.example.onionstore.global.exception.BusinessException;
 import com.example.onionstore.global.exception.ErrorCode;
@@ -18,17 +19,27 @@ import java.util.List;
 public class CategoryService {
     private final CategoryRepository categoryRepository;
     private final ProductService productService;
+    private final CategoryCache categoryCache;
 
     @Transactional
     public void addCategory(CategoryCreateRequest createRequest) {
         checkIfExists(createRequest.name());
 
         categoryRepository.save(new Category(createRequest.name()));
+        categoryCache.evict();
     }
 
     @Transactional(readOnly = true)
     public List<Category> getAllCategories() {
-        return categoryRepository.findAllByDeletedFalse();
+        List<Category> categories = categoryCache.get();
+
+        if (categories != null) {
+            return categories;
+        }
+
+        categories = categoryRepository.findAllByDeletedFalse();
+        categoryCache.put(categories);
+        return categories;
     }
 
     @Transactional
@@ -43,6 +54,7 @@ public class CategoryService {
         toEdit.changeName(editRequest.newName());
 
         categoryRepository.save(toEdit);
+        categoryCache.evict();
     }
 
     @Transactional
@@ -59,11 +71,14 @@ public class CategoryService {
 
         toDelete.markAsDeleted();
         categoryRepository.save(toDelete);
+        categoryCache.evict();
     }
 
     @Transactional(readOnly = true)
     public Category getCategoryByName(String name) {
-        return categoryRepository.findByName(name)
+        return getAllCategories().stream()
+                .filter(c -> c.getName().equals(name))
+                .findFirst()
                 .orElseThrow(() -> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
     }
 
