@@ -1,10 +1,17 @@
 spring:
+  config:
+    import: "aws-parameterstore:/onion/"
+
   datasource:
     url: jdbc:mysql://onion-rds.cxqe2ke248bn.ap-northeast-2.rds.amazonaws.com:3306/onion_store?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: admin
+    password: ${db.password}
 
-  config:
-    import:
-      - "aws-parameterstore:/onion/db/?prefix=spring.datasource."
-      - "aws-parameterstore:/onion/jwt/?prefix=jwt."
-      - "aws-parameterstore:/onion/portone/?prefix=portone."
+jwt:
+  secret: ${jwt.secret}
+
+portone:
+  api-secret: ${portone.api-secret}
+  channel-key: ${portone.channel-key}
+  store-id: ${portone.store-id}
+  webhook-secret: ${portone.webhook-secret}
