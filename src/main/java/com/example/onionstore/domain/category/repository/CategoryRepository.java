@@ -17,9 +17,6 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     @Query("SELECT COUNT(c) > 0 FROM Category c WHERE c.name = :name AND c.deleted = false")
     boolean existsByName(@Param("name") String name);
-  
-    @Query("SELECT c FROM Category c WHERE c.deleted = false AND c.name = :name")
-    Optional<Category> findByName(@Param("name") String name);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<Category> findForUpdateById(long id);
