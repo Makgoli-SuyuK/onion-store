@@ -326,3 +326,23 @@ SELECT orders.id, 'pay_refund_other_001', 4000, 'SUCCESS', CURRENT_TIMESTAMP, CU
 FROM orders
 WHERE orders.order_number = 'ORD-REFUND-OTHER-001'
   AND NOT EXISTS (SELECT 1 FROM payments WHERE order_id = orders.id);
+
+-- 다른 고객의 환불 이력: 고객 목록·상세 소유권 검증 테스트
+INSERT INTO refunds (payment_id, amount, status, initiator, reason_type, reason, created_at, updated_at)
+SELECT payments.id, 1000, 'PENDING_APPROVAL', 'CUSTOMER', 'CUSTOMER_REQUEST', '다른 고객 환불 요청', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+FROM payments
+WHERE payments.portone_payment_id = 'pay_refund_other_001'
+  AND NOT EXISTS (SELECT 1 FROM refunds WHERE reason = '다른 고객 환불 요청');
+
+INSERT INTO refund_items (refund_id, order_item_id, quantity)
+SELECT refunds.id, order_items.id, 1
+FROM refunds
+JOIN payments ON payments.id = refunds.payment_id
+JOIN orders ON orders.id = payments.order_id
+JOIN order_items ON order_items.order_id = orders.id
+WHERE refunds.reason = '다른 고객 환불 요청'
+  AND order_items.product_name = '환불 테스트 양파즙 A'
+  AND NOT EXISTS (
+      SELECT 1 FROM refund_items
+      WHERE refund_id = refunds.id AND order_item_id = order_items.id
+  );
