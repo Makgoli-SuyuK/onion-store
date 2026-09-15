@@ -74,6 +74,16 @@ public enum ErrorCode {
     PAYMENT_CANCELLATION_FAILED(HttpStatus.BAD_GATEWAY, "PAYMENT_008", "결제사 취소에 실패했습니다."),
     PAYMENT_ALREADY_CANCELLED(HttpStatus.CONFLICT, "PAYMENT_009", "이미 취소된 결제입니다."),
 
+    // 환불
+    REFUND_NOT_FOUND(HttpStatus.NOT_FOUND, "REFUND_001", "환불 정보를 찾을 수 없습니다."),
+    REFUND_ALREADY_IN_PROGRESS(HttpStatus.CONFLICT, "REFUND_002", "처리 중인 환불 요청이 이미 있습니다."),
+    REFUND_NOT_ALLOWED(HttpStatus.CONFLICT, "REFUND_003", "현재 결제 상태에서는 환불을 요청할 수 없습니다."),
+    EXCEEDS_REFUNDABLE_QUANTITY(HttpStatus.CONFLICT, "REFUND_004", "환불 가능한 수량을 초과했습니다."),
+    INVALID_REFUND_STATUS(HttpStatus.CONFLICT, "REFUND_005", "현재 환불 상태에서는 처리할 수 없습니다."),
+    CANCELLATION_ALREADY_LINKED(HttpStatus.CONFLICT, "REFUND_006", "기존 취소 이력과 PortOne 취소 ID가 일치하지 않습니다."),
+    INVALID_CANCELLATION_ID(HttpStatus.BAD_REQUEST, "REFUND_007", "유효하지 않은 PortOne 취소 ID입니다."),
+    DUPLICATE_REFUND_ITEM_REQUEST(HttpStatus.BAD_REQUEST, "REFUND_008", "같은 주문 상품을 중복해 환불 요청할 수 없습니다."),
+
     // webhook
     WEBHOOK_VERIFICATION_FAILED(HttpStatus.BAD_REQUEST, "WEBHOOK_001", "웹훅 서명검증에 실패했습니다"),
     WEBHOOK_EVENT_NOT_FOUND(HttpStatus.NOT_FOUND, "WEBHOOK_002","웹훅 이벤트를 찾을 수 없습니다."),
