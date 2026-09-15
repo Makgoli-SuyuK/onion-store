@@ -78,8 +78,6 @@ class OrderFacadeTest {
         CreatePaymentResponse response = new CreatePaymentResponse(payment.getId(), payment.getPortonePaymentId(), payment.getAmount(), payment.getStatus());
         when(paymentService.createPayment(order, order.getTotalPrice())).thenReturn(response);
 
-        doNothing().when(cartService).clearCartItems(cartItemIds, userId);
-
         // when
         OrderCreateRequest request = new OrderCreateRequest(cartItemIds);
         OrderCreateResponse result = orderFacade.createOrder(userId, request);
@@ -105,9 +103,9 @@ class OrderFacadeTest {
         Order order = new Order(user, 1000);
         ReflectionTestUtils.setField(order, "id", orderId);
 
-        when(orderService.findById(orderId)).thenReturn(order);
+        when(orderService.findOrderForUpdate(orderId)).thenReturn(order);
         Payment payment = new Payment(order, 1000);
-        when(paymentService.findByOrderId(orderId)).thenReturn(payment);
+        when(paymentService.findPaymentForUpdate(orderId)).thenReturn(payment);
         Category category = new Category("양파");
         Product product = Product.create(category, "양파1kg", "까도까도 맛있는 양파", 1000, 5);
         OrderItem orderItem = new OrderItem(order, product, product.getName(), product.getPrice(), 1);
@@ -141,15 +139,17 @@ class OrderFacadeTest {
 
         // 주문을 이미 취소된 상태로 만든다.
         ReflectionTestUtils.setField(order, "status", OrderStatus.CANCELLED);
-        when(orderService.findById(orderId)).thenReturn(order);
+        when(orderService.findOrderForUpdate(orderId)).thenReturn(order);
+        Payment payment = new Payment(order, 1000);
+        when(paymentService.findPaymentForUpdate(orderId)).thenReturn(payment);
 
         // when
         BusinessException exception = assertThrows(BusinessException.class, () -> orderFacade.cancelOrder(userId, orderId));
 
         // then
         assertEquals(ErrorCode.ORDER_ALREADY_CANCELED, exception.getErrorCode());
-        verify(orderService).findById(orderId);
-        verify(paymentService).findByOrderId(orderId);
+        verify(orderService).findOrderForUpdate(orderId);
+        verify(paymentService).findPaymentForUpdate(orderId);
         verify(paymentService, never()).applyCancellation(orderId);
         verify(productService, never()).restoreStock(anyLong(), anyInt());
     }
@@ -171,16 +171,16 @@ class OrderFacadeTest {
         // 결제를 성공 상태로 변경
         payment.markAsSuccess();
 
-        when(orderService.findById(orderId)).thenReturn(order);
-        when(paymentService.findByOrderId(orderId)).thenReturn(payment);
+        when(orderService.findOrderForUpdate(orderId)).thenReturn(order);
+        when(paymentService.findPaymentForUpdate(orderId)).thenReturn(payment);
 
         // when
         BusinessException exception = assertThrows(BusinessException.class, () -> orderFacade.cancelOrder(userId, orderId));
 
         // then
         assertEquals(ErrorCode.CANNOT_CANCEL_ORDER, exception.getErrorCode());
-        verify(orderService).findById(orderId);
-        verify(paymentService).findByOrderId(orderId);
+        verify(orderService).findOrderForUpdate(orderId);
+        verify(paymentService).findPaymentForUpdate(orderId);
         verify(paymentService, never()).applyCancellation(orderId);
         verify(orderService, never()).findOrderItemsByOrderId(orderId);
         verify(productService, never()).restoreStock(anyLong(), anyInt());
