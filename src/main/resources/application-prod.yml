@@ -5,9 +5,6 @@ spring:
 
   config:
     import:
-      - "aws-parameterstore:/onion/db/password?prefix=spring.datasource."
-      - "aws-parameterstore:/onion/jwt/secret?prefix=jwt."
-      - "aws-parameterstore:/onion/portone/api-secret?prefix=portone."
-      - "aws-parameterstore:/onion/portone/channel-key?prefix=portone."
-      - "aws-parameterstore:/onion/portone/store-id?prefix=portone."
-      - "aws-parameterstore:/onion/portone/webhook-secret?prefix=portone."
+      - "aws-parameterstore:/onion/db/?prefix=spring.datasource."
+      - "aws-parameterstore:/onion/jwt/?prefix=jwt."
+      - "aws-parameterstore:/onion/portone/?prefix=portone."
