@@ -12,7 +12,6 @@ public class PortOneWebhookVerifier {
     private final WebhookVerifier webhookVerifier;
 
     public PortOneWebhookVerifier(PortOneProperties properties) {
-        System.out.println("webhookSecret = " + properties.getWebhookSecret());
         this.webhookVerifier = new WebhookVerifier(properties.getWebhookSecret());
     }
 

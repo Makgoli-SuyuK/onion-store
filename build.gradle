@@ -69,6 +69,8 @@ dependencies {
     // AWS Parameter Store
     implementation platform("io.awspring.cloud:spring-cloud-aws-dependencies:${springCloudAwsVersion}")
     implementation 'io.awspring.cloud:spring-cloud-aws-starter-parameter-store'
+
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
 }
 
 tasks.named('test') {
