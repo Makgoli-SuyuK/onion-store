@@ -206,6 +206,7 @@ public class ProductCacheTest {
 
         //then
         verify(productStockCache).evict(anyLong());
+        verify(productInfoCache).evict(anyLong());
     }
 
     @Test
@@ -219,6 +220,7 @@ public class ProductCacheTest {
 
         //then
         verify(productStockCache).evict(anyLong());
+        verify(productInfoCache).evict(anyLong());
     }
 
     @Test

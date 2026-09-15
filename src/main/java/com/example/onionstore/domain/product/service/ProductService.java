@@ -63,7 +63,7 @@ public class ProductService {
             return ProductResponse.from(dto, stock, likeCount);
         }
 
-        Product product = productRepository.findById(id)
+        Product product = productRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
 
         if (dto == null) {
@@ -102,6 +102,7 @@ public class ProductService {
         product.decreaseStock(quantity);
 
         productStockCache.evict(productId);
+        productInfoCache.evict(productId);
     }
 
     @Transactional
@@ -110,6 +111,7 @@ public class ProductService {
         product.restoreStock(quantity);
 
         productStockCache.evict(productId);
+        productInfoCache.evict(productId);
     }
 
     @Transactional
