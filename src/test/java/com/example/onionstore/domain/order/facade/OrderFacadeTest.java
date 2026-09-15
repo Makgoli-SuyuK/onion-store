@@ -143,6 +143,7 @@ class OrderFacadeTest {
         Payment payment = new Payment(order, 1000);
         when(paymentService.findPaymentForUpdate(orderId)).thenReturn(payment);
 
+
         // when
         BusinessException exception = assertThrows(BusinessException.class, () -> orderFacade.cancelOrder(userId, orderId));
 
