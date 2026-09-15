@@ -22,6 +22,7 @@ public enum ErrorCode {
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH_002", "유효하지 않은 토큰입니다."),
     EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH_003", "만료된 토큰입니다."),
     FORBIDDEN_ROLE(HttpStatus.FORBIDDEN, "AUTH_004", "해당 작업을 수행할 권한이 없습니다."),
+    ACCESS_DENIED(HttpStatus.FORBIDDEN, "AUTH_005", "접근 권한이 없습니다."),
 
     // 회원
     EMAIL_ALREADY_EXISTS(HttpStatus.CONFLICT, "USER_001", "이미 사용 중인 이메일입니다."),
@@ -62,6 +63,7 @@ public enum ErrorCode {
     ORDER_ALREADY_CANCELED(HttpStatus.CONFLICT, "ORDER_004", "이미 취소된 주문입니다."),
     CANNOT_CANCEL_ORDER(HttpStatus.BAD_REQUEST, "ORDER_005", "현재 상태에서는 주문을 취소할 수 없습니다."),
     ORDER_ACCESS_DENIED(HttpStatus.FORBIDDEN, "ORDER_006", "접근 권한이 없습니다."),
+    ORDER_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "ORDER_007", "주문 상품을 찾을 수 없습니다."),
 
     // 결제
     PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "PAYMENT_001", "결제 정보를 찾을 수 없습니다."),
