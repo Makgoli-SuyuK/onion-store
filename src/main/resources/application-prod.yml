@@ -9,6 +9,14 @@ spring:
     url: jdbc:mysql://onion-rds.cxqe2ke248bn.ap-northeast-2.rds.amazonaws.com:3306/onion_store?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: admin
 
+  data:
+    redis:
+      cluster:
+        nodes:
+          - clustercfg.onion-redis.kc4oj9.apn2.cache.amazonaws.com:6379
+      ssl:
+        enabled: true
+
 management:
   endpoints:
     web:

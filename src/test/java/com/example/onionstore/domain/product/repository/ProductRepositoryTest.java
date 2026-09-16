@@ -19,6 +19,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -163,7 +164,7 @@ class ProductRepositoryTest {
         );
 
         //when
-        PageRequest pageRequest = PageRequest.of(0, 10);
+        PageRequest pageRequest = PageRequest.of(0, 10, Sort.Direction.DESC, "price");
         Page<ProductSimpleResponse> res = productRepository.searchWithConditions(conditions, pageRequest);
 
         //then
@@ -176,9 +177,10 @@ class ProductRepositoryTest {
                 .isSortedAccordingTo(Comparator.reverseOrder());
 
         assertThat(res.getContent())
-                .allSatisfy(product -> {
-                    assertThat(product.price()).isBetween(0L, 5000L);
-                });
+                .extracting(ProductSimpleResponse::price)
+                .allSatisfy(price ->
+                assertThat(price).isBetween(0L, 5000L) // 0 이상 5000 이하 (포함)
+        );
     }
 
     @Test

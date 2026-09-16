@@ -125,3 +125,46 @@ jobs:
 
           echo "Deployment timed out."
           exit 1
+
+  frontend-deploy:
+    name: Frontend Build & Deploy
+    runs-on: ubuntu-latest
+    needs: build-test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: frontend
+        env:
+          VITE_API_BASE_URL: https://api.chungmani.click
+          VITE_USE_MOCK: 'false'
+        run: npm run build
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: arn:aws:iam::213851291689:role/onion-store-github-actions-policy
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Upload frontend to S3
+        run: |
+          aws s3 sync frontend/dist s3://chungmani-click-frontend --delete
+
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id EQ8SSRDN16G28 \
+            --paths "/*"
