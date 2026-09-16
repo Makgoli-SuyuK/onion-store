@@ -1,6 +1,8 @@
 spring:
   application:
     name: onion-store
+  flyway:
+    enabled: false
 
   jpa:
     defer-datasource-initialization: true
