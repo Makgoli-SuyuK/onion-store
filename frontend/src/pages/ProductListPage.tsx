@@ -1,4 +1,3 @@
-import { useState, type FormEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { productApi } from '@/api/productApi'
 import { useApiRequest } from '@/hooks/useApiRequest'
@@ -22,7 +21,6 @@ export function ProductListPage() {
   const name = searchParams.get('name') ?? ''
   const category = searchParams.get('category') ?? ''
   const sort = (searchParams.get('sort') as SortOption) || 'POPULAR'
-  const [nameInput, setNameInput] = useState(name)
 
   const { data, loading, error, refetch } = useApiRequest(
     () => productApi.getProducts({ name, category: category || undefined, sort, page: 0, size: 20 }),
@@ -38,27 +36,8 @@ export function ProductListPage() {
     setSearchParams(params)
   }
 
-  const handleSearchSubmit = (e: FormEvent) => {
-    e.preventDefault()
-    updateParams({ name: nameInput.trim() })
-  }
-
   return (
     <div className="container product-list-page">
-      <form className="product-list-page__search" onSubmit={handleSearchSubmit}>
-        <input
-          type="search"
-          className="input"
-          placeholder="상품명으로 검색"
-          value={nameInput}
-          onChange={(e) => setNameInput(e.target.value)}
-          aria-label="상품명 검색"
-        />
-        <button type="submit" className="btn btn--primary btn--sm">
-          검색
-        </button>
-      </form>
-
       <div className="product-list-page__filters">
         <div className="product-list-page__categories">
           <button
