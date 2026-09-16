@@ -3,6 +3,7 @@ package com.example.onionstore.domain.category.service;
 import com.example.onionstore.domain.category.dto.CategoryEditRequest;
 import com.example.onionstore.domain.category.entity.Category;
 import com.example.onionstore.domain.category.repository.CategoryRepository;
+import com.example.onionstore.domain.category.repository.cache.CategoryCache;
 import com.example.onionstore.support.MysqlSupport;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.concurrent.*;
 
@@ -27,6 +29,8 @@ public class CategoryConcurrencyTest {
     private CategoryService categoryService;
     @Autowired
     private CategoryRepository categoryRepository;
+    @MockitoBean
+    private CategoryCache categoryCache;
 
     Long categoryId;
 
