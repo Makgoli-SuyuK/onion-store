@@ -4,6 +4,7 @@ import com.example.onionstore.domain.category.dto.CategoryCreateRequest;
 import com.example.onionstore.domain.category.dto.CategoryEditRequest;
 import com.example.onionstore.domain.category.entity.Category;
 import com.example.onionstore.domain.category.repository.CategoryRepository;
+import com.example.onionstore.domain.category.repository.cache.CategoryCache;
 import com.example.onionstore.domain.product.service.ProductService;
 import com.example.onionstore.global.exception.BusinessException;
 import com.example.onionstore.global.exception.ErrorCode;
@@ -35,6 +36,8 @@ class CategoryServiceTest {
     private CategoryService categoryService;
     @Mock
     private ProductService productService;
+    @Mock
+    private CategoryCache categoryCache;
 
     @Test
     @DisplayName("카테고리 추가 테스트")
@@ -79,6 +82,7 @@ class CategoryServiceTest {
         categories.add(new Category("new category1"));
         categories.add(new Category("new category2"));
 
+        given(categoryCache.get()).willReturn(null);
         given(categoryRepository.findAllByDeletedFalse()).willReturn(categories);
 
         //when
