@@ -1,5 +1,5 @@
 .product-list-page {
-  padding: 36px 6% 60px;
+  padding: 20px 6% 60px;
 }
 
 .product-list-page__filters {
@@ -33,7 +33,37 @@
   font-weight: bold;
 }
 
-.product-list-page__sort {
-  width: auto;
-  min-width: 130px;
+.input.product-list-page__sort {
+  width: 180px;
+  min-width: 180px;
+}
+
+@media (max-width: 900px) {
+  .product-list-page__filters {
+    display: block;
+    margin-bottom: 28px;
+  }
+
+  .product-list-page__categories {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .chip {
+    width: 100%;
+    padding: 8px 10px;
+    text-align: center;
+  }
+
+  .product-list-page__sort {
+    display: block;
+    margin: 16px 0 0 auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .product-list-page__categories {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
