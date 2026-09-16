@@ -3,15 +3,16 @@ package com.example.onionstore.domain.product.repository;
 import com.example.onionstore.domain.product.dto.ProductSimpleResponse;
 import com.example.onionstore.domain.product.repository.dto.ProductSearchConditions;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.ComparableExpressionBase;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -40,7 +41,7 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
                 .from(product)
                 .join(product.category, category)
                 .where(condition)
-                .orderBy(orderBy(searchConditions.sortBy(), searchConditions.sortOrder()))
+                .orderBy(getOrderSpecifiers(pageable))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch()
@@ -98,27 +99,25 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
         return product.likeCount.goe(count);
     }
 
-    private OrderSpecifier<?> orderBy(String sortBy, String sortOrder) {
-        if (!hasText(sortBy)) {
-            return null;
-        }
-
-        ComparableExpressionBase<?> targetPath = switch(sortBy) {
-            case "name" -> product.name;
-            case "category" -> category.name;
-            case "price" -> product.price;
-            case "likeCount" -> product.likeCount;
-            default -> null;
-        };
-
-        if (targetPath == null) {
-            return null;
-        }
-
-        return "asc".equals(sortOrder) ? targetPath.asc() : targetPath.desc();
-    }
-
     private BooleanExpression isNotDeleted() {
         return product.deleted.isFalse();
+    }
+
+    private OrderSpecifier<?>[] getOrderSpecifiers(Pageable pageable) {
+        return pageable.getSort()
+                .stream()
+                .map(this::toOrderSpecifier)
+                .toArray(OrderSpecifier[]::new);
+    }
+
+    private OrderSpecifier<?> toOrderSpecifier(Sort.Order order) {
+        Order direction = order.isAscending() ? Order.ASC : Order.DESC;
+
+        return switch (order.getProperty()) {
+            case "name" -> new OrderSpecifier<>(direction, product.name);
+            case "price" -> new OrderSpecifier<>(direction, product.price);
+            case "likeCount" -> new OrderSpecifier<>(direction, product.likeCount);
+            default -> new OrderSpecifier<>(direction, product.createdAt);
+        };
     }
 }
