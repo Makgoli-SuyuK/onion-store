@@ -4,6 +4,10 @@ import com.example.onionstore.domain.category.entity.Category;
 import com.example.onionstore.domain.category.repository.CategoryRepository;
 import com.example.onionstore.domain.product.entity.Product;
 import com.example.onionstore.domain.product.repository.ProductLikeRepository;
+import com.example.onionstore.domain.product.repository.cache.ProductInfoCache;
+import com.example.onionstore.domain.product.repository.cache.ProductLikeCache;
+import com.example.onionstore.domain.product.repository.cache.ProductPopularCache;
+import com.example.onionstore.domain.product.repository.cache.ProductStockCache;
 import com.example.onionstore.domain.product.repository.ProductRepository;
 import com.example.onionstore.domain.product.service.ProductLikeService;
 import com.example.onionstore.domain.product.service.ProductService;
@@ -26,6 +30,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,6 +72,15 @@ public class ProductLikeFacadeSliceTest {
     private CategoryRepository categoryRepository;
     @Autowired
     private ProductLikeRepository productLikeRepository;
+
+    @MockitoBean
+    private ProductInfoCache productInfoCache;
+    @MockitoBean
+    private ProductStockCache productStockCache;
+    @MockitoBean
+    private ProductLikeCache productLikeCache;
+    @MockitoBean
+    private ProductPopularCache productPopularCache;
 
     private Long productId;
     private List<Long> userIds = new ArrayList<>();

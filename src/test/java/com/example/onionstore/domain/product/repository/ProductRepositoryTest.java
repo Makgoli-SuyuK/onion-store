@@ -263,7 +263,7 @@ class ProductRepositoryTest {
         );
 
         //when
-        boolean res = productRepository.existsById(1L);
+        boolean res = productRepository.existsByCategory_Id(category.getId());
 
         //then
         assertThat(res).isTrue();
@@ -273,7 +273,7 @@ class ProductRepositoryTest {
     @DisplayName("해당 id의 카테고리에 상품이 없으면 false를 반환한다")
     void 해당_카테고리_id에_상품이_없으면_false를_반환한다() {
         //when
-        boolean res = productRepository.existsById(1L);
+        boolean res = productRepository.existsByCategory_Id(Long.MAX_VALUE);
 
         //then
         assertThat(res).isFalse();
