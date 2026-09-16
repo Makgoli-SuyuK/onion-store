@@ -194,6 +194,20 @@ class RefundCommandServiceTest {
         verify(paymentService, never()).applyPartialCancellation(order.getId());
     }
 
+    @Test
+    void 이미_완료된_환불_웹훅이_다시_와도_재고와_주문상태를_중복_변경하지_않는다() {
+        Refund refund = completedRefund(1);
+        givenCompletedRefundPrerequisites(refund);
+
+        var response = refundCommandService.completeRefund(refund.getId());
+
+        assertThat(response.status()).isEqualTo(RefundStatus.COMPLETED);
+        verify(productService, never()).restoreStock(orderItem.getProduct().getId(), 1);
+        verify(orderService, never()).completeRefundCancellation(order.getId());
+        verify(paymentService, never()).applyCancellation(order.getId());
+        verify(paymentService, never()).applyPartialCancellation(order.getId());
+    }
+
     private void givenRequestPrerequisites(Map<Long, Integer> completedQuantities) {
         given(orderService.findOrderForUpdate(order.getId())).willReturn(order);
         given(paymentService.findPaymentForUpdate(order.getId())).willReturn(payment);
@@ -202,10 +216,18 @@ class RefundCommandServiceTest {
     }
 
     private Refund requestedRefund(int quantity) {
+        return refund(quantity, RefundStatus.REQUESTED);
+    }
+
+    private Refund completedRefund(int quantity) {
+        return refund(quantity, RefundStatus.COMPLETED);
+    }
+
+    private Refund refund(int quantity, RefundStatus status) {
         Refund refund = new Refund(
                 payment,
                 orderItem.getProductPrice() * quantity,
-                RefundStatus.REQUESTED,
+                status,
                 RefundInitiator.CUSTOMER,
                 RefundReasonType.CUSTOMER_REQUEST,
                 "상품 상태가 좋지 않습니다."
@@ -236,6 +258,23 @@ class RefundCommandServiceTest {
         given(refundService.getCompletedQuantityByOrderItemId(order.getId()))
                 .willReturn(completedQuantities);
         given(orderService.findOrderItemsByOrderId(order.getId())).willReturn(List.of(orderItem));
+    }
+
+    private void givenCompletedRefundPrerequisites(Refund refund) {
+        given(refundService.getRefundCancellationInfo(refund.getId())).willReturn(
+                new RefundCancellationInfo(
+                        refund.getId(),
+                        order.getId(),
+                        "pay_123",
+                        refund.getAmount(),
+                        refund.getReason()
+                )
+        );
+        given(orderService.findOrderForUpdate(order.getId())).willReturn(order);
+        given(paymentService.findPaymentForUpdate(order.getId())).willReturn(payment);
+        given(refundService.findRefundForUpdate(refund.getId())).willReturn(refund);
+        doAnswer(invocation -> refund.complete())
+                .when(refundService).completeRefund(refund);
     }
 
     private CustomerRefundRequest request(int quantity) {

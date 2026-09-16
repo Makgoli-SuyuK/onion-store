@@ -31,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
@@ -94,6 +95,67 @@ class AdminRefundFacadeTest {
         verify(refundCommandService).approveCustomerRefund(1L, 10L);
         verify(paymentGateway).requestPartialCancellation("pay_123", 3_000L, "상품 일부 환불");
         verify(refundCommandService).completeRefund(10L);
+    }
+
+    @Test
+    void 결제사_부분취소가_실패하면_환불을_실패상태로_반영한다() {
+        RefundCancellationInfo cancellationInfo = new RefundCancellationInfo(
+                10L, 20L, "pay_123", 3_000L, "상품 일부 환불"
+        );
+        RefundReviewResponse failed = new RefundReviewResponse(
+                10L, RefundStatus.FAILED, LocalDateTime.now(), null
+        );
+        given(refundService.getRefundCancellationInfo(10L)).willReturn(cancellationInfo);
+        given(paymentGateway.requestPartialCancellation("pay_123", 3_000L, "상품 일부 환불"))
+                .willReturn(new PaymentCancellationResponse("cancel_123", GatewayCancellationStatus.FAILED));
+        given(refundCommandService.failRefund(10L)).willReturn(failed);
+
+        RefundReviewResponse response = adminRefundFacade.approveRefund(1L, 10L);
+
+        assertThat(response.status()).isEqualTo(RefundStatus.FAILED);
+        verify(refundCommandService).approveCustomerRefund(1L, 10L);
+        verify(refundCommandService).failRefund(10L);
+        verify(refundCommandService, never()).completeRefund(10L);
+    }
+
+    @Test
+    void 결제사_부분취소가_처리중이면_현재_환불상태를_반환한다() {
+        RefundCancellationInfo cancellationInfo = new RefundCancellationInfo(
+                10L, 20L, "pay_123", 3_000L, "상품 일부 환불"
+        );
+        RefundReviewResponse requested = new RefundReviewResponse(
+                10L, RefundStatus.REQUESTED, LocalDateTime.now(), null
+        );
+        given(refundService.getRefundCancellationInfo(10L)).willReturn(cancellationInfo);
+        given(paymentGateway.requestPartialCancellation("pay_123", 3_000L, "상품 일부 환불"))
+                .willReturn(new PaymentCancellationResponse("cancel_123", GatewayCancellationStatus.REQUESTED));
+        given(refundService.getRefundReviewResponse(10L)).willReturn(requested);
+
+        RefundReviewResponse response = adminRefundFacade.approveRefund(1L, 10L);
+
+        assertThat(response.status()).isEqualTo(RefundStatus.REQUESTED);
+        verify(refundCommandService).approveCustomerRefund(1L, 10L);
+        verify(refundCommandService, never()).completeRefund(10L);
+        verify(refundCommandService, never()).failRefund(10L);
+    }
+
+    @Test
+    void 결제사_취소_호출에서_예외가_발생하면_환불을_실패상태로_전이하고_예외를_전달한다() {
+        RefundCancellationInfo cancellationInfo = new RefundCancellationInfo(
+                10L, 20L, "pay_123", 3_000L, "상품 일부 환불"
+        );
+        given(refundService.getRefundCancellationInfo(10L)).willReturn(cancellationInfo);
+        given(paymentGateway.requestPartialCancellation("pay_123", 3_000L, "상품 일부 환불"))
+                .willThrow(new BusinessException(ErrorCode.PAYMENT_CANCELLATION_FAILED));
+
+        assertThatThrownBy(() -> adminRefundFacade.approveRefund(1L, 10L))
+                .isInstanceOfSatisfying(BusinessException.class,
+                        exception -> assertThat(exception.getErrorCode())
+                                .isEqualTo(ErrorCode.PAYMENT_CANCELLATION_FAILED));
+
+        verify(refundCommandService).approveCustomerRefund(1L, 10L);
+        verify(refundCommandService).failRefund(10L);
+        verify(refundCommandService, never()).completeRefund(10L);
     }
 
     @Test
