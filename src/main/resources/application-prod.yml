@@ -11,8 +11,11 @@ spring:
 
   data:
     redis:
-      host: clustercfg.onion-redis.kc4oj9.apn2.cache.amazonaws.com
-      port: 6379
+      cluster:
+        nodes:
+          - clustercfg.onion-redis.kc4oj9.apn2.cache.amazonaws.com:6379
+      ssl:
+        enabled: true
 
 management:
   endpoints:
