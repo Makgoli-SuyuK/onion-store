@@ -45,7 +45,6 @@ export function ProductDetailPage() {
   if (!detail) return null
 
   const product = detail.productInfo
-  console.log('PRODUCT DATA:', product)
   const soldOut = product.status !== 'SELLING'
   const totalPrice = product.price * quantity
 
@@ -103,8 +102,10 @@ export function ProductDetailPage() {
       </div>
 
       <div className="product-detail__info">
-        <span className="badge badge--tag">{product.categoryName}</span>
-        <h1 className="product-detail__name">{product.name}</h1>
+        <div className="product-detail__heading">
+          <span className="product-detail__category">{product.categoryName}</span>
+          <h1 className="product-detail__name">{product.name}</h1>
+        </div>
         {product.description && <p className="product-detail__desc">{product.description}</p>}
 
         <div className="product-detail__meta">
