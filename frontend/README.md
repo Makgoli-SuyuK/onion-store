@@ -17,15 +17,11 @@ npm run preview          # 빌드 결과 미리보기
 ## 환경변수 (.env.example)
 
 ```
-# 백엔드 API 서버 주소. 실제 배포/로컬 백엔드 주소로 교체하세요.
+# 로컬 백엔드 API 서버 주소입니다.
 VITE_API_BASE_URL=http://localhost:8080
-
-# true면 src/mocks 임시 데이터로 동작(백엔드 없이 화면 확인용).
-# 백엔드 연동 시 false로 바꾸세요.
-VITE_USE_MOCK=true
 ```
 
-`.env` 파일이 없어도 `VITE_USE_MOCK`은 기본값 `true`로 동작하므로, 백엔드 없이 바로 `npm run dev`로 전체 화면을 확인할 수 있습니다. 포트원(PortOne) 결제창을 여는 데 필요한 `storeId`/`channelKey`는 별도 환경변수가 아니라 백엔드의 `GET /api/config/portone`에서 그때그때 받아옵니다.
+프론트는 항상 실제 백엔드를 호출합니다. 포트원(PortOne) 결제창을 여는 데 필요한 `storeId`/`channelKey`는 백엔드의 `GET /api/config/portone`에서 그때그때 받아옵니다.
 
 ## 폴더 구조
 
@@ -44,7 +40,6 @@ src/
 │  └─ chatApi.ts       # CS 문의 채팅방/메시지 REST (/api/chats/..., /api/admin/chats/...)
 ├─ payment/portone.ts # 포트원 V2 브라우저 SDK 연동 래퍼
 ├─ chat/stompClient.ts # 채팅 STOMP WebSocket 연결 래퍼 (/ws-stomp)
-├─ mocks/           # 임시 데이터 (VITE_USE_MOCK=true일 때 api/*.ts가 이 모듈을 사용)
 ├─ types/           # 요청/응답 타입 (product, cart, order, user, category, payment, admin, common)
 ├─ hooks/           # 공통 상태 + 서버 요청 처리
 │  ├─ useAuth.tsx        # 로그인 상태, JWT 저장/복원, 로그인/회원가입/로그아웃
@@ -75,7 +70,6 @@ src/
 - 응답 포맷은 백엔드 공통 포맷 `ApiResponse(success, code, message, data)`를 그대로 따릅니다 (`src/types/common.ts`, `src/api/client.ts`의 `unwrap`/`unwrapPage`). 목록 API는 Spring Data `Page` 그대로 내려오며(`number`/`size` 필드), `unwrapPage`가 화면에서 쓰기 쉬운 모양(`page`/`size`)으로 바꿔줍니다.
 - 인증이 필요한 요청은 `client.ts`의 axios 요청 인터셉터가 `localStorage`에 저장된 토큰을 `Authorization: Bearer {accessToken}` 헤더로 자동으로 붙입니다.
 - **백엔드는 로그인(`/api/auth/**`)을 제외한 거의 모든 API에 로그인을 요구합니다** (`SecurityConfig`가 `/api/auth/**`, swagger, `/ws-stomp/**`만 permitAll이고 나머지는 `anyRequest().authenticated()`). 상품 목록처럼 비로그인 사용자도 봐야 자연스러운 화면까지 로그인 뒤에 있는 상태라, 이 프론트는 일단 상품 탐색은 비로그인으로 열어두고 장바구니/주문/마이페이지/관리자만 로그인으로 막았습니다. 백엔드 보안 설정이 최종 확정되면(상품 조회를 permitAll로 열 계획인지) 맞춰서 조정하면 됩니다.
-- `VITE_USE_MOCK=false`로 바꾸면 모든 `api/*.ts` 모듈이 `src/mocks/*`를 거치지 않고 바로 실제 백엔드를 호출합니다.
 
 ### 실제로 확인한 엔드포인트
 
@@ -85,7 +79,7 @@ src/
 | 로그인 | `POST /api/auth/login` | 응답에 이름/이메일 없음 (`accessToken`/`userId`/`role`만) |
 | 내 정보 | `GET /api/users/me` | 로그인 응답에 없는 이름/이메일/전화번호는 여기서 |
 | 카테고리 목록 | `GET /api/categories` | 카테고리는 고정 enum이 아니라 관리자가 만든 값 |
-| 상품 목록 | `GET /api/products?name=&category=&sortBy=&sortOrder=&page=&size=` | 요약 응답(재고/판매상태 없음) |
+| 상품 목록 | `GET /api/products?name=&category=&sort=&page=&size=` | 요약 응답(재고/판매상태 없음) |
 | 상품 상세 | `GET /api/products/{id}` | 재고/판매상태 포함 |
 | 상품 등록(관리자) | `POST /api/products` | `{category, productName, description, price, stock}` |
 | 상품 수정(관리자) | `PATCH /api/products/{id}` | `{name, description, price, stock, status}` — 카테고리 변경 불가 |
@@ -111,7 +105,6 @@ src/
 - `PATCH /api/admin/chats/rooms/{id}/status` (관리자 전용 상태 변경: 대기중→상담중→완료, 완료는 되돌릴 수 없음)
 - 실시간 메시지 전송/수신은 STOMP WebSocket (`/ws-stomp`, `@stomp/stompjs`). CONNECT 프레임의 `Authorization: Bearer {accessToken}` 헤더로 인증하고, `/pub/chats/rooms/{id}/messages`로 보내고 `/sub/chats/rooms/{id}`를 구독해서 받습니다 (`src/chat/stompClient.ts`).
 - 헤더의 "1:1 문의"(고객)/"문의 관리"(관리자) 링크 → `/chat` (내 문의 목록, 관리자는 상태별 필터+전체 목록) → `/chat/rooms/:id` (채팅방)
-- `VITE_USE_MOCK=true`일 때는 실제 WebSocket을 열지 않고 `mocks/chatMock.ts`가 전송을 흉내 냅니다.
 
 ## 결제(포트원) 흐름
 
@@ -122,29 +115,18 @@ src/
 3. `src/payment/portone.ts`가 포트원 V2 브라우저 SDK(`window.PortOne.requestPayment`)로 결제창을 염 (SDK는 `index.html`에서 `https://cdn.portone.io/v2/browser-sdk.js`로 로드)
 4. 결제가 끝나면 `POST /api/payments/confirm`으로 결제 완료를 서버에 알리고 주문 완료 화면으로 이동
 
-`VITE_USE_MOCK=true`(기본값)일 때는 포트원 결제창을 열지 않고 바로 결제 완료로 처리합니다. 실제 결제를 테스트하려면 `VITE_USE_MOCK=false` + 실제 백엔드 + 포트원 스토어 설정이 필요합니다.
+실제 결제를 테스트하려면 실제 백엔드와 포트원 스토어 설정이 필요합니다.
 
 ## 백엔드에 없는 기능 (TODO)
 
 아래는 첨부 요구사항에는 있지만 현재 백엔드에는 없어서, 화면은 만들어 두되 실제로는 동작하지 않거나 프론트에서만 계산하는 부분입니다.
 
 - **상품 이미지**: 상품 응답에 이미지 필드 자체가 없습니다. `ProductImage` 컴포넌트가 항상 "상품 사진 준비 중" placeholder를 보여줍니다.
-- **좋아요(찜) 등록/취소 API**: 에러코드(`LIKE_001/002`)만 준비돼 있고 실제 등록/취소 엔드포인트는 아직 없습니다. 좋아요 버튼은 화면에서만 숫자가 올라가고 새로고침하면 초기화됩니다.
 - **배송비/배송지**: 주문에 배송비·주소 개념이 없습니다. 장바구니/주문서의 "배송비"는 화면 안내용 계산일 뿐 실제 결제 금액(`totalPrice`)에는 포함되지 않는다고 명시해 뒀습니다.
 - **상품 목록의 재고/판매상태**: 목록 API가 요약 정보만 줘서 재고/품절 여부를 알 수 없습니다. 상품 상세에서는 정상적으로 보입니다. 관리자 화면은 행마다 상세를 추가로 조회해 채웁니다(`adminApi.ts`의 `fetchProductsWithDetail`, 상품이 많아지면 느려질 수 있어 목록 API 확장이 필요합니다).
 - **관리자 통계 API**: 없어서 상품을 한 번에 많이 불러와 프론트에서 집계합니다.
 - **주문 상태**: `PENDING/PAID/CANCELLED` 3가지뿐이라 "배송중/배송완료" 같은 배송 추적은 없습니다.
 - **주문 취소**: 백엔드에는 `POST /api/orders/{id}/cancel`가 있지만(결제 전에만 가능) 원래 요구사항에 없던 기능이라 화면은 만들지 않았습니다.
-
-## 임시 데이터(mock)
-
-`VITE_USE_MOCK=true`(기본값)일 때 `src/mocks/`의 인메모리 데이터로 동작합니다. 백엔드 연동 시 `VITE_USE_MOCK=false`로 바꾸면 자동으로 실제 API를 호출합니다.
-
-- `mocks/products.ts` — 상품 10종(카테고리별, 일부 품절 포함)
-- `mocks/categories.ts` — 카테고리 5종(양파/햇양파/자색양파/깐양파/양파즙)
-- `mocks/cartMock.ts`, `mocks/orderMock.ts` — 페이지를 새로고침하면 초기화되는 인메모리 데이터입니다(브라우저 탭을 유지한 채 SPA 링크로 이동하면 유지됩니다). 주문 내역에는 데모용 과거 주문 2건이 미리 들어 있습니다.
-- `mocks/authMock.ts` — 비밀번호 검증 없이, 이메일에 `admin`이 포함되면 관리자 계정으로 로그인/가입됩니다.
-- `mocks/adminMock.ts` — 관리자 등록/수정이 `products.ts` 배열을 직접 수정합니다.
 
 ## 주요 페이지 구현 설명
 

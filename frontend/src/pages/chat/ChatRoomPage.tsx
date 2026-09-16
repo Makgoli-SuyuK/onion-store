@@ -2,8 +2,6 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { chatApi } from '@/api/chatApi'
 import { connectChatRoom } from '@/chat/stompClient'
-import { mockSendMessage } from '@/mocks/chatMock'
-import { USE_MOCK } from '@/api/client'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/useToast'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
@@ -59,7 +57,7 @@ export function ChatRoomPage() {
 
   const stompRef = useRef<ReturnType<typeof connectChatRoom> | null>(null)
   useEffect(() => {
-    if (USE_MOCK || !room) return
+    if (!room) return
     const conn = connectChatRoom(id, (raw) => {
       const data = raw as ChatBroadcast
       setMessages((prev) => [
@@ -85,12 +83,7 @@ export function ChatRoomPage() {
     if (!text || sending) return
     setSending(true)
     try {
-      if (USE_MOCK) {
-        const msg = await mockSendMessage(id, text)
-        setMessages((prev) => [...prev, msg])
-      } else {
-        stompRef.current?.send(text)
-      }
+      stompRef.current?.send(text)
       setInput('')
     } catch (err) {
       showToast((err as Error).message, 'error')

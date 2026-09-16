@@ -6,7 +6,6 @@ import { requestPortOnePayment } from '@/payment/portone'
 import { useAuth } from '@/hooks/useAuth'
 import { useCart } from '@/hooks/useCart'
 import { useToast } from '@/hooks/useToast'
-import { USE_MOCK } from '@/api/client'
 import { EmptyState } from '@/components/common/EmptyState'
 import { ProductImage } from '@/components/common/ProductImage'
 import { formatCurrency } from '@/utils/currency'
@@ -46,22 +45,19 @@ export function CheckoutPage() {
       // (재고 부족·품절이면 여기서 바로 실패하고 한글 메시지가 내려온다)
       const order = await orderApi.createOrder(cartItemIds)
 
-      let paidPaymentId = order.portonePaymentId
-      if (!USE_MOCK) {
-        const config = await paymentApi.getPortOneConfig()
-        const orderName =
-          order.items.length > 1
-            ? `${order.items[0].productName} 외 ${order.items.length - 1}건`
-            : order.items[0].productName
-        paidPaymentId = await requestPortOnePayment({
-          storeId: config.storeId,
-          channelKey: config.channelKey,
-          paymentId: order.portonePaymentId,
-          orderName,
-          totalAmount: order.totalPrice,
-          customer: { fullName: user.name, phoneNumber: user.phoneNumber, email: user.email },
-        })
-      }
+      const config = await paymentApi.getPortOneConfig()
+      const orderName =
+        order.items.length > 1
+          ? `${order.items[0].productName} 외 ${order.items.length - 1}건`
+          : order.items[0].productName
+      const paidPaymentId = await requestPortOnePayment({
+        storeId: config.storeId,
+        channelKey: config.channelKey,
+        paymentId: order.portonePaymentId,
+        orderName,
+        totalAmount: order.totalPrice,
+        customer: { fullName: user.name, phoneNumber: user.phoneNumber, email: user.email },
+      })
 
       await paymentApi.confirmPayment(order.orderId, paidPaymentId)
       await refreshCart()

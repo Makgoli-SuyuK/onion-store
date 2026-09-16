@@ -42,11 +42,10 @@ export function ProductDetailPage() {
   if (loading) return <LoadingSpinner />
   if (error) return <ErrorState message={error} onRetry={refetch} />
 
-  console.log('PRODUCT DATA:', product)
-  if (!product) return null
   if (!detail) return null
 
   const product = detail.productInfo
+  console.log('PRODUCT DATA:', product)
   const soldOut = product.status !== 'SELLING'
   const totalPrice = product.price * quantity
 

@@ -1,11 +1,5 @@
-import { http, unwrap, USE_MOCK } from './client'
+import { http, unwrap } from './client'
 import { productApi } from './productApi'
-import {
-  mockCreateProduct,
-  mockGetAdminProducts,
-  mockGetStats,
-  mockUpdateProduct,
-} from '@/mocks/adminMock'
 import type { AdminProductStats, ProductCreateRequest, ProductEditRequest } from '@/types/admin'
 import type { PageResponse } from '@/types/common'
 import type { Product, ProductListQuery } from '@/types/product'
@@ -21,7 +15,6 @@ async function fetchProductsWithDetail(query: ProductListQuery): Promise<PageRes
 
 export const adminApi = {
   async getStats(): Promise<AdminProductStats> {
-    if (USE_MOCK) return mockGetStats()
     const page = await fetchProductsWithDetail({ page: 0, size: 200 })
     return {
       totalCount: page.totalElements,
@@ -31,19 +24,16 @@ export const adminApi = {
   },
 
   async getProducts(query: ProductListQuery): Promise<PageResponse<Product>> {
-    if (USE_MOCK) return mockGetAdminProducts(query)
     return fetchProductsWithDetail(query)
   },
 
   // 응답 데이터가 없어(ApiResponse<Void>) 생성 후에는 화면에서 목록을 다시 불러와야 한다.
   async createProduct(req: ProductCreateRequest): Promise<void> {
-    if (USE_MOCK) return mockCreateProduct(req)
     const res = await http.post('/api/products', req)
     unwrap(res)
   },
 
   async updateProduct(productId: number, req: ProductEditRequest): Promise<Product> {
-    if (USE_MOCK) return mockUpdateProduct(productId, req)
     const res = await http.patch(`/api/products/${productId}`, req)
     return unwrap(res)
   },
