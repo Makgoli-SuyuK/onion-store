@@ -1,7 +1,7 @@
 package com.example.onionstore.domain.order.entity;
 
-import com.example.onionstore.global.entity.BaseTimeEntity;
 import com.example.onionstore.domain.user.entity.User;
+import com.example.onionstore.global.entity.BaseTimeEntity;
 import com.example.onionstore.global.exception.BusinessException;
 import com.example.onionstore.global.exception.ErrorCode;
 import jakarta.persistence.Column;
@@ -65,6 +65,19 @@ public class Order extends BaseTimeEntity {
             return false;
         }
         changeStatus(OrderStatus.CANCELLED);
+        this.cancelledAt = LocalDateTime.now();
+        return true;
+    }
+
+    // 전액 환불이 결제사에서 완료된 경우에만 결제 완료 주문을 취소한다.
+    public boolean completeRefundCancellation() {
+        if (this.status == OrderStatus.CANCELLED) {
+            return false;
+        }
+        if (this.status != OrderStatus.PAID) {
+            throw new BusinessException(ErrorCode.INVALID_ORDER_STATUS);
+        }
+        this.status = OrderStatus.CANCELLED;
         this.cancelledAt = LocalDateTime.now();
         return true;
     }

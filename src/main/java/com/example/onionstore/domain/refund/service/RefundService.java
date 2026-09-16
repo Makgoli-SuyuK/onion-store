@@ -4,6 +4,8 @@ import com.example.onionstore.domain.order.entity.OrderItem;
 import com.example.onionstore.domain.payment.entity.Payment;
 import com.example.onionstore.domain.refund.dto.admin.request.AdminRefundSearchCondition;
 import com.example.onionstore.domain.refund.dto.admin.response.AdminRefundListResponse;
+import com.example.onionstore.domain.refund.dto.admin.response.RefundReviewResponse;
+import com.example.onionstore.domain.refund.dto.common.RefundCancellationInfo;
 import com.example.onionstore.domain.refund.dto.common.RefundItemDetailResponse;
 import com.example.onionstore.domain.refund.dto.customer.response.CustomerRefundSummaryResponse;
 import com.example.onionstore.domain.refund.entity.Refund;
@@ -11,11 +13,11 @@ import com.example.onionstore.domain.refund.entity.RefundInitiator;
 import com.example.onionstore.domain.refund.entity.RefundReasonType;
 import com.example.onionstore.domain.refund.entity.RefundStatus;
 import com.example.onionstore.domain.refund.repository.RefundRepository;
-import com.example.onionstore.domain.user.entity.User;
 import com.example.onionstore.domain.refund.repository.dto.AdminRefundDetailProjection;
 import com.example.onionstore.domain.refund.repository.dto.CompletedRefundQuantityRow;
 import com.example.onionstore.domain.refund.repository.dto.CustomerRefundDetailProjection;
 import com.example.onionstore.domain.refund.repository.dto.OrderItemSummaryRow;
+import com.example.onionstore.domain.user.entity.User;
 import com.example.onionstore.global.exception.BusinessException;
 import com.example.onionstore.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -105,6 +107,7 @@ public class RefundService {
     }
 
     // 고객 요청을 승인 대기 환불 aggregate로 생성하고 항목을 함께 저장한다.
+    @Transactional
     public Refund createCustomerPending(
             Payment payment,
             long amount,
@@ -139,10 +142,32 @@ public class RefundService {
         return refund;
     }
 
+    // 외부 취소 호출에 필요한 환불과 결제 식별 정보를 읽는다.
+    public RefundCancellationInfo getRefundCancellationInfo(Long refundId) {
+        Refund refund = findRefund(refundId);
+        return new RefundCancellationInfo(
+                refund.getId(),
+                refund.getPayment().getOrder().getId(),
+                refund.getPayment().getPortonePaymentId(),
+                refund.getAmount(),
+                refund.getReason()
+        );
+    }
+
+    // 현재 환불 상태를 관리자 승인 API 응답으로 변환한다.
+    public RefundReviewResponse getRefundReviewResponse(Long refundId) {
+        return RefundReviewResponse.from(findRefund(refundId));
+    }
+
+    // 이미 잠긴 환불 aggregate의 완료 전이만 처리한다.
+    public boolean completeRefund(Refund refund) {
+        return refund.complete();
+    }
+
     // PortOne 취소 완료가 확정된 환불을 완료 상태로 전이한다.
     @Transactional
     public boolean completeRefund(Long refundId) {
-        return findRefundForUpdate(refundId).complete();
+        return completeRefund(findRefundForUpdate(refundId));
     }
 
     // PortOne 취소 실패가 확정된 환불을 실패 상태로 전이한다.
@@ -157,8 +182,14 @@ public class RefundService {
         return findRefundForUpdate(refundId).assignCancellationId(cancellationId);
     }
 
-    private Refund findRefundForUpdate(Long refundId) {
+    // 여러 도메인 상태를 함께 변경하는 CommandService가 마지막 순서로 호출한다.
+    public Refund findRefundForUpdate(Long refundId) {
         return refundRepository.findByIdForUpdate(refundId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.REFUND_NOT_FOUND));
+    }
+
+    private Refund findRefund(Long refundId) {
+        return refundRepository.findById(refundId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.REFUND_NOT_FOUND));
     }
 }

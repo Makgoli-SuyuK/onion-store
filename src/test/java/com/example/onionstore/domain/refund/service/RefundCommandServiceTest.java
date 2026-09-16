@@ -7,6 +7,8 @@ import com.example.onionstore.domain.order.service.OrderService;
 import com.example.onionstore.domain.payment.entity.Payment;
 import com.example.onionstore.domain.payment.service.PaymentService;
 import com.example.onionstore.domain.product.entity.Product;
+import com.example.onionstore.domain.product.service.ProductService;
+import com.example.onionstore.domain.refund.dto.common.RefundCancellationInfo;
 import com.example.onionstore.domain.refund.dto.customer.request.CustomerRefundRequest;
 import com.example.onionstore.domain.refund.dto.customer.request.RefundItemRequest;
 import com.example.onionstore.domain.refund.dto.customer.response.CustomerRefundSummaryResponse;
@@ -16,6 +18,7 @@ import com.example.onionstore.domain.refund.entity.RefundReasonType;
 import com.example.onionstore.domain.refund.entity.RefundStatus;
 import com.example.onionstore.domain.user.entity.Role;
 import com.example.onionstore.domain.user.entity.User;
+import com.example.onionstore.domain.user.service.UserService;
 import com.example.onionstore.global.exception.BusinessException;
 import com.example.onionstore.global.exception.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,6 +38,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -50,6 +54,12 @@ class RefundCommandServiceTest {
 
     @Mock
     private RefundService refundService;
+
+    @Mock
+    private ProductService productService;
+
+    @Mock
+    private UserService userService;
 
     @InjectMocks
     private RefundCommandService refundCommandService;
@@ -156,11 +166,76 @@ class RefundCommandServiceTest {
                 eq("상품 상태가 좋지 않습니다."), anyMap());
     }
 
+    @Test
+    void 부분환불이_완료되면_요청상품_재고를_복구하고_결제를_부분취소로_변경한다() {
+        Refund refund = requestedRefund(1);
+        givenCompletionPrerequisites(refund, Map.of(orderItem.getId(), 1));
+
+        var response = refundCommandService.completeRefund(refund.getId());
+
+        assertThat(response.status()).isEqualTo(RefundStatus.COMPLETED);
+        verify(productService).restoreStock(orderItem.getProduct().getId(), 1);
+        verify(paymentService).applyPartialCancellation(order.getId());
+        verify(orderService, never()).completeRefundCancellation(order.getId());
+        verify(paymentService, never()).applyCancellation(order.getId());
+    }
+
+    @Test
+    void 전액환불이_완료되면_주문과_결제를_취소한다() {
+        Refund refund = requestedRefund(2);
+        givenCompletionPrerequisites(refund, Map.of(orderItem.getId(), 2));
+
+        var response = refundCommandService.completeRefund(refund.getId());
+
+        assertThat(response.status()).isEqualTo(RefundStatus.COMPLETED);
+        verify(productService).restoreStock(orderItem.getProduct().getId(), 2);
+        verify(orderService).completeRefundCancellation(order.getId());
+        verify(paymentService).applyCancellation(order.getId());
+        verify(paymentService, never()).applyPartialCancellation(order.getId());
+    }
+
     private void givenRequestPrerequisites(Map<Long, Integer> completedQuantities) {
         given(orderService.findOrderForUpdate(order.getId())).willReturn(order);
         given(paymentService.findPaymentForUpdate(order.getId())).willReturn(payment);
         given(orderService.findOrderItemsByOrderId(order.getId())).willReturn(List.of(orderItem));
         given(refundService.getCompletedQuantityByOrderItemId(order.getId())).willReturn(completedQuantities);
+    }
+
+    private Refund requestedRefund(int quantity) {
+        Refund refund = new Refund(
+                payment,
+                orderItem.getProductPrice() * quantity,
+                RefundStatus.REQUESTED,
+                RefundInitiator.CUSTOMER,
+                RefundReasonType.CUSTOMER_REQUEST,
+                "상품 상태가 좋지 않습니다."
+        );
+        refund.addItem(orderItem, quantity);
+        ReflectionTestUtils.setField(refund, "id", 50L);
+        return refund;
+    }
+
+    private void givenCompletionPrerequisites(
+            Refund refund,
+            Map<Long, Integer> completedQuantities
+    ) {
+        given(refundService.getRefundCancellationInfo(refund.getId())).willReturn(
+                new RefundCancellationInfo(
+                        refund.getId(),
+                        order.getId(),
+                        "pay_123",
+                        refund.getAmount(),
+                        refund.getReason()
+                )
+        );
+        given(orderService.findOrderForUpdate(order.getId())).willReturn(order);
+        given(paymentService.findPaymentForUpdate(order.getId())).willReturn(payment);
+        given(refundService.findRefundForUpdate(refund.getId())).willReturn(refund);
+        doAnswer(invocation -> refund.complete())
+                .when(refundService).completeRefund(refund);
+        given(refundService.getCompletedQuantityByOrderItemId(order.getId()))
+                .willReturn(completedQuantities);
+        given(orderService.findOrderItemsByOrderId(order.getId())).willReturn(List.of(orderItem));
     }
 
     private CustomerRefundRequest request(int quantity) {
