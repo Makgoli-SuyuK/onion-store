@@ -1,0 +1,16 @@
+spring:
+  config:
+    import:
+      - "aws-parameterstore:/onion/db/?prefix=spring.datasource."
+      - "aws-parameterstore:/onion/jwt/?prefix=jwt."
+      - "aws-parameterstore:/onion/portone/?prefix=portone."
+
+  datasource:
+    url: jdbc:mysql://onion-rds.cxqe2ke248bn.ap-northeast-2.rds.amazonaws.com:3306/onion_store?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: admin
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health

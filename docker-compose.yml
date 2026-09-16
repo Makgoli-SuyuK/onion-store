@@ -1,8 +1,32 @@
 name: onion-store
 
 services:
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: onion-store-app
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/onion_store?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+      SPRING_DATASOURCE_USERNAME: onion
+      SPRING_DATASOURCE_PASSWORD: onion
+      PORTONE_API_SECRET: ${PORTONE_API_SECRET}
+      PORTONE_STORE_ID: ${PORTONE_STORE_ID}
+      PORTONE_CHANNEL_KEY: ${PORTONE_CHANNEL_KEY}
+      PORTONE_WEBHOOK_SECRET: ${PORTONE_WEBHOOK_SECRET}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
   mysql:
     image: mysql:8.4
+    container_name: onion-store-mysql
     environment:
       MYSQL_DATABASE: onion_store
       MYSQL_USER: onion
@@ -19,3 +43,9 @@ services:
       timeout: 5s
       retries: 12
       start_period: 15s
+
+  redis:
+    image: redis:7.4
+    container_name: onion-store-redis
+    ports:
+      - "6379:6379"

@@ -252,7 +252,7 @@ class ProductRepositoryTest {
     @DisplayName("해당 id의 카테고리에 상품이 존재하는지 반환한다")
     void 해당_카테고리_id에_상품이_존재하는지_반환한다() {
         //given
-        productRepository.saveAndFlush(
+        Product product = productRepository.saveAndFlush(
                 Product.create(
                         category,
                         "name",
@@ -263,7 +263,7 @@ class ProductRepositoryTest {
         );
 
         //when
-        boolean res = productRepository.existsById(1L);
+        boolean res = productRepository.existsById(product.getId());
 
         //then
         assertThat(res).isTrue();
