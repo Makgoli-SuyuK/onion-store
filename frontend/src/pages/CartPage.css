@@ -1,0 +1,38 @@
+.cart-page {
+  padding: 32px 6% 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 760px;
+}
+
+.cart-page__title {
+  font-size: 24px;
+}
+
+.cart-page__select-all {
+  font-size: 14px;
+}
+
+.cart-page__select-all label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cart-page__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cart-page__summary {
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cart-page__summary .btn {
+  margin-top: 6px;
+}

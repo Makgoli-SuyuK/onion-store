@@ -1,0 +1,145 @@
+.site-header {
+  background: var(--color-bg-soft);
+  box-shadow: var(--shadow-softer);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.notice-bar {
+  background: var(--color-green);
+  color: #fff;
+  text-align: center;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.header-row {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding-top: 14px;
+  padding-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.logo {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.logo__kr {
+  font-family: var(--font-display);
+  font-size: 24px;
+  color: var(--color-green);
+}
+
+.logo__en {
+  font-family: var(--font-display);
+  font-size: 13px;
+  color: var(--color-yellow-deep);
+  letter-spacing: 1px;
+}
+
+.search-bar {
+  flex: 1;
+  min-width: 160px;
+  display: flex;
+  align-items: center;
+  position: relative;
+  max-width: 420px;
+}
+
+.search-bar .input {
+  padding-right: 42px;
+}
+
+.search-bar__btn {
+  position: absolute;
+  right: 4px;
+  border: none;
+  background: transparent;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 15px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.header-actions__link {
+  color: var(--color-text-soft);
+  white-space: nowrap;
+  background: none;
+  border: none;
+  font-size: 13px;
+}
+
+.header-actions__link:hover {
+  color: var(--color-green);
+}
+
+.header-actions__cart {
+  position: relative;
+  font-size: 20px;
+  display: inline-flex;
+}
+
+.header-actions__cart-badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  background: var(--color-yellow-deep);
+  color: #fff;
+  font-size: 11px;
+  font-weight: bold;
+  border-radius: var(--radius-pill);
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+
+.category-nav {
+  background: var(--color-tag-bg);
+}
+
+.category-nav__list {
+  display: flex;
+  gap: 22px;
+  overflow-x: auto;
+  padding: 10px 6%;
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--color-green-dark);
+}
+
+.category-nav__list a {
+  white-space: nowrap;
+}
+
+.category-nav__list a:hover {
+  color: var(--color-yellow-deep);
+}
+
+@media (max-width: 640px) {
+  .header-row {
+    gap: 12px;
+  }
+  .logo__en {
+    display: none;
+  }
+  .header-actions {
+    gap: 10px;
+  }
+}

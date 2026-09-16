@@ -92,13 +92,13 @@ public class ProductCacheTest {
         given(productStockCache.get(anyLong())).willReturn(10);
         given(productLikeCache.get(anyLong())).willReturn(10L);
 
-        given(productRepository.findById(anyLong())).willReturn(Optional.of(product));
+        given(productRepository.findByIdAndDeletedFalse(anyLong())).willReturn(Optional.of(product));
 
         //when
         ProductResponse res = productService.findById(1L);
 
         //then
-        verify(productRepository, times(1)).findById(anyLong());
+        verify(productRepository, times(1)).findByIdAndDeletedFalse(anyLong());
 
         verify(productInfoCache, times(1)).put(anyLong(), any());
         verify(productLikeCache, never()).put(anyLong(), any());
@@ -126,13 +126,13 @@ public class ProductCacheTest {
         given(productStockCache.get(anyLong())).willReturn(null);
         given(productLikeCache.get(anyLong())).willReturn(10L);
 
-        given(productRepository.findById(anyLong())).willReturn(Optional.of(product));
+        given(productRepository.findByIdAndDeletedFalse(anyLong())).willReturn(Optional.of(product));
 
         //when
         ProductResponse res = productService.findById(1L);
 
         //then
-        verify(productRepository, times(1)).findById(anyLong());
+        verify(productRepository, times(1)).findByIdAndDeletedFalse(anyLong());
 
         verify(productInfoCache, never()).put(anyLong(), any());
         verify(productLikeCache, never()).put(anyLong(), any());
@@ -160,13 +160,13 @@ public class ProductCacheTest {
         given(productStockCache.get(anyLong())).willReturn(10);
         given(productLikeCache.get(anyLong())).willReturn(null);
 
-        given(productRepository.findById(anyLong())).willReturn(Optional.of(product));
+        given(productRepository.findByIdAndDeletedFalse(anyLong())).willReturn(Optional.of(product));
 
         //when
         ProductResponse res = productService.findById(1L);
 
         //then
-        verify(productRepository, times(1)).findById(anyLong());
+        verify(productRepository, times(1)).findByIdAndDeletedFalse(anyLong());
 
         verify(productInfoCache, never()).put(anyLong(), any());
         verify(productLikeCache, times(1)).put(anyLong(), any());
@@ -183,7 +183,7 @@ public class ProductCacheTest {
         given(productStockCache.get(anyLong())).willReturn(null);
         given(productLikeCache.get(anyLong())).willReturn(null);
 
-        given(productRepository.findById(anyLong())).willReturn(Optional.empty());
+        given(productRepository.findByIdAndDeletedFalse(anyLong())).willReturn(Optional.empty());
 
         //when&then
         assertThatThrownBy(() -> productService.findById(1L))
