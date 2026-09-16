@@ -20,7 +20,7 @@ export function Header() {
 
   return (
     <header className="site-header">
-      <div className="notice-bar">오직 양파만 · 5만원 이상 무료배송</div>
+      <div className="notice-bar">오직 양파만</div>
 
       <div className="container header-row">
         <Link to="/" className="logo" aria-label="어니언즈 홈으로 이동">

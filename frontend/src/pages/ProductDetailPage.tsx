@@ -123,8 +123,6 @@ export function ProductDetailPage() {
         <p className="product-detail__stock">
           {soldOut ? '현재 품절된 상품이에요.' : `남은 재고 ${product.stock}개`}
         </p>
-        <p className="product-detail__shipping">오직 양파만 · 5만원 이상 구매 시 무료배송 (미만 3,000원)</p>
-
         {!soldOut && (
           <div className="product-detail__qty">
             <span>수량</span>

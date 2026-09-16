@@ -11,10 +11,6 @@ import { ProductImage } from '@/components/common/ProductImage'
 import { formatCurrency } from '@/utils/currency'
 import './CheckoutPage.css'
 
-// 백엔드 주문 금액에는 배송비가 없다. 아래 배송비는 화면 안내용일 뿐 실제 결제 금액에는 포함되지 않는다.
-const FREE_SHIPPING_THRESHOLD = 50000
-const SHIPPING_FEE = 3000
-
 export function CheckoutPage() {
   const location = useLocation()
   const navigate = useNavigate()
@@ -35,7 +31,6 @@ export function CheckoutPage() {
   }
 
   const productAmount = selectedItems.reduce((sum, i) => sum + i.subtotal, 0)
-  const shippingFee = productAmount >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE
 
   const handlePay = async () => {
     if (!user) return
@@ -115,10 +110,6 @@ export function CheckoutPage() {
         <div className="summary-row">
           <span>상품 금액</span>
           <span>{formatCurrency(productAmount)}</span>
-        </div>
-        <div className="summary-row">
-          <span>배송비 (안내용)</span>
-          <span>{shippingFee === 0 ? '무료' : formatCurrency(shippingFee)}</span>
         </div>
         <div className="summary-row summary-row--total">
           <span>결제 금액</span>

@@ -53,8 +53,7 @@
   color: var(--color-text-soft);
 }
 
-.product-detail__stock,
-.product-detail__shipping {
+.product-detail__stock {
   font-size: 13px;
   color: var(--color-text-soft);
 }
