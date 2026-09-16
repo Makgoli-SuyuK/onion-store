@@ -1,6 +1,7 @@
 package com.example.onionstore.infra.client;
 
 import com.example.onionstore.infra.config.PortOneProperties;
+import com.example.onionstore.domain.payment.port.GatewayCancellationStatus;
 import com.example.onionstore.domain.payment.port.GatewayPaymentStatus;
 import com.example.onionstore.global.exception.*;
 import org.junit.jupiter.api.*;
@@ -117,11 +118,27 @@ class PortOneClientTest {
         }
 
         // when
-        client.cancelPayment("pay", "mismatch");
-        client.cancelPayment("pay", "mismatch");
+        client.cancelPaymentForAmountMismatch("pay", "mismatch");
+        client.cancelPaymentForAmountMismatch("pay", "mismatch");
 
         // then
         server.verify();
+    }
+
+    @Test
+    void 부분취소는_환불금액을_전달하고_취소상태를_반환한다() {
+        server.expect(requestTo("https://api.portone.io/payments/pay/cancel"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(content().json("{\"reason\":\"부분 환불\",\"storeId\":\"store\",\"amount\":3000}"))
+                .andRespond(withSuccess(
+                        "{\"cancellation\":{\"id\":\"cancel_123\",\"status\":\"SUCCEEDED\"}}",
+                        MediaType.APPLICATION_JSON
+                ));
+
+        var response = client.requestPartialCancellation("pay", 3_000L, "부분 환불");
+
+        assertEquals("cancel_123", response.cancellationId());
+        assertEquals(GatewayCancellationStatus.SUCCEEDED, response.status());
     }
 
     @Test
@@ -131,7 +148,7 @@ class PortOneClientTest {
 
         // when
         var exception = assertThrows(BusinessException.class,
-                () -> client.cancelPayment("pay", "reason"));
+                () -> client.cancelPaymentForAmountMismatch("pay", "reason"));
 
         // then
         assertEquals(ErrorCode.PAYMENT_CANCELLATION_FAILED, exception.getErrorCode());
