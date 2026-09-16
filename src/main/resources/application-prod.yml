@@ -9,6 +9,11 @@ spring:
     url: jdbc:mysql://onion-rds.cxqe2ke248bn.ap-northeast-2.rds.amazonaws.com:3306/onion_store?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: admin
 
+  data:
+    redis:
+      host: clustercfg.onion-redis.kc4oj9.apn2.cache.amazonaws.com
+      port: 6379
+
 management:
   endpoints:
     web:
