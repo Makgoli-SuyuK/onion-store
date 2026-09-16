@@ -38,6 +38,8 @@ export function ProductDetailPage() {
 
   if (loading) return <LoadingSpinner />
   if (error) return <ErrorState message={error} onRetry={refetch} />
+
+  console.log('PRODUCT DATA:', product)
   if (!product) return null
 
   const soldOut = product.status !== 'SELLING'
