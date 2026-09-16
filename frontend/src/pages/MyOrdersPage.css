@@ -1,0 +1,51 @@
+.my-orders {
+  padding: 32px 6% 60px;
+  max-width: 720px;
+}
+
+.my-orders__title {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+.my-orders__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.my-orders__item {
+  padding: 18px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.my-orders__number {
+  font-size: 12px;
+  color: var(--color-text-faint);
+}
+
+.my-orders__date {
+  font-size: 12px;
+  color: var(--color-text-faint);
+}
+
+.my-orders__product {
+  font-weight: bold;
+  margin-top: 4px;
+}
+
+.my-orders__item-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.my-orders__amount {
+  font-weight: bold;
+  color: var(--color-green-dark);
+}

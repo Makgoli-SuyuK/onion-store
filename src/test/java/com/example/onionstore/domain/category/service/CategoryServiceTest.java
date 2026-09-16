@@ -82,6 +82,7 @@ class CategoryServiceTest {
         categories.add(new Category("new category1"));
         categories.add(new Category("new category2"));
 
+        given(categoryCache.get()).willReturn(null);
         given(categoryRepository.findAllByDeletedFalse()).willReturn(categories);
         given(categoryCache.get()).willReturn(null);
 

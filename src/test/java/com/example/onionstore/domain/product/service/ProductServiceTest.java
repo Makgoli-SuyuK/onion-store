@@ -1,7 +1,6 @@
 package com.example.onionstore.domain.product.service;
 
 import com.example.onionstore.domain.category.entity.Category;
-import com.example.onionstore.domain.category.service.CategoryService;
 import com.example.onionstore.domain.product.ProductFixture;
 import com.example.onionstore.domain.product.dto.ProductCreateRequest;
 import com.example.onionstore.domain.product.dto.ProductEditRequest;
@@ -45,8 +44,6 @@ import static org.mockito.Mockito.verify;
 class ProductServiceTest {
     @Mock
     private ProductRepository productRepository;
-    @Mock
-    private CategoryService categoryService;
     @Mock
     private ProductInfoCache productInfoCache;
     @Mock
@@ -284,7 +281,7 @@ class ProductServiceTest {
         List<Product> list = new ArrayList<>();
         for (int i = 10; i >= 1; i--) {
             Product product = ProductFixture.createProduct(i, new Category("category"));
-            ReflectionTestUtils.setField(product, "id", 1L);
+            ReflectionTestUtils.setField(product, "id", (long) i);
             list.add(product);
         }
         Pageable pageable = PageRequest.of(0, 10);

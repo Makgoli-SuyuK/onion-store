@@ -32,6 +32,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +41,12 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import com.example.onionstore.domain.product.repository.cache.ProductInfoCache;
+import com.example.onionstore.domain.product.repository.cache.ProductStockCache;
+import com.example.onionstore.domain.product.repository.cache.ProductLikeCache;
+import com.example.onionstore.domain.product.repository.cache.ProductPopularCache;
+
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -62,6 +69,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ActiveProfiles("test")
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 public class ProductLikeFacadeSliceTest {
+    @MockitoBean
+    private ProductInfoCache productInfoCache;
+    @MockitoBean
+    private ProductStockCache productStockCache;
+    @MockitoBean
+    private ProductLikeCache productLikeCache;
+    @MockitoBean
+    private ProductPopularCache productPopularCache;
+
     @Autowired
     private ProductLikeFacade productLikeFacade;
     @Autowired
@@ -72,15 +88,6 @@ public class ProductLikeFacadeSliceTest {
     private CategoryRepository categoryRepository;
     @Autowired
     private ProductLikeRepository productLikeRepository;
-
-    @MockitoBean
-    private ProductInfoCache productInfoCache;
-    @MockitoBean
-    private ProductStockCache productStockCache;
-    @MockitoBean
-    private ProductLikeCache productLikeCache;
-    @MockitoBean
-    private ProductPopularCache productPopularCache;
 
     private Long productId;
     private List<Long> userIds = new ArrayList<>();

@@ -1,0 +1,80 @@
+.admin-page {
+  padding: 32px 6% 60px;
+}
+
+.admin-page__title {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+.admin-page__stats {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.admin-stat-card {
+  flex: 1;
+  min-width: 140px;
+  padding: 18px 22px;
+}
+
+.admin-stat-card__label {
+  font-size: 13px;
+  color: var(--color-text-soft);
+  margin-bottom: 6px;
+}
+
+.admin-stat-card__value {
+  font-size: 26px;
+  font-weight: bold;
+  color: var(--color-green-dark);
+}
+
+.admin-page__toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.admin-page__search {
+  display: flex;
+  gap: 8px;
+  max-width: 280px;
+  flex: 1;
+}
+
+.admin-table-wrap {
+  overflow-x: auto;
+  background: var(--color-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 560px;
+}
+
+.admin-table th,
+.admin-table td {
+  text-align: left;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.admin-table th {
+  color: var(--color-text-soft);
+  font-weight: bold;
+}
+
+.admin-table tr:last-child td {
+  border-bottom: none;
+}

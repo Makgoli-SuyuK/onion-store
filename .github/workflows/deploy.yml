@@ -1,0 +1,127 @@
+name: Onion Store CI/CD
+
+on:
+  push:
+    branches:
+      - dev
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ap-northeast-2
+  ECR_REPOSITORY: onion-store
+  ECR_REGISTRY: 213851291689.dkr.ecr.ap-northeast-2.amazonaws.com
+  EC2_INSTANCE_ID: i-0281e966b7abce7d6
+
+jobs:
+  build-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Grant execute permission for Gradle
+        run: chmod +x gradlew
+
+      - name: Test
+        run: ./gradlew test
+
+  build-push-deploy:
+    name: Docker Build & Deploy
+    runs-on: ubuntu-latest
+    needs: build-test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: arn:aws:iam::213851291689:role/onion-store-github-actions-policy
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          platforms: linux/arm64
+          tags: |
+            ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
+            ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+
+      - name: Deploy to EC2 with SSM
+        id: deploy
+        run: |
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "${{ env.EC2_INSTANCE_ID }}" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Deploy Onion Store ${GITHUB_SHA}" \
+            --parameters 'commands=[
+              "set -e",
+              "aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin 213851291689.dkr.ecr.ap-northeast-2.amazonaws.com",
+              "docker pull 213851291689.dkr.ecr.ap-northeast-2.amazonaws.com/onion-store:latest",
+              "docker stop onion-store-app || true",
+              "docker rm onion-store-app || true",
+              "docker run -d --name onion-store-app --restart unless-stopped -p 8080:8080 -e SPRING_PROFILES_ACTIVE=prod 213851291689.dkr.ecr.ap-northeast-2.amazonaws.com/onion-store:latest",
+              "for i in {1..30}; do if curl -fsS http://localhost:8080/actuator/health > /dev/null; then echo HEALTHY; exit 0; fi; sleep 2; done",
+              "echo HEALTH CHECK FAILED",
+              "docker logs --tail 100 onion-store-app",
+              "exit 1"
+            ]' \
+            --output text \
+            --query 'Command.CommandId')
+
+          echo "COMMAND_ID=$COMMAND_ID" >> "$GITHUB_ENV"
+
+      - name: Wait for deployment
+        run: |
+          for i in {1..30}; do
+            STATUS=$(aws ssm get-command-invocation \
+              --command-id "$COMMAND_ID" \
+              --instance-id "${{ env.EC2_INSTANCE_ID }}" \
+              --query 'Status' \
+              --output text)
+
+            echo "Deployment status: $STATUS"
+
+            if [ "$STATUS" = "Success" ]; then
+              exit 0
+            fi
+
+            if [ "$STATUS" = "Failed" ] || \
+               [ "$STATUS" = "Cancelled" ] || \
+               [ "$STATUS" = "TimedOut" ]; then
+              aws ssm get-command-invocation \
+                --command-id "$COMMAND_ID" \
+                --instance-id "${{ env.EC2_INSTANCE_ID }}" \
+                --query 'StandardErrorContent' \
+                --output text
+              exit 1
+            fi
+
+            sleep 5
+          done
+
+          echo "Deployment timed out."
+          exit 1
