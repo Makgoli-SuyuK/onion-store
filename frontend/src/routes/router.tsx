@@ -9,9 +9,13 @@ import { CheckoutPage } from '@/pages/CheckoutPage'
 import { OrderCompletePage } from '@/pages/OrderCompletePage'
 import { MyOrdersPage } from '@/pages/MyOrdersPage'
 import { OrderDetailPage } from '@/pages/OrderDetailPage'
+import { MyRefundsPage } from '@/pages/MyRefundsPage'
+import { MyRefundDetailPage } from '@/pages/MyRefundDetailPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { SignupPage } from '@/pages/SignupPage'
 import { AdminProductListPage } from '@/pages/admin/AdminProductListPage'
+import { AdminRefundListPage } from '@/pages/admin/AdminRefundListPage'
+import { AdminRefundDetailPage } from '@/pages/admin/AdminRefundDetailPage'
 import { ChatListPage } from '@/pages/chat/ChatListPage'
 import { ChatRoomPage } from '@/pages/chat/ChatRoomPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
@@ -67,10 +71,42 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: 'mypage/refunds',
+        element: (
+          <ProtectedRoute>
+            <MyRefundsPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'mypage/refunds/:refundId',
+        element: (
+          <ProtectedRoute>
+            <MyRefundDetailPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
         path: 'admin/products',
         element: (
           <ProtectedRoute adminOnly>
             <AdminProductListPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'admin/refunds',
+        element: (
+          <ProtectedRoute adminOnly>
+            <AdminRefundListPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'admin/refunds/:refundId',
+        element: (
+          <ProtectedRoute adminOnly>
+            <AdminRefundDetailPage />
           </ProtectedRoute>
         ),
       },

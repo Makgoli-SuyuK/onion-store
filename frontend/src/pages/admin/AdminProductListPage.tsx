@@ -7,6 +7,7 @@ import { ErrorState } from '@/components/common/ErrorState'
 import { EmptyState } from '@/components/common/EmptyState'
 import { AdminStatCard } from '@/components/admin/AdminStatCard'
 import { ProductFormModal, toCreateRequest, toEditRequest, type ProductFormValues } from '@/components/admin/ProductFormModal'
+import { CategoryManageModal } from '@/components/admin/CategoryManageModal'
 import { formatCurrency } from '@/utils/currency'
 import type { Product } from '@/types/product'
 import './AdminProductListPage.css'
@@ -18,6 +19,7 @@ export function AdminProductListPage() {
   const [name, setName] = useState('')
   const [nameInput, setNameInput] = useState('')
   const [editingProduct, setEditingProduct] = useState<Product | 'new' | null>(null)
+  const [categoryManaging, setCategoryManaging] = useState(false)
 
   const stats = useApiRequest(() => adminApi.getStats(), [])
   const list = useApiRequest(() => adminApi.getProducts({ name, page: 0, size: 50 }), [name])
@@ -75,9 +77,14 @@ export function AdminProductListPage() {
             검색
           </button>
         </form>
-        <button type="button" className="btn btn--primary btn--sm" onClick={() => setEditingProduct('new')}>
-          + 상품 등록
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button type="button" className="btn btn--outline btn--sm" onClick={() => setCategoryManaging(true)}>
+            카테고리 관리
+          </button>
+          <button type="button" className="btn btn--primary btn--sm" onClick={() => setEditingProduct('new')}>
+            + 상품 등록
+          </button>
+        </div>
       </div>
 
       {list.loading && <LoadingSpinner />}
@@ -121,6 +128,8 @@ export function AdminProductListPage() {
           </table>
         </div>
       )}
+
+      {categoryManaging && <CategoryManageModal onClose={() => setCategoryManaging(false)} />}
 
       {editingProduct && (
         <ProductFormModal

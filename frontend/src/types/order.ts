@@ -1,6 +1,6 @@
 // 백엔드 OrderStatus: PENDING(결제 전) -> PAID(결제 완료) / CANCELLED
 export type OrderStatus = 'PENDING' | 'PAID' | 'CANCELLED'
-export type PaymentStatus = 'READY' | 'SUCCESS' | 'FAILED' | 'CANCELLED'
+export type PaymentStatus = 'READY' | 'SUCCESS' | 'FAILED' | 'PARTIALLY_CANCELLED' | 'CANCELLED'
 
 export interface OrderListItem {
   productName: string

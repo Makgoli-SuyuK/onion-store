@@ -1,5 +1,5 @@
 // 포트원(PortOne) V2 브라우저 SDK 연동. index.html에서 SDK 스크립트를 미리 로드해둔다.
-// 참고: onion-store 백엔드 저장소의 payment-test.html 흐름을 그대로 따른다.
+// 주문서에서 PortOne 결제창을 열고, 완료된 paymentId를 결제 확인 API에 전달한다.
 
 interface PortOneRequestPaymentInput {
   storeId: string

@@ -1,0 +1,41 @@
+.refund-detail {
+  max-width: 720px;
+  padding: 32px 6% 60px;
+}
+
+.refund-detail__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.refund-detail__header h1,
+.refund-detail__section h2 {
+  font-size: 22px;
+}
+
+.refund-detail__section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 20px;
+}
+
+.refund-detail__section h2 {
+  font-size: 17px;
+}
+
+.refund-detail__reason,
+.refund-detail__rejection {
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--color-bg-soft);
+  color: var(--color-text-soft);
+  font-size: 14px;
+}
+
+.refund-detail__rejection {
+  color: var(--color-danger);
+}

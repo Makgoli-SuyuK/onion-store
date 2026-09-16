@@ -44,18 +44,18 @@ export function Header() {
 
         <nav className="header-actions" aria-label="사용자 메뉴">
           {isAdmin && (
-            <Link to="/admin/products" className="header-actions__link">
-              관리자 페이지
-            </Link>
+            <>
+              <Link to="/admin/products" className="header-actions__link">상품 관리</Link>
+              <Link to="/admin/refunds" className="header-actions__link">환불 관리</Link>
+            </>
           )}
           {isAuthenticated ? (
             <>
               <Link to="/chat" className="header-actions__link">
                 {isAdmin ? '문의 관리' : '1:1 문의'}
               </Link>
-              <Link to="/mypage/orders" className="header-actions__link">
-                주문 내역
-              </Link>
+              <Link to="/mypage/orders" className="header-actions__link">주문 내역</Link>
+              {!isAdmin && <Link to="/mypage/refunds" className="header-actions__link">환불 내역</Link>}
               <button type="button" className="header-actions__link header-actions__link--btn" onClick={logout}>
                 {user?.name}님 로그아웃
               </button>

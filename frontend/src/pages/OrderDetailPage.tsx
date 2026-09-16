@@ -1,20 +1,26 @@
+import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { orderApi } from '@/api/orderApi'
 import { useApiRequest } from '@/hooks/useApiRequest'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { ErrorState } from '@/components/common/ErrorState'
 import { ProductImage } from '@/components/common/ProductImage'
+import { RefundRequestModal } from '@/components/refund/RefundRequestModal'
 import { ORDER_STATUS_LABEL } from '@/constants/orderStatus'
 import { formatCurrency } from '@/utils/currency'
 import './OrderDetailPage.css'
 
 export function OrderDetailPage() {
   const { orderId } = useParams<{ orderId: string }>()
+  const [requestingRefund, setRequestingRefund] = useState(false)
   const { data, loading, error, refetch } = useApiRequest(() => orderApi.getOrder(Number(orderId)), [orderId])
 
   if (loading) return <LoadingSpinner />
   if (error) return <ErrorState message={error} onRetry={refetch} />
   if (!data) return null
+
+  const canRequestRefund = data.orderStatus === 'PAID'
+    && (data.paymentStatus === 'SUCCESS' || data.paymentStatus === 'PARTIALLY_CANCELLED')
 
   return (
     <div className="container order-detail">
@@ -61,6 +67,21 @@ export function OrderDetailPage() {
           <span>{formatCurrency(data.totalPrice)}</span>
         </div>
       </div>
+
+      {canRequestRefund && (
+        <button type="button" className="btn btn--outline order-detail__refund" onClick={() => setRequestingRefund(true)}>
+          환불 요청
+        </button>
+      )}
+
+      {requestingRefund && (
+        <RefundRequestModal
+          orderId={Number(orderId)}
+          order={data}
+          onClose={() => setRequestingRefund(false)}
+          onRequested={refetch}
+        />
+      )}
     </div>
   )
 }

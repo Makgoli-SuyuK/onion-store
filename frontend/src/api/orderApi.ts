@@ -19,9 +19,9 @@ export const orderApi = {
     return unwrap(res)
   },
 
-  async getMyOrders(page: number, size: number): Promise<PageResponse<OrderSummary>> {
+  async getMyOrders(page: number, size: number, customerId?: number): Promise<PageResponse<OrderSummary>> {
     if (USE_MOCK) return mockGetMyOrders(page, size)
-    const res = await http.get('/api/orders', { params: { page, size } })
+    const res = await http.get('/api/orders', { params: { page, size, customerId } })
     return unwrapPage(res)
   },
 }

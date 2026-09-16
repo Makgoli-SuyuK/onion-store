@@ -1,0 +1,43 @@
+.refund-request__guide {
+  margin-bottom: 16px;
+  color: var(--color-text-soft);
+  font-size: 14px;
+}
+
+.refund-request__items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.refund-request__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+
+.refund-request__item span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.refund-request__item small {
+  color: var(--color-text-faint);
+}
+
+.refund-request__quantity {
+  width: 82px;
+  padding: 8px 12px;
+  text-align: center;
+}
+
+.refund-request__reason {
+  border-radius: 12px;
+  resize: vertical;
+}

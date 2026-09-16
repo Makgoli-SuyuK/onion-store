@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { orderApi } from '@/api/orderApi'
 import { useApiRequest } from '@/hooks/useApiRequest'
+import { useAuth } from '@/hooks/useAuth'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { ErrorState } from '@/components/common/ErrorState'
 import { EmptyState } from '@/components/common/EmptyState'
@@ -8,7 +9,11 @@ import { formatCurrency } from '@/utils/currency'
 import './MyOrdersPage.css'
 
 export function MyOrdersPage() {
-  const { data, loading, error, refetch } = useApiRequest(() => orderApi.getMyOrders(0, 20), [])
+  const { user, isAdmin } = useAuth()
+  const { data, loading, error, refetch } = useApiRequest(
+    () => orderApi.getMyOrders(0, 20, isAdmin ? user?.userId : undefined),
+    [isAdmin, user?.userId],
+  )
 
   return (
     <div className="container my-orders">

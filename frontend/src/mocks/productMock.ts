@@ -1,7 +1,9 @@
 import { MOCK_PRODUCTS } from './products'
 import { delay } from './helpers'
 import type { PageResponse } from '@/types/common'
-import type { Product, ProductListQuery, ProductSummary } from '@/types/product'
+import type { Product, ProductDetail, ProductListQuery, ProductSummary } from '@/types/product'
+
+const likedProductIds = new Set<number>()
 
 function toSummary(p: Product): ProductSummary {
   return { id: p.id, categoryName: p.categoryName, name: p.name, price: p.price, likeCount: p.likeCount }
@@ -41,4 +43,25 @@ export async function mockGetProduct(productId: number): Promise<Product> {
   const product = MOCK_PRODUCTS.find((p) => p.id === productId)
   if (!product) throw new Error('요청하신 상품 정보를 찾을 수 없습니다.')
   return product
+}
+
+export async function mockGetProductDetail(productId: number): Promise<ProductDetail> {
+  return {
+    productInfo: await mockGetProduct(productId),
+    liked: likedProductIds.has(productId),
+  }
+}
+
+export async function mockToggleProductLike(productId: number): Promise<void> {
+  await delay()
+  const product = MOCK_PRODUCTS.find((p) => p.id === productId)
+  if (!product) throw new Error('요청하신 상품 정보를 찾을 수 없습니다.')
+
+  if (likedProductIds.delete(productId)) {
+    product.likeCount = Math.max(0, product.likeCount - 1)
+    return
+  }
+
+  likedProductIds.add(productId)
+  product.likeCount += 1
 }

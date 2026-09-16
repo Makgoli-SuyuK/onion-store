@@ -32,7 +32,7 @@ public class OrderController {
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable Long orderId) {
         Long userId = Long.valueOf(jwt.getSubject());
-        Role role = jwt.getClaim("role");
+        Role role = Role.valueOf(jwt.getClaimAsString("role"));
         return ResponseEntity.ok(ApiResponse.success("주문 상세 조회에 성공했습니다.", orderService.getOne(userId, orderId, role)));
     }
 
@@ -45,7 +45,7 @@ public class OrderController {
             @RequestParam(required = false) Long customerId
             ) {
         Long userId = Long.valueOf(jwt.getSubject());
-        Role role = jwt.getClaim("role");
+        Role role = Role.valueOf(jwt.getClaimAsString("role"));
         return ResponseEntity.ok(ApiResponse.success(orderService.getAll(userId, pageable, request, customerId, role)));
     }
 

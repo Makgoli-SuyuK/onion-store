@@ -16,30 +16,34 @@ export function ProductDetailPage() {
   const { id } = useParams<{ id: string }>()
   const productId = Number(id)
   const navigate = useNavigate()
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, isAdmin } = useAuth()
   const cart = useCart()
   const { showToast } = useToast()
 
-  const { data: product, loading, error, refetch } = useApiRequest(
-    () => productApi.getProduct(productId),
+  const { data: detail, loading, error, refetch } = useApiRequest(
+    () => productApi.getProductDetail(productId),
     [productId],
   )
 
   const [quantity, setQuantity] = useState(1)
   const [likeCount, setLikeCount] = useState(0)
+  const [liked, setLiked] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [likeSubmitting, setLikeSubmitting] = useState(false)
 
   useEffect(() => {
-    if (product) {
+    if (detail) {
       setQuantity(1)
-      setLikeCount(product.likeCount)
+      setLikeCount(detail.productInfo.likeCount)
+      setLiked(detail.liked)
     }
-  }, [product])
+  }, [detail])
 
   if (loading) return <LoadingSpinner />
   if (error) return <ErrorState message={error} onRetry={refetch} />
-  if (!product) return null
+  if (!detail) return null
 
+  const product = detail.productInfo
   const soldOut = product.status !== 'SELLING'
   const totalPrice = product.price * quantity
 
@@ -48,8 +52,22 @@ export function ProductDetailPage() {
     navigate('/login')
   }
 
-  // 백엔드에 좋아요 등록/취소 API가 아직 없어 화면에서만 증가시킨다.
-  const handleLike = () => setLikeCount((c) => c + 1)
+  const handleLike = async () => {
+    if (!isAuthenticated) return requireLogin()
+    if (isAdmin) return
+
+    setLikeSubmitting(true)
+    try {
+      const wasLiked = liked
+      await productApi.toggleLike(product.id)
+      setLiked(!wasLiked)
+      setLikeCount((count) => Math.max(0, count + (wasLiked ? -1 : 1)))
+    } catch (err) {
+      showToast((err as Error).message, 'error')
+    } finally {
+      setLikeSubmitting(false)
+    }
+  }
 
   const handleAddToCart = async () => {
     if (!isAuthenticated) return requireLogin()
@@ -89,8 +107,14 @@ export function ProductDetailPage() {
 
         <div className="product-detail__meta">
           <span className="product-detail__price">{formatCurrency(product.price)}</span>
-          <button type="button" className="product-detail__like" onClick={handleLike}>
-            🧡 좋아요 {likeCount}
+          <button
+            type="button"
+            className="product-detail__like"
+            onClick={handleLike}
+            disabled={likeSubmitting}
+            aria-pressed={liked}
+          >
+            {liked ? '🧡 좋아요 취소' : '🤍 좋아요'} {likeCount}
           </button>
         </div>
 
