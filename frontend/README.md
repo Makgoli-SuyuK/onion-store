@@ -18,7 +18,7 @@ npm run preview          # 빌드 결과 미리보기
 
 ```
 # 로컬 백엔드 API 서버 주소입니다.
-VITE_API_BASE_URL=http://localhost:8080
+VITE_API_BASE_URL=http://localhost:8081
 ```
 
 프론트는 항상 실제 백엔드를 호출합니다. 포트원(PortOne) 결제창을 여는 데 필요한 `storeId`/`channelKey`는 백엔드의 `GET /api/config/portone`에서 그때그때 받아옵니다.
