@@ -146,11 +146,7 @@ class ProductServiceTest {
                 "name",
                 1000L,
                 100000L,
-                50,
-                "name",
-                "asc",
-                0,
-                10
+                50
         );
         Pageable pageable = PageRequest.of(0, 10);
 
@@ -179,7 +175,7 @@ class ProductServiceTest {
                 ));
 
         //when
-        Page<ProductSimpleResponse> res = productService.searchWithConditions(conditions, 1, 10);
+        Page<ProductSimpleResponse> res = productService.searchWithConditions(conditions, PageRequest.of(0, 10));
 
         //then
         assertThat(res.getTotalElements()).isEqualTo(2);

@@ -85,9 +85,7 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ProductSimpleResponse> searchWithConditions(ProductSearchConditions conditions, int page, int limit) {
-        Pageable pageable = PageRequest.of(page - 1, limit);
-
+    public Page<ProductSimpleResponse> searchWithConditions(ProductSearchConditions conditions, Pageable pageable) {
         return productRepository.searchWithConditions(conditions, pageable);
     }
 

@@ -20,6 +20,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -148,11 +149,7 @@ class ProductControllerTest {
                 null,
                 1000L,
                 10000L,
-                0,
-                null,
-                null,
-                1,
-                10
+                0
         );
 
         ProductSimpleResponse content = new ProductSimpleResponse(
@@ -169,16 +166,14 @@ class ProductControllerTest {
                 1
         );
 
-        given(productService.searchWithConditions(conditions, 1, 10))
+        given(productService.searchWithConditions(conditions, PageRequest.of(0, 10)))
                 .willReturn(res);
 
         //when&then
         mockMvc.perform(get("/api/products")
                 .param("priceStart", "1000")
                 .param("priceEnd", "10000")
-                .param("likeCount", "0")
-                .param("page", "1")
-                .param("size", "10"))
+                .param("likeCount", "0"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.content.[0].name").value("name"))
                 .andExpect(jsonPath("$.data.content.[0].categoryName").value("category"));
