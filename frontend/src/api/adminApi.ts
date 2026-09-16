@@ -37,4 +37,9 @@ export const adminApi = {
     const res = await http.patch(`/api/products/${productId}`, req)
     return unwrap(res)
   },
+
+  async deleteProduct(productId: number): Promise<void> {
+    const res = await http.delete(`/api/products/${productId}`)
+    unwrap(res)
+  },
 }

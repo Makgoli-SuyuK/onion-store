@@ -54,3 +54,9 @@ export interface PaymentConfirmResponse {
   paymentStatus: PaymentStatus
   orderStatus: OrderStatus
 }
+
+export interface CancelOrderResponse {
+  orderId: number
+  status: OrderStatus
+  cancelledAt: string
+}

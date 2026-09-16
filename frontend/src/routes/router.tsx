@@ -11,6 +11,7 @@ import { MyOrdersPage } from '@/pages/MyOrdersPage'
 import { OrderDetailPage } from '@/pages/OrderDetailPage'
 import { MyRefundsPage } from '@/pages/MyRefundsPage'
 import { MyRefundDetailPage } from '@/pages/MyRefundDetailPage'
+import { MyProfilePage } from '@/pages/MyProfilePage'
 import { LoginPage } from '@/pages/LoginPage'
 import { SignupPage } from '@/pages/SignupPage'
 import { AdminProductListPage } from '@/pages/admin/AdminProductListPage'
@@ -59,6 +60,14 @@ export const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <MyOrdersPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'mypage/profile',
+        element: (
+          <ProtectedRoute>
+            <MyProfilePage />
           </ProtectedRoute>
         ),
       },

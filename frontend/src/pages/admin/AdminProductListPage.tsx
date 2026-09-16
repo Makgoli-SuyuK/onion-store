@@ -45,6 +45,18 @@ export function AdminProductListPage() {
     }
   }
 
+  const deleteProduct = async (product: Product) => {
+    if (!window.confirm(`'${product.name}' 상품을 삭제할까요?`)) return
+
+    try {
+      await adminApi.deleteProduct(product.id)
+      showToast('상품을 삭제했습니다.', 'success')
+      reload()
+    } catch (err) {
+      showToast((err as Error).message, 'error')
+    }
+  }
+
   return (
     <div className="container admin-page">
       <h1 className="admin-page__title">상품 관리</h1>
@@ -120,6 +132,9 @@ export function AdminProductListPage() {
                   <td>
                     <button type="button" className="btn btn--ghost btn--sm" onClick={() => setEditingProduct(p)}>
                       수정
+                    </button>
+                    <button type="button" className="btn btn--ghost btn--sm admin-page__delete" onClick={() => deleteProduct(p)}>
+                      삭제
                     </button>
                   </td>
                 </tr>

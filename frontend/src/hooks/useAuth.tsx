@@ -11,6 +11,7 @@ interface AuthContextValue {
   initializing: boolean
   login: (email: string, password: string) => Promise<void>
   signup: (name: string, email: string, phoneNumber: string, password: string) => Promise<void>
+  refreshUser: () => Promise<void>
   logout: () => void
 }
 
@@ -49,6 +50,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [login],
   )
 
+  const refreshUser = useCallback(async () => {
+    const me = await userApi.getMe()
+    setUser(me)
+  }, [])
+
   const logout = useCallback(() => {
     clearAccessToken()
     setUser(null)
@@ -56,7 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, isAuthenticated: !!user, isAdmin: user?.role === 'ADMIN', initializing, login, signup, logout }}
+      value={{ user, isAuthenticated: !!user, isAdmin: user?.role === 'ADMIN', initializing, login, signup, refreshUser, logout }}
     >
       {children}
     </AuthContext.Provider>

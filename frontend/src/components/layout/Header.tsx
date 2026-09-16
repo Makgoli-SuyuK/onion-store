@@ -54,6 +54,7 @@ export function Header() {
               <Link to="/chat" className="header-actions__link">
                 {isAdmin ? '문의 관리' : '1:1 문의'}
               </Link>
+              <Link to="/mypage/profile" className="header-actions__link">내 정보</Link>
               <Link to="/mypage/orders" className="header-actions__link">주문 내역</Link>
               {!isAdmin && <Link to="/mypage/refunds" className="header-actions__link">환불 내역</Link>}
               <button type="button" className="header-actions__link header-actions__link--btn" onClick={logout}>

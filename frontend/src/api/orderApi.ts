@@ -1,6 +1,6 @@
 import { http, unwrap, unwrapPage } from './client'
 import type { PageResponse } from '@/types/common'
-import type { Order, OrderCreateResponse, OrderSummary } from '@/types/order'
+import type { CancelOrderResponse, Order, OrderCreateResponse, OrderSummary } from '@/types/order'
 
 export const orderApi = {
   // cartItemIds가 비어있으면 장바구니 전체를 주문한다 (백엔드 규칙).
@@ -19,5 +19,10 @@ export const orderApi = {
   async getMyOrders(page: number, size: number, customerId?: number): Promise<PageResponse<OrderSummary>> {
     const res = await http.get('/api/orders', { params: { page, size, customerId } })
     return unwrapPage(res)
+  },
+
+  async cancelOrder(orderId: number): Promise<CancelOrderResponse> {
+    const res = await http.post(`/api/orders/${orderId}/cancel`)
+    return unwrap(res)
   },
 }
