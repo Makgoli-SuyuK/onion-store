@@ -24,6 +24,6 @@ export const productApi = {
   async getProduct(productId: number): Promise<Product> {
     if (USE_MOCK) return mockGetProduct(productId)
     const res = await http.get(`/api/products/${productId}`)
-    return unwrap(res).productInfo
+    return unwrap<{ productInfo: Product }>(res).productInfo
   },
 }
