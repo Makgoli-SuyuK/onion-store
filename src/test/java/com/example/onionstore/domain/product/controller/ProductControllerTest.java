@@ -166,7 +166,7 @@ class ProductControllerTest {
                 1
         );
 
-        given(productService.searchWithConditions(conditions, any(PageRequest.class)))
+        given(productService.searchWithConditions(any(ProductSearchConditions.class), any(PageRequest.class)))
                 .willReturn(res);
 
         //when&then
