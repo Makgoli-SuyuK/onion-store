@@ -1,7 +1,10 @@
 package com.example.onionstore.domain.payment.service;
 
+import com.example.onionstore.domain.cart.service.CartService;
+import com.example.onionstore.domain.order.entity.Order;
 import com.example.onionstore.domain.order.entity.OrderItem;
 import com.example.onionstore.domain.order.service.OrderService;
+import com.example.onionstore.domain.user.entity.User;
 import com.example.onionstore.domain.product.entity.Product;
 import com.example.onionstore.domain.product.service.ProductService;
 import com.example.onionstore.domain.payment.dto.*;
@@ -14,23 +17,52 @@ class PaymentCommandServiceTest {
     PaymentService payments = mock(PaymentService.class);
     OrderService orders = mock(OrderService.class);
     ProductService products = mock(ProductService.class);
-    PaymentCommandService service = new PaymentCommandService(payments, orders, products);
+    CartService carts = mock(CartService.class);
+    PaymentCommandService service = new PaymentCommandService(payments, orders, products, carts);
 
     @Test
     void 성공처리는_주문잠금후_결제와_주문을_확정한다() {
         // given
         var info = new PaymentConfirmationInfo(1L, "pay", 1000L);
+        Order order = mock(Order.class);
+        User user = mock(User.class);
+        OrderItem item = mock(OrderItem.class);
+        when(orders.findOrderForUpdate(1L)).thenReturn(order);
+        when(order.getUser()).thenReturn(user);
+        when(user.getId()).thenReturn(10L);
+        when(payments.applySuccess(1L)).thenReturn(new PaymentStateChangeResponse(true, null));
+        when(orders.markAsPaid(1L)).thenReturn(true);
+        when(item.getSourceCartItemId()).thenReturn(100L);
+        when(orders.findOrderItemsByOrderId(1L)).thenReturn(List.of(item));
 
         // when
         var result = service.completePaymentSuccess(info);
 
         // then
         assertEquals(PaymentConfirmResponse.success(1L, "pay"), result);
-        var order = inOrder(orders, payments);
-        order.verify(orders).findOrderForUpdate(1L);
-        order.verify(payments).applySuccess(1L);
-        order.verify(orders).markAsPaid(1L);
+        var callOrder = inOrder(orders, payments);
+        callOrder.verify(orders).findOrderForUpdate(1L);
+        callOrder.verify(payments).applySuccess(1L);
+        callOrder.verify(orders).markAsPaid(1L);
+        verify(carts).clearCartItems(List.of(100L), 10L);
         verifyNoInteractions(products);
+    }
+
+    @Test
+    void 중복_결제완료_처리는_장바구니를_다시_비우지_않는다() {
+        // given
+        var info = new PaymentConfirmationInfo(1L, "pay", 1000L);
+        Order order = mock(Order.class);
+        when(orders.findOrderForUpdate(1L)).thenReturn(order);
+        when(payments.applySuccess(1L)).thenReturn(new PaymentStateChangeResponse(false, null));
+        when(orders.markAsPaid(1L)).thenReturn(false);
+
+        // when
+        service.completePaymentSuccess(info);
+
+        // then
+        verifyNoInteractions(carts);
+        verify(orders, never()).findOrderItemsByOrderId(anyLong());
     }
 
     @Test

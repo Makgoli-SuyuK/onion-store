@@ -42,12 +42,22 @@ public class OrderItem extends BaseCreatedTimeEntity {
     @Column(nullable = false)
     private int quantity;
 
+    // 결제가 확정될 때 주문에 사용한 장바구니 항목만 비우기 위한 원본 항목 ID다.
+    @Column(name = "source_cart_item_id")
+    private Long sourceCartItemId;
+
     public OrderItem(Order order, Product product, String productName, long productPrice, int quantity) {
+        this(order, product, productName, productPrice, quantity, null);
+    }
+
+    public OrderItem(Order order, Product product, String productName, long productPrice,
+                     int quantity, Long sourceCartItemId) {
         this.order = order;
         this.product = product;
         this.productName = productName;
         this.productPrice = productPrice;
         this.quantity = quantity;
+        this.sourceCartItemId = sourceCartItemId;
     }
 
 }
