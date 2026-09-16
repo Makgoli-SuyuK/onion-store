@@ -10,6 +10,9 @@ import com.example.onionstore.global.exception.ErrorCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -55,24 +58,17 @@ public class ProductController {
             @RequestParam(required = false) Long priceStart,
             @RequestParam(required = false) Long priceEnd,
             @RequestParam(required = false) Integer likeCount,
-            @RequestParam(required = false) String sortBy,
-            @RequestParam(required = false) String sortOrder,
-            @RequestParam int page,
-            @RequestParam int size) {
+            @PageableDefault(sort = "created_at", direction = Sort.Direction.ASC) Pageable pageable) {
         ProductSearchConditions conditions = new ProductSearchConditions(
                 category,
                 name,
                 priceStart,
                 priceEnd,
-                likeCount,
-                sortBy,
-                sortOrder,
-                page,
-                size
+                likeCount
         );
 
         return ResponseEntity.ok(
-                ApiResponse.success(productService.searchWithConditions(conditions, page, size)));
+                ApiResponse.success(productService.searchWithConditions(conditions, pageable)));
     }
 
     @DeleteMapping("/{productId}")

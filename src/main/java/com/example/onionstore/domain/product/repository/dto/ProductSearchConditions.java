@@ -12,14 +12,6 @@ public record ProductSearchConditions(
         @Nullable
         Long priceEnd,
         @Nullable
-        Integer likeCount,
-
-        @Nullable
-        String sortBy,
-        @Nullable
-        String sortOrder,
-
-        int page,
-        int limit
+        Integer likeCount
 ) {
 }
