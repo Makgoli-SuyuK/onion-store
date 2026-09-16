@@ -90,10 +90,6 @@ public enum ErrorCode {
     WEBHOOK_VERIFICATION_FAILED(HttpStatus.BAD_REQUEST, "WEBHOOK_001", "웹훅 서명검증에 실패했습니다"),
     WEBHOOK_EVENT_NOT_FOUND(HttpStatus.NOT_FOUND, "WEBHOOK_002", "웹훅 이벤트를 찾을 수 없습니다."),
     WEBHOOK_ALREADY_PROCESSING(HttpStatus.SERVICE_UNAVAILABLE, "WEBHOOK_003", "웹훅을 처리 중입니다. 잠시 후 다시 시도해주세요."),
-    // 이벤트
-    EVENT_NOT_STARTED(HttpStatus.CONFLICT, "EVENT_001", "아직 타임세일 시작 전입니다."),
-    EVENT_ENDED(HttpStatus.CONFLICT, "EVENT_002", "타임세일이 종료되었습니다."),
-    LOCK_ACQUISITION_FAILED(HttpStatus.CONFLICT, "EVENT_003", "요청이 몰리고 있습니다. 잠시 후 다시 시도해주세요."),
 
     // 채팅
     CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT_001", "채팅방을 찾을 수 없습니다."),
