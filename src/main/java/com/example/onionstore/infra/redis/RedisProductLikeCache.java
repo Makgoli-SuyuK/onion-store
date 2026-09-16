@@ -13,7 +13,7 @@ public class RedisProductLikeCache implements ProductLikeCache {
     @Override
     public Long get(Long productId) {
         String value = redisTemplate.opsForValue()
-                .get(RedisKey.productInfo(productId));
+                .get(RedisKey.productLike(productId));
 
         if (value == null) {
             return null;
@@ -25,11 +25,11 @@ public class RedisProductLikeCache implements ProductLikeCache {
     @Override
     public void put(Long productId, Long likeCount) {
         redisTemplate.opsForValue()
-                .set(RedisKey.productInfo(productId), String.valueOf(likeCount));
+                .set(RedisKey.productLike(productId), String.valueOf(likeCount));
     }
 
     @Override
     public void evict(Long productId) {
-        redisTemplate.delete(RedisKey.productInfo(productId));
+        redisTemplate.delete(RedisKey.productLike(productId));
     }
 }

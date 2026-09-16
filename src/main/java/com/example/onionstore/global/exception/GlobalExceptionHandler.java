@@ -91,7 +91,10 @@ public class GlobalExceptionHandler {
 
     // 위에서 처리하지 못한 예외가 발생한 경우
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Void>> handleException() {
-        return ResponseEntity.internalServerError().body(ApiResponse.fail(ErrorCode.INTERNAL_SERVER_ERROR));
+    public ResponseEntity<ApiResponse<Void>> handleException(Exception exception) {
+        exception.printStackTrace();
+
+        return ResponseEntity.internalServerError()
+                .body(ApiResponse.fail(ErrorCode.INTERNAL_SERVER_ERROR));
     }
 }
