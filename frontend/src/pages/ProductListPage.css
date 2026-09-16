@@ -4,66 +4,13 @@
 
 .product-list-page__filters {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   gap: 12px;
-  flex-wrap: wrap;
   margin-bottom: 24px;
-}
-
-.product-list-page__categories {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.chip {
-  border: 1.5px solid var(--color-border);
-  background: #fff;
-  border-radius: var(--radius-pill);
-  padding: 7px 16px;
-  font-size: 13px;
-  color: var(--color-text-soft);
-}
-
-.chip--active {
-  background: var(--color-green);
-  border-color: var(--color-green);
-  color: #fff;
-  font-weight: bold;
 }
 
 .input.product-list-page__sort {
   width: 180px;
   min-width: 180px;
-}
-
-@media (max-width: 900px) {
-  .product-list-page__filters {
-    display: block;
-    margin-bottom: 28px;
-  }
-
-  .product-list-page__categories {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 10px;
-  }
-
-  .chip {
-    width: 100%;
-    padding: 8px 10px;
-    text-align: center;
-  }
-
-  .product-list-page__sort {
-    display: block;
-    margin: 16px 0 0 auto;
-  }
-}
-
-@media (max-width: 640px) {
-  .product-list-page__categories {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
 }

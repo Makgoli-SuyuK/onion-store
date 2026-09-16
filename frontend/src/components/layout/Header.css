@@ -137,6 +137,14 @@
   color: var(--color-yellow-deep);
 }
 
+.category-nav__list .category-nav__link--active {
+  color: var(--color-green-dark);
+  text-decoration: underline;
+  text-decoration-color: var(--color-yellow-deep);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 5px;
+}
+
 @media (max-width: 900px) {
   .header-row {
     gap: 14px 20px;

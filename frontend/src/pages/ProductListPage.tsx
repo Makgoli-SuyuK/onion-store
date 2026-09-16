@@ -1,7 +1,6 @@
 import { useSearchParams } from 'react-router-dom'
 import { productApi } from '@/api/productApi'
 import { useApiRequest } from '@/hooks/useApiRequest'
-import { useCategories } from '@/hooks/useCategories'
 import { ProductGrid } from '@/components/product/ProductGrid'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { ErrorState } from '@/components/common/ErrorState'
@@ -17,7 +16,6 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
 
 export function ProductListPage() {
   const [searchParams, setSearchParams] = useSearchParams()
-  const { categories } = useCategories()
   const name = searchParams.get('name') ?? ''
   const category = searchParams.get('category') ?? ''
   const sort = (searchParams.get('sort') as SortOption) || 'POPULAR'
@@ -39,26 +37,6 @@ export function ProductListPage() {
   return (
     <div className="container product-list-page">
       <div className="product-list-page__filters">
-        <div className="product-list-page__categories">
-          <button
-            type="button"
-            className={`chip ${category === '' ? 'chip--active' : ''}`}
-            onClick={() => updateParams({ category: '' })}
-          >
-            전체 상품
-          </button>
-          {categories.map((c) => (
-            <button
-              key={c.id}
-              type="button"
-              className={`chip ${category === c.name ? 'chip--active' : ''}`}
-              onClick={() => updateParams({ category: c.name })}
-            >
-              {c.name}
-            </button>
-          ))}
-        </div>
-
         <select
           className="input product-list-page__sort"
           value={sort}

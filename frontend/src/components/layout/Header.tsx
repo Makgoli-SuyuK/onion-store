@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { useCart } from '@/hooks/useCart'
 import { useCategories } from '@/hooks/useCategories'
@@ -7,10 +7,13 @@ import './Header.css'
 
 export function Header() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { isAuthenticated, isAdmin, user, logout } = useAuth()
   const { totalCount } = useCart()
   const { categories } = useCategories()
   const [keyword, setKeyword] = useState('')
+  const selectedCategory = new URLSearchParams(location.search).get('category') ?? ''
+  const isProductList = location.pathname === '/products'
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault()
@@ -83,9 +86,15 @@ export function Header() {
 
       <nav className="category-nav" aria-label="상품 카테고리">
         <div className="container category-nav__list">
-          <Link to="/products">전체 상품</Link>
+          <Link to="/products" className={isProductList && !selectedCategory ? 'category-nav__link--active' : undefined}>
+            전체 상품
+          </Link>
           {categories.map((c) => (
-            <Link key={c.id} to={`/products?category=${encodeURIComponent(c.name)}`}>
+            <Link
+              key={c.id}
+              to={`/products?category=${encodeURIComponent(c.name)}`}
+              className={isProductList && selectedCategory === c.name ? 'category-nav__link--active' : undefined}
+            >
               {c.name}
             </Link>
           ))}
