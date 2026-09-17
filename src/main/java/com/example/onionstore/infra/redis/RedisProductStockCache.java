@@ -13,7 +13,7 @@ public class RedisProductStockCache implements ProductStockCache {
     @Override
     public Integer get(Long productId) {
         String value = stringRedisTemplate.opsForValue()
-                .get(RedisKey.productStock(productId));
+                .get(RedisProperty.productStock(productId));
 
         if (value == null) {
             return null;
@@ -25,11 +25,11 @@ public class RedisProductStockCache implements ProductStockCache {
     @Override
     public void put(Long productId, Integer stock) {
         stringRedisTemplate.opsForValue()
-                .set(RedisKey.productStock(productId), String.valueOf(stock));
+                .set(RedisProperty.productStock(productId), String.valueOf(stock), RedisProperty.PRODUCT_STOCK_DURATION);
     }
 
     @Override
     public void evict(Long productId) {
-        stringRedisTemplate.delete(RedisKey.productStock(productId));
+        stringRedisTemplate.delete(RedisProperty.productStock(productId));
     }
 }

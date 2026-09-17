@@ -6,8 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-
 @Repository
 @RequiredArgsConstructor
 public class RedisProductInfoCache implements ProductInfoCache {
@@ -16,17 +14,18 @@ public class RedisProductInfoCache implements ProductInfoCache {
     @Override
     public ProductDto get(Long productId) {
         return productDtoRedisTemplate.opsForValue()
-                .get(RedisKey.productInfo(productId));
+                .get(RedisProperty.productInfo(productId));
     }
 
     @Override
     public void put(Long productId, ProductDto productDto) {
-        productDtoRedisTemplate.opsForValue().set(RedisKey.productInfo(productId), productDto);
+        productDtoRedisTemplate.opsForValue()
+                .set(RedisProperty.productInfo(productId), productDto, RedisProperty.PRODUCT_INFO_DURATION);
 
     }
 
     @Override
     public void evict(Long productId) {
-        productDtoRedisTemplate.delete(RedisKey.productInfo(productId));
+        productDtoRedisTemplate.delete(RedisProperty.productInfo(productId));
     }
 }
