@@ -15,16 +15,16 @@ public class RedisCategoryCache implements CategoryCache {
 
     @Override
     public List<Category> get() {
-        return redisTemplate.opsForValue().get("categories");
+        return redisTemplate.opsForValue().get(RedisProperty.CATEGORY);
     }
 
     @Override
     public void put(List<Category> list) {
-        redisTemplate.opsForValue().set("categories", list);
+        redisTemplate.opsForValue().set(RedisProperty.CATEGORY, list, RedisProperty.CATEGORY_DURATION);
     }
 
     @Override
     public void evict() {
-        redisTemplate.delete("categories");
+        redisTemplate.delete(RedisProperty.CATEGORY);
     }
 }

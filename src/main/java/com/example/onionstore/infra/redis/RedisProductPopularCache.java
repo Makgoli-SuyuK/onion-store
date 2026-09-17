@@ -16,17 +16,17 @@ public class RedisProductPopularCache implements ProductPopularCache {
     @Override
     public List<ProductSimpleResponse> get() {
         return redisTemplate.opsForValue()
-                .get(RedisKey.PRODUCT_POPULAR);
+                .get(RedisProperty.PRODUCT_POPULAR);
     }
 
     @Override
     public void put(List<ProductSimpleResponse> list) {
         redisTemplate.opsForValue()
-                .set(RedisKey.PRODUCT_POPULAR, list);
+                .set(RedisProperty.PRODUCT_POPULAR, list, RedisProperty.PRODUCT_POPULAR_DURATION);
     }
 
     @Override
     public void evict() {
-        redisTemplate.delete(RedisKey.PRODUCT_POPULAR);
+        redisTemplate.delete(RedisProperty.PRODUCT_POPULAR);
     }
 }
