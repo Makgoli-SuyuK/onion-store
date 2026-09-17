@@ -5,6 +5,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   test:
@@ -25,10 +26,25 @@ jobs:
       - name: 테스트 및 JaCoCo 리포트 생성
         run: ./gradlew test --no-daemon
 
+      - name: JaCoCo 커버리지 리포트
+        id: jacoco
+        uses: madrapps/jacoco-report@v1.8.0
+        with:
+          paths: ${{ github.workspace }}/build/reports/jacoco/test/jacocoTestReport.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: '## 📊 Test Coverage'
+          comment-type: both
+          update-comment: true
+          skip-if-no-changes: true
+          min-coverage-overall: 0
+          min-coverage-changed-files: 0
+          pass-emoji: '✅'
+          fail-emoji: '⚠️'
+
       - name: JaCoCo 리포트 업로드
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: jacoco-report
-          path: build/reports/jacoco/test/html
-          if-no-files-found: warn
+         name: jacoco-report
+         path: build/reports/jacoco/test/html
+         if-no-files-found: warn
