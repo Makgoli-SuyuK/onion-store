@@ -1,12 +1,15 @@
 package com.example.onionstore.infra.client;
 
+import com.example.onionstore.domain.payment.port.GatewayCancellationStatus;
 import com.example.onionstore.domain.payment.port.GatewayPaymentStatus;
+import com.example.onionstore.domain.payment.port.PaymentCancellationResponse;
 import com.example.onionstore.domain.payment.port.PaymentGateway;
 import com.example.onionstore.domain.payment.port.PaymentGatewayResponse;
 import com.example.onionstore.global.exception.BusinessException;
 import com.example.onionstore.global.exception.ErrorCode;
 import com.example.onionstore.infra.config.PortOneProperties;
 import com.example.onionstore.infra.dto.PortOneCancelRequest;
+import com.example.onionstore.infra.dto.PortOneCancelResponse;
 import com.example.onionstore.infra.dto.PortOnePaymentResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,9 +56,8 @@ public class PortOneClient implements PaymentGateway {
         }
     }
 
-
     @Override
-    public void cancelPayment(String portonePaymentId, String reason) {
+    public void cancelPaymentForAmountMismatch(String portonePaymentId, String reason) {
         try {
             String idempotencyKey = UUID.nameUUIDFromBytes(
                     ("amount-mismatch-cancel:" + portonePaymentId).getBytes(StandardCharsets.UTF_8)
@@ -75,6 +77,44 @@ public class PortOneClient implements PaymentGateway {
         } catch (RestClientException exception) {
             log.warn("PortOne 결제 취소 통신 실패: portonePaymentId={}, errorType={}",
                     portonePaymentId, exception.getClass().getSimpleName());
+            throw new BusinessException(ErrorCode.PAYMENT_CANCELLATION_FAILED);
+        }
+    }
+
+    @Override
+    public PaymentCancellationResponse requestPartialCancellation(
+            String portonePaymentId,
+            long amount,
+            String reason
+    ) {
+        try {
+            PortOneCancelResponse response = portoneRestClient.post()
+                    .uri("/payments/{portonePaymentId}/cancel", portonePaymentId)
+                    .body(new PortOneCancelRequest(reason, portoneProperties.getStoreId(), amount))
+                    .retrieve()
+                    .body(PortOneCancelResponse.class);
+
+            if (response == null || response.cancellation() == null
+                    || response.cancellation().id() == null) {
+                throw new BusinessException(ErrorCode.PAYMENT_CANCELLATION_FAILED);
+            }
+
+            log.info("PortOne 부분 취소 요청 완료: portonePaymentId={}, cancellationId={}, amount={}",
+                    portonePaymentId, response.cancellation().id(), amount);
+            return new PaymentCancellationResponse(
+                    response.cancellation().id(),
+                    GatewayCancellationStatus.from(response.cancellation().status())
+            );
+        } catch (RestClientResponseException exception) {
+            log.warn("PortOne 부분 취소 실패: portonePaymentId={}, amount={}, httpStatus={}, responseBody={}",
+                    portonePaymentId,
+                    amount,
+                    exception.getStatusCode().value(),
+                    exception.getResponseBodyAsString());
+            throw new BusinessException(ErrorCode.PAYMENT_CANCELLATION_FAILED);
+        } catch (RestClientException exception) {
+            log.warn("PortOne 부분 취소 통신 실패: portonePaymentId={}, amount={}, errorType={}",
+                    portonePaymentId, amount, exception.getClass().getSimpleName());
             throw new BusinessException(ErrorCode.PAYMENT_CANCELLATION_FAILED);
         }
     }
@@ -110,5 +150,4 @@ public class PortOneClient implements PaymentGateway {
             return GatewayPaymentStatus.UNKNOWN;
         }
     }
-
 }

@@ -1,0 +1,34 @@
+.profile-page {
+  max-width: 680px;
+  padding-top: 32px;
+  padding-bottom: 60px;
+}
+
+.profile-page__title {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+.profile-page__section {
+  padding: 24px;
+  margin-bottom: 18px;
+}
+
+.profile-page__section h2 {
+  font-size: 19px;
+  margin-bottom: 18px;
+}
+
+.profile-page__section--withdraw {
+  border: 1px solid rgba(217, 83, 79, 0.25);
+}
+
+.profile-page__section--withdraw > p {
+  color: var(--color-text-soft);
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.profile-page__withdraw-button {
+  color: var(--color-danger);
+}

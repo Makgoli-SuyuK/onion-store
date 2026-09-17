@@ -4,19 +4,26 @@ import com.example.onionstore.domain.refund.dto.admin.request.AdminRefundSearchC
 import com.example.onionstore.domain.refund.dto.admin.response.AdminRefundListResponse;
 import com.example.onionstore.domain.refund.dto.common.RefundItemDetailResponse;
 import com.example.onionstore.domain.refund.dto.customer.response.CustomerRefundSummaryResponse;
+import com.example.onionstore.domain.refund.entity.Refund;
+import com.example.onionstore.domain.refund.entity.RefundInitiator;
+import com.example.onionstore.domain.refund.entity.RefundReasonType;
+import com.example.onionstore.domain.refund.entity.RefundStatus;
 import com.example.onionstore.domain.refund.repository.dto.AdminRefundDetailProjection;
+import com.example.onionstore.domain.refund.repository.dto.CompletedRefundQuantityRow;
 import com.example.onionstore.domain.refund.repository.dto.CustomerRefundDetailProjection;
 import com.example.onionstore.domain.refund.repository.dto.OrderItemSummaryRow;
 import com.example.onionstore.domain.user.entity.QUser;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import jakarta.persistence.LockModeType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.util.StringUtils;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -61,12 +68,13 @@ public class RefundCustomRepositoryImpl implements RefundCustomRepository {
                 .fetch();
     }
 
-    // 환불 ID와 사용자 ID를 함께 조건으로 사용해 다른 사용자의 상세 조회를 막는다.
+    // 환불 상세와 주문 소유자 ID를 함께 조회해 서비스에서 존재 여부와 접근 권한을 구분한다.
     @Override
-    public Optional<CustomerRefundDetailProjection> findCustomerRefundDetailProjection(Long refundId, Long userId) {
+    public Optional<CustomerRefundDetailProjection> findCustomerRefundDetailProjection(Long refundId) {
         return Optional.ofNullable(queryFactory
                 .select(Projections.constructor(
                         CustomerRefundDetailProjection.class,
+                        order.user.id,
                         order.id,
                         order.orderNumber,
                         order.totalPrice,
@@ -83,9 +91,7 @@ public class RefundCustomRepositoryImpl implements RefundCustomRepository {
                 .from(refund)
                 .join(refund.payment, payment)
                 .join(payment.order, order)
-                .where(refund.id.eq(refundId),
-                        order.user.id.eq(userId)
-                )
+                .where(refund.id.eq(refundId))
                 .fetchOne());
 
     }
@@ -202,6 +208,68 @@ public class RefundCustomRepositoryImpl implements RefundCustomRepository {
                 .leftJoin(refund.reviewedBy, reviewer)
                 .where(refund.id.eq(refundId))
                 .fetchOne()
+        );
+    }
+
+    // 추가 환불 가능 수량 계산을 위해 주문 항목별 완료된 환불 수량을 합산한다.
+    @Override
+    public List<CompletedRefundQuantityRow> findCompletedRefundQuantities(Long orderId) {
+        return queryFactory
+                .select(Projections.constructor(
+                        CompletedRefundQuantityRow.class,
+                        refundItem.orderItem.id,
+                        refundItem.quantity.sumLong()
+                ))
+                .from(refundItem)
+                .join(refundItem.refund, refund)
+                .where(
+                        refundItem.orderItem.order.id.eq(orderId),
+                        refund.status.eq(RefundStatus.COMPLETED)
+                )
+                .groupBy(refundItem.orderItem.id)
+                .fetch();
+    }
+
+    @Override
+    public Optional<Refund> findByIdForUpdate(Long refundId) {
+        return Optional.ofNullable(
+                queryFactory
+                        .selectFrom(refund)
+                        .where(refund.id.eq(refundId))
+                        .setLockMode(LockModeType.PESSIMISTIC_WRITE)
+                        .fetchOne()
+        );
+    }
+
+    @Override
+    public Optional<Refund> findActiveByPaymentIdForUpdate(
+            Long paymentId,
+            Collection<RefundStatus> statuses
+    ) {
+        return Optional.ofNullable(
+                queryFactory
+                        .selectFrom(refund)
+                        .where(
+                                refund.payment.id.eq(paymentId),
+                                refund.status.in(statuses)
+                        )
+                        .setLockMode(LockModeType.PESSIMISTIC_WRITE)
+                        .fetchOne()
+        );
+    }
+
+    @Override
+    public Optional<Refund> findSystemAmountMismatchByPaymentIdForUpdate(Long paymentId) {
+        return Optional.ofNullable(
+                queryFactory
+                        .selectFrom(refund)
+                        .where(
+                                refund.payment.id.eq(paymentId),
+                                refund.initiator.eq(RefundInitiator.SYSTEM),
+                                refund.reasonType.eq(RefundReasonType.AMOUNT_MISMATCH)
+                        )
+                        .setLockMode(LockModeType.PESSIMISTIC_WRITE)
+                        .fetchOne()
         );
     }
 

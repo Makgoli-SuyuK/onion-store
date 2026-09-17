@@ -35,6 +35,10 @@ public class OrderCustomRepositoryImpl implements OrderCustomRepository {
                         endDateLt(request.getEndDate())
                 )
                 .offset(pageable.getOffset())
+                .orderBy(
+                        order.createdAt.desc(),
+                        order.id.desc()
+                )
                 .limit(pageable.getPageSize())
                 .fetch();
 

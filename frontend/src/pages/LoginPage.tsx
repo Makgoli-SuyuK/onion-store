@@ -33,7 +33,7 @@ export function LoginPage() {
     <div className="container login-page">
       <div className="card login-page__box">
         <h1 className="login-page__title">로그인</h1>
-        <p className="login-page__hint">데모 계정: 아무 이메일로 로그인, admin이 포함되면 관리자로 접속돼요.</p>
+        <p className="login-page__hint">테스트 관리자: refund-admin@onion.store / refund1234</p>
         <form onSubmit={handleSubmit}>
           <div className="field">
             <label htmlFor="login-email">이메일</label>

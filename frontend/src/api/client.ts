@@ -4,10 +4,6 @@ import { fromSpringPage } from '@/types/common'
 import { getAccessToken } from '@/utils/storage'
 import { DEFAULT_MESSAGES, resolveErrorMessage } from '@/utils/errorMessage'
 
-// VITE_USE_MOCK=false 로 설정하면 각 api/*.ts 모듈이 실제 백엔드를 호출한다.
-// 값이 없으면(.env 미설정) 기본값은 mock 사용.
-export const USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false'
-
 // 백엔드 주소는 여기 한 곳에서만 관리. 실제 API 명세 확정 전까지는 .env의
 // VITE_API_BASE_URL 값만 바꾸면 됨 (컴포넌트에는 주소를 직접 적지 않는다).
 export const http = axios.create({

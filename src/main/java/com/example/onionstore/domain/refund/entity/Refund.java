@@ -1,7 +1,7 @@
 package com.example.onionstore.domain.refund.entity;
 
-import com.example.onionstore.domain.payment.entity.Payment;
 import com.example.onionstore.domain.order.entity.OrderItem;
+import com.example.onionstore.domain.payment.entity.Payment;
 import com.example.onionstore.domain.user.entity.User;
 import com.example.onionstore.global.entity.BaseTimeEntity;
 import com.example.onionstore.global.exception.BusinessException;
@@ -108,7 +108,7 @@ public class Refund extends BaseTimeEntity {
     }
 
     public boolean fail() {
-        if (status != RefundStatus.REQUESTED) {
+        if (status == RefundStatus.FAILED) {
             return false;
         }
         transitionTo(RefundStatus.FAILED);

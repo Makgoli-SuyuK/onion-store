@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 
 // 고객 환불 상세 응답 조립에 사용하는 조회 결과
 public record CustomerRefundDetailProjection(
+        Long ownerUserId,
         Long orderId,
         String orderNumber,
         long orderAmount,

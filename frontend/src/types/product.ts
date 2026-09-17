@@ -13,7 +13,7 @@ export interface ProductSummary {
   likeCount: number
 }
 
-// 상세(GET /api/products/{id})가 내려주는 전체 정보
+// 상품 상세의 실제 정보
 export interface Product {
   id: number
   categoryName: string
@@ -25,6 +25,12 @@ export interface Product {
   status: ProductStatus
   createdAt: string
   updatedAt: string
+}
+
+// 상세 API는 상품 정보와 현재 사용자의 좋아요 여부를 함께 반환한다.
+export interface ProductDetail {
+  productInfo: Product
+  liked: boolean
 }
 
 export interface ProductListQuery {

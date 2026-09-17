@@ -45,7 +45,7 @@ export function SignupPage() {
     <div className="container login-page">
       <div className="card login-page__box">
         <h1 className="login-page__title">회원가입</h1>
-        <p className="login-page__hint">이메일에 admin이 들어가면 관리자 계정으로 가입돼요 (데모용).</p>
+        <p className="login-page__hint">회원가입한 계정은 고객 계정으로 생성됩니다.</p>
         <form onSubmit={handleSubmit}>
           <div className="field">
             <label htmlFor="signup-name">이름</label>

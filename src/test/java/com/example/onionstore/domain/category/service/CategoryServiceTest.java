@@ -84,6 +84,7 @@ class CategoryServiceTest {
 
         given(categoryCache.get()).willReturn(null);
         given(categoryRepository.findAllByDeletedFalse()).willReturn(categories);
+        given(categoryCache.get()).willReturn(null);
 
         //when
         List<Category> list = categoryService.getAllCategories();

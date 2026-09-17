@@ -7,6 +7,7 @@ import { ErrorState } from '@/components/common/ErrorState'
 import { EmptyState } from '@/components/common/EmptyState'
 import { AdminStatCard } from '@/components/admin/AdminStatCard'
 import { ProductFormModal, toCreateRequest, toEditRequest, type ProductFormValues } from '@/components/admin/ProductFormModal'
+import { CategoryManageModal } from '@/components/admin/CategoryManageModal'
 import { formatCurrency } from '@/utils/currency'
 import type { Product } from '@/types/product'
 import './AdminProductListPage.css'
@@ -18,6 +19,7 @@ export function AdminProductListPage() {
   const [name, setName] = useState('')
   const [nameInput, setNameInput] = useState('')
   const [editingProduct, setEditingProduct] = useState<Product | 'new' | null>(null)
+  const [categoryManaging, setCategoryManaging] = useState(false)
 
   const stats = useApiRequest(() => adminApi.getStats(), [])
   const list = useApiRequest(() => adminApi.getProducts({ name, page: 0, size: 50 }), [name])
@@ -37,6 +39,18 @@ export function AdminProductListPage() {
         showToast('상품을 등록했습니다.', 'success')
       }
       setEditingProduct(null)
+      reload()
+    } catch (err) {
+      showToast((err as Error).message, 'error')
+    }
+  }
+
+  const deleteProduct = async (product: Product) => {
+    if (!window.confirm(`'${product.name}' 상품을 삭제할까요?`)) return
+
+    try {
+      await adminApi.deleteProduct(product.id)
+      showToast('상품을 삭제했습니다.', 'success')
       reload()
     } catch (err) {
       showToast((err as Error).message, 'error')
@@ -75,9 +89,14 @@ export function AdminProductListPage() {
             검색
           </button>
         </form>
-        <button type="button" className="btn btn--primary btn--sm" onClick={() => setEditingProduct('new')}>
-          + 상품 등록
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button type="button" className="btn btn--outline btn--sm" onClick={() => setCategoryManaging(true)}>
+            카테고리 관리
+          </button>
+          <button type="button" className="btn btn--primary btn--sm" onClick={() => setEditingProduct('new')}>
+            + 상품 등록
+          </button>
+        </div>
       </div>
 
       {list.loading && <LoadingSpinner />}
@@ -114,6 +133,9 @@ export function AdminProductListPage() {
                     <button type="button" className="btn btn--ghost btn--sm" onClick={() => setEditingProduct(p)}>
                       수정
                     </button>
+                    <button type="button" className="btn btn--ghost btn--sm admin-page__delete" onClick={() => deleteProduct(p)}>
+                      삭제
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -121,6 +143,8 @@ export function AdminProductListPage() {
           </table>
         </div>
       )}
+
+      {categoryManaging && <CategoryManageModal onClose={() => setCategoryManaging(false)} />}
 
       {editingProduct && (
         <ProductFormModal

@@ -7,10 +7,6 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { formatCurrency } from '@/utils/currency'
 import './CartPage.css'
 
-// 백엔드 주문 금액에는 배송비가 포함되지 않는다. 아래 배송비는 화면에서만 보여주는 안내용 계산이다.
-const FREE_SHIPPING_THRESHOLD = 50000
-const SHIPPING_FEE = 3000
-
 export function CartPage() {
   const { items, loading, updateQuantity, removeItem } = useCart()
   const navigate = useNavigate()
@@ -41,8 +37,6 @@ export function CartPage() {
 
   const selectedItems = items.filter((i) => selected.has(i.cartItemId))
   const productAmount = selectedItems.reduce((sum, i) => sum + i.subtotal, 0)
-  const shippingFee = selectedItems.length === 0 ? 0 : productAmount >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE
-  const totalAmount = productAmount + shippingFee
 
   const handleOrder = () => {
     navigate('/checkout', { state: { cartItemIds: Array.from(selected) } })
@@ -87,13 +81,9 @@ export function CartPage() {
           <span>상품 금액</span>
           <span>{formatCurrency(productAmount)}</span>
         </div>
-        <div className="summary-row">
-          <span>배송비</span>
-          <span>{shippingFee === 0 ? '무료' : formatCurrency(shippingFee)}</span>
-        </div>
         <div className="summary-row summary-row--total">
           <span>총 결제 예정 금액</span>
-          <span>{formatCurrency(totalAmount)}</span>
+          <span>{formatCurrency(productAmount)}</span>
         </div>
         <button
           type="button"

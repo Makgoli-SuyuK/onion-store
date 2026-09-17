@@ -2,6 +2,7 @@ package com.example.onionstore.global.security;
 
 import com.example.onionstore.domain.user.entity.UserStatus;
 import com.example.onionstore.domain.user.repository.UserRepository;
+import com.example.onionstore.global.dto.ApiResponse;
 import com.example.onionstore.global.exception.ErrorCode;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -14,11 +15,13 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 @RequiredArgsConstructor
 public class DeletedUserTokenFilter extends OncePerRequestFilter {
     private final UserRepository userRepository;
+    private final ObjectMapper objectMapper;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -29,7 +32,7 @@ public class DeletedUserTokenFilter extends OncePerRequestFilter {
             SecurityContextHolder.clearContext();
             response.setStatus(ErrorCode.UNAUTHORIZED.getStatus().value());
             response.setContentType("application/json;charset=UTF-8");
-            response.getWriter().write("{\"success\":false,\"code\":\"AUTH_001\",\"message\":\"인증이 필요합니다.\",\"data\":null}");
+            objectMapper.writeValue(response.getOutputStream(), ApiResponse.fail(ErrorCode.UNAUTHORIZED));
             return;
         }
         filterChain.doFilter(request, response);

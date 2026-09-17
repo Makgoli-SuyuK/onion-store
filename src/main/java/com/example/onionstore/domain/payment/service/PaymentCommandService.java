@@ -1,5 +1,7 @@
 package com.example.onionstore.domain.payment.service;
 
+import com.example.onionstore.domain.cart.service.CartService;
+import com.example.onionstore.domain.order.entity.Order;
 import com.example.onionstore.domain.order.entity.OrderItem;
 import com.example.onionstore.domain.order.service.OrderService;
 import com.example.onionstore.domain.payment.dto.PaymentConfirmResponse;
@@ -10,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class PaymentCommandService {
@@ -17,13 +21,20 @@ public class PaymentCommandService {
     private final PaymentService paymentService;
     private final OrderService orderService;
     private final ProductService productService;
+    private final CartService cartService;
 
     // 결제 성공과 주문 결제 완료 상태를 함께 확정한다.
     @Transactional
     public PaymentConfirmResponse completePaymentSuccess(PaymentConfirmationInfo info) {
-        orderService.findOrderForUpdate(info.orderId());
-        paymentService.applySuccess(info.orderId());
-        orderService.markAsPaid(info.orderId());
+        Order order = orderService.findOrderForUpdate(info.orderId());
+        PaymentStateChangeResponse paymentResult = paymentService.applySuccess(info.orderId());
+        boolean orderChanged = orderService.markAsPaid(info.orderId());
+
+        // 결제 완료 처리가 최초로 성공했을 때만, 이 주문에 사용한 항목만 장바구니에서 제거한다.
+        if (paymentResult.changed() && orderChanged) {
+            clearOrderedCartItems(order, info.orderId());
+        }
+
         return PaymentConfirmResponse.success(info.orderId(), info.portonePaymentId());
     }
 
@@ -59,6 +70,17 @@ public class PaymentCommandService {
                     orderItem.getProduct().getId(),
                     orderItem.getQuantity()
             );
+        }
+    }
+
+    private void clearOrderedCartItems(Order order, Long orderId) {
+        List<Long> sourceCartItemIds = orderService.findOrderItemsByOrderId(orderId).stream()
+                .map(OrderItem::getSourceCartItemId)
+                .filter(java.util.Objects::nonNull)
+                .toList();
+
+        if (!sourceCartItemIds.isEmpty()) {
+            cartService.clearCartItems(sourceCartItemIds, order.getUser().getId());
         }
     }
 }
