@@ -1,9 +1,48 @@
 # 🧅 onion-store
 
-> 상품 조회부터 장바구니, 주문·결제, 환불, 판매자-고객 실시간 채팅까지 지원하는 커머스 백엔드 프로젝트
+### 프로젝트 요약
 
-회원이 상품을 조회·좋아요하고 장바구니에 담아 주문·결제·환불까지 진행할 수 있으며,
-주문 중 발생하는 CS 문의를 실시간 채팅(WebSocket/STOMP)으로 처리할 수 있는 **커머스 플랫폼**입니다.
+> **양파 농장이 직접 운영하는 온라인 쇼핑몰을 구현하고, 서비스 성장 상황을 가정하여 재고·좋아요·결제의 정합성 문제를 해결하며 QueryDSL, 복합 인덱스, Redis Cache를 활용해 상품 검색과 인기 상품 조회 성능을 개선한다.** 
+> - 상품 조회부터 장바구니, 주문·결제, 환불, 판매자-고객 실시간 채팅까지 지원
+> - 회원이 상품을 조회·좋아요하고 장바구니에 담아 주문·결제·환불까지 진행할 수 있으며,
+주문 중 발생하는 CS 문의를 실시간 채팅(WebSocket/STOMP)으로 처리할 수 있는 **커머스 플랫폼**
+
+## 🎨 와이어프레임
+
+<details>
+<summary>와이어프레임 보기</summary>
+
+<img src="docs/images/wireframe.png" alt="onion-store 와이어프레임" />
+
+</details>
+
+---
+
+## 🖥 구현 화면
+
+<details>
+<summary>구현 화면 보기</summary>
+
+<br />
+
+<table>
+  <tr>
+    <td width="25%" align="center"><b>1. 메인 페이지</b><br /><img width="100%" src="docs/images/screenshots/home.png" alt="메인 페이지" /></td>
+    <td width="25%" align="center"><b>2. 상품 목록</b><br /><img width="100%" src="docs/images/screenshots/product-list.png" alt="상품 목록" /></td>
+    <td width="25%" align="center"><b>3. 관리자 환불 관리</b><br /><img width="100%" src="docs/images/screenshots/refund-management.png" alt="관리자 환불 관리" /></td>
+    <td width="25%" align="center"><b>4. 관리자 문의 목록</b><br /><img width="100%" src="docs/images/screenshots/inquiry-list.png" alt="관리자 문의 목록" /></td>
+  </tr>
+  <tr>
+    <td width="25%" align="center"><b>5. 관리자 상품 관리</b><br /><img width="100%" src="docs/images/screenshots/product-management.png" alt="관리자 상품 관리" /></td>
+    <td width="25%" align="center"><b>6. 1:1 문의 상세</b><br /><img width="100%" src="docs/images/screenshots/inquiry-detail.png" alt="1대1 문의 상세" /></td>
+    <td width="25%" align="center"><b>7. 내 정보 관리</b><br /><img width="100%" src="docs/images/screenshots/profile.png" alt="내 정보 관리" /></td>
+    <td width="25%" align="center"><b>8. 주문 상세</b><br /><img width="100%" src="docs/images/screenshots/order-detail.png" alt="주문 상세" /></td>
+  </tr>
+</table>
+
+</details>
+
+---
 
 ![Static Badge](https://img.shields.io/badge/Java%2017-007396?style=for-the-badge&logo=openjdk&logoColor=white)
 ![Static Badge](https://img.shields.io/badge/Spring%20Boot-6DB33F?style=for-the-badge&logo=spring&logoColor=white)
@@ -22,6 +61,9 @@
 ## Links
 
 - 배포 링크: [https://chungmani.click](https://chungmani.click/)
+- [개발 초기 기획안](<docs/양파 전문 쇼핑몰 프로젝트 개발 초기 기획안.md>)
+- [팀 컨벤션](https://github.com/Makgoli-SuyuK/onion-store/wiki/%ED%8C%80-%EC%BB%A8%EB%B2%A4%EC%85%98)
+- [API 명세](<docs/API 명세.md>)
 
 ---
 
@@ -228,41 +270,65 @@ users(회원) - product_likes/products/categories(상품·좋아요·카테고�
 
 ## 📊 도메인별 플로우차트
 
-### 회원 (가입·로그인·정보관리·탈퇴)
+<details>
+<summary>회원 (가입·로그인·정보관리·탈퇴)</summary>
+
 
 <img src="docs/images/flow-user.png" alt="회원 플로우차트" />
 
 가입 시 이메일 중복을 확인하고 비밀번호를 암호화해 `CUSTOMER`/`ACTIVE` 상태로 저장한다. 로그인은 이메일·비밀번호 확인 후 회원 상태가 `ACTIVE`일 때만 JWT를 발급한다(`DELETED`면 로그인 실패). 탈퇴는 비밀번호 재확인 후 상태를 `DELETED`로 바꾸고 이후 로그인을 차단한다.
 
-### 상품 (등록·수정·삭제·재고 감소)
+</details>
+
+<details>
+<summary>상품 (등록·수정·삭제·재고 감소)</summary>
+
 
 <img src="docs/images/flow-product.png" alt="상품 플로우차트" />
 
 등록/수정/삭제는 모두 관리자 계정 여부를 먼저 확인하고(`403 Forbidden`), 재고·가격 등 입력값을 검증한다(`400 Bad Request`). 재고 감소는 락을 획득한 뒤 요청 수량과 현재 재고를 비교하고, 재고가 0이 되면 상품 상태를 함께 변경한 후 락을 반환한다.
 
-### 장바구니
+</details>
+
+<details>
+<summary>장바구니</summary>
+
 
 <img src="docs/images/flow-cart.png" alt="장바구니 플로우차트" />
 
 담기는 상품 존재·판매 상태·재고를 확인한 뒤, 동일 상품이 이미 담겨 있으면 수량을 누적하고 없으면 새 항목을 생성한다. 수량 변경·삭제는 본인 장바구니인지, 대상 항목이 존재하는지 확인한 뒤 처리하며, 변경 수량은 0 이상이어야 한다.
 
-### 주문
+</details>
+
+<details>
+<summary>주문</summary>
+
 
 <img src="docs/images/flow-order.png" alt="주문 플로우차트" />
 
 주문 생성 시 장바구니가 본인 소유인지, 비어 있지 않은지 확인하고 상품별 판매 상태·재고를 검증한 뒤 재고를 선차감하고 `PENDING` 주문을 생성한다. 이어서 결제를 요청하고, 결제 성공 시 주문 상태를 `PAID`로 바꾸고 장바구니를 비우며, 실패 시 재고를 복구하고 주문을 `CANCELLED`로 전환한다.
 
-### 결제
+</details>
+
+<details>
+<summary>결제</summary>
+
 
 <img src="docs/images/flow-payment.png" alt="결제 플로우차트" />
 
 결제 요청은 본인 주문인지, 주문 상태가 `PENDING`·결제 상태가 `READY`인지, 요청 금액이 서버가 들고 있는 스냅샷 금액과 일치하는지 순서대로 검증한 뒤(불일치 시 각각 403/409/400) PG(PortOne)에 결제를 요청한다. PG 응답이 실패면 결제 상태를 `FAILED`로, 성공이면 `SUCCESS`/주문 `PAID`로 반영한다.
 
-### 실시간 채팅
+</details>
+
+<details>
+<summary>실시간 채팅</summary>
+
 
 <img src="docs/images/flow-chat.png" alt="채팅 플로우차트" />
 
 로그인 후 JWT가 유효할 때만 WebSocket 연결을 허용하고, 채팅방 구독 시 채팅방 존재 여부와 참여 권한을 확인한다. 메시지 전송은 본문이 비어 있지 않은 경우에만 `ChatMessage`로 저장한 뒤 구독자(고객·관리자)에게 실시간으로 발행(broadcast)한다.
+
+</details>
 
 ---
 
@@ -307,14 +373,6 @@ com.example.onionstore
 | payment  | 결제 확인(`PortOne` 상태·금액 검증), 웹훅 동기화                       |
 | refund   | 고객 환불 요청, 관리자 환불 승인/반려                                  |
 | chat     | 채팅방 생성/목록/상세, 메시지 내역 조회(커서 기반), STOMP 실시간 메시지 송수신       |
-
----
-
-## 🎨 와이어프레임
-
-<img src="docs/images/wireframe.png" alt="onion-store 와이어프레임" />
-
----
 
 # 🧑‍💻 Contributors
 
