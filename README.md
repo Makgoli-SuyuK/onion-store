@@ -1,9 +1,49 @@
 # 🧅 onion-store
 
-> 상품 조회부터 장바구니, 주문·결제, 환불, 판매자-고객 실시간 채팅까지 지원하는 커머스 백엔드 프로젝트
+## 프로젝트 소개
 
-회원이 상품을 조회·좋아요하고 장바구니에 담아 주문·결제·환불까지 진행할 수 있으며,
-주문 중 발생하는 CS 문의를 실시간 채팅(WebSocket/STOMP)으로 처리할 수 있는 **커머스 플랫폼**입니다.
+양파 농장이 직접 운영하는 온라인 쇼핑몰을 구현한 커머스 플랫폼입니다.
+
+회원은 상품 조회·좋아요·장바구니·주문·결제·환불을 이용하고, 주문 중 발생하는 CS 문의는 WebSocket/STOMP 기반 실시간 채팅으로 처리합니다.
+
+서비스 성장 상황을 가정해 재고·좋아요·결제의 정합성을 다루고, QueryDSL·복합 인덱스·Redis Cache를 적용해 상품 검색과 인기 상품 조회 성능을 개선했습니다.
+
+## 🎨 와이어프레임
+
+<details>
+<summary>와이어프레임 보기</summary>
+
+<img src="docs/images/wireframe.png" alt="onion-store 와이어프레임" />
+
+</details>
+
+---
+
+## 🖥 구현 화면
+
+<details>
+<summary>구현 화면 보기</summary>
+
+<br />
+
+<table>
+  <tr>
+    <td width="25%" align="center"><b>1. 메인 페이지</b><br /><img width="100%" src="docs/images/screenshots/home.png" alt="메인 페이지" /></td>
+    <td width="25%" align="center"><b>2. 상품 목록</b><br /><img width="100%" src="docs/images/screenshots/product-list.png" alt="상품 목록" /></td>
+    <td width="25%" align="center"><b>3. 관리자 환불 관리</b><br /><img width="100%" src="docs/images/screenshots/refund-management.png" alt="관리자 환불 관리" /></td>
+    <td width="25%" align="center"><b>4. 관리자 문의 목록</b><br /><img width="100%" src="docs/images/screenshots/inquiry-list.png" alt="관리자 문의 목록" /></td>
+  </tr>
+  <tr>
+    <td width="25%" align="center"><b>5. 관리자 상품 관리</b><br /><img width="100%" src="docs/images/screenshots/product-management.png" alt="관리자 상품 관리" /></td>
+    <td width="25%" align="center"><b>6. 1:1 문의 상세</b><br /><img width="100%" src="docs/images/screenshots/inquiry-detail.png" alt="1대1 문의 상세" /></td>
+    <td width="25%" align="center"><b>7. 내 정보 관리</b><br /><img width="100%" src="docs/images/screenshots/profile.png" alt="내 정보 관리" /></td>
+    <td width="25%" align="center"><b>8. 주문 상세</b><br /><img width="100%" src="docs/images/screenshots/order-detail.png" alt="주문 상세" /></td>
+  </tr>
+</table>
+
+</details>
+
+---
 
 ![Static Badge](https://img.shields.io/badge/Java%2017-007396?style=for-the-badge&logo=openjdk&logoColor=white)
 ![Static Badge](https://img.shields.io/badge/Spring%20Boot-6DB33F?style=for-the-badge&logo=spring&logoColor=white)
@@ -22,6 +62,10 @@
 ## Links
 
 - 배포 링크: [https://chungmani.click](https://chungmani.click/)
+- [개발 초기 기획안](<docs/양파 전문 쇼핑몰 프로젝트 개발 초기 기획안.md>)
+- [팀 컨벤션](https://github.com/Makgoli-SuyuK/onion-store/wiki/%ED%8C%80-%EC%BB%A8%EB%B2%A4%EC%85%98)
+- [API 명세](<docs/API 명세.md>)
+- [ERD](docs/images/erd.png)
 
 ---
 
@@ -109,7 +153,9 @@ docker run -p 8080:8080 --env SPRING_PROFILES_ACTIVE=prod onion-store
 | CI/CD       | GitHub Actions                                                      |
 | AWS 인프라     | S3, CloudFront, EC2, RDS, ElastiCache Redis, ECR, Systems Manager Parameter Store |
 
-프론트엔드는 Vite 개발 서버로 실행하며 `.env`의 `VITE_API_BASE_URL`로 백엔드 주소를 설정한다. 백엔드는 `local` 프로필에서 Docker Compose의 MySQL·Redis를 사용하고, PortOne 관련 키는 환경 변수로 주입한다. 운영 환경에서는 S3와 CloudFront로 프론트엔드 정적 파일을 제공하고, EC2에서 Docker 컨테이너로 실행되는 Spring Boot 애플리케이션이 RDS·ElastiCache Redis에 연결된다. 애플리케이션은 AWS Parameter Store에서 DB·JWT·PortOne 설정을 불러온다.
+- **로컬 환경**: 프론트엔드는 Vite 개발 서버로 실행하고, `.env`의 `VITE_API_BASE_URL`로 백엔드 주소를 설정한다. 백엔드는 `local` 프로필에서 Docker Compose의 MySQL·Redis를 사용하며, PortOne 키는 환경 변수로 주입한다.
+- **운영 환경**: S3·CloudFront가 프론트엔드 정적 파일을 제공하고, EC2의 Docker 컨테이너에서 Spring Boot 애플리케이션을 실행한다.
+- **설정 관리**: 애플리케이션은 AWS Parameter Store에서 DB·JWT·PortOne 설정을 불러오며, RDS와 ElastiCache Redis에 연결한다.
 
 ---
 
@@ -139,9 +185,9 @@ flowchart LR
     EC2 -->|설정 조회| SSM
 ```
 
-CloudFront는 S3에 배포된 React 정적 파일을 사용자에게 제공한다. API와 WebSocket 요청은 EC2에서 Docker 컨테이너로 실행되는 Spring Boot 애플리케이션이 직접 처리한다. 애플리케이션 내부에서는 JWT 인증 뒤 Controller, Facade/Service, Repository 순서로 요청을 처리한다.
-
-영속 데이터의 원본은 RDS MySQL이며, 상품 정보·재고·좋아요·인기 상품·카테고리처럼 반복 조회가 많은 데이터는 ElastiCache Redis를 캐시로 사용한다. 민감한 DB·JWT·PortOne 설정은 Parameter Store에서 불러온다.
+- **정적 파일**: CloudFront가 S3에 배포된 React 정적 파일을 사용자에게 제공한다.
+- **API·실시간 통신**: REST API와 WebSocket 요청은 EC2의 Docker 컨테이너에서 실행되는 Spring Boot 애플리케이션이 직접 처리한다. 내부 요청은 JWT 인증 후 `Controller → Facade/Service → Repository` 순서로 처리한다.
+- **데이터·설정**: 영속 데이터의 원본은 RDS MySQL이며, 상품 정보·재고·좋아요·인기 상품·카테고리 등 반복 조회 데이터는 ElastiCache Redis를 캐시로 사용한다. DB·JWT·PortOne 설정은 Parameter Store에서 불러온다.
 
 ### 결제 흐름
 
@@ -169,7 +215,9 @@ sequenceDiagram
     end
 ```
 
-프론트 결제 완료 확인 요청과 PortOne 웹훅은 순서와 관계없이 각각 결제 확정의 진입점이 된다. 두 경로 모두 PortOne API에서 결제 상태와 금액을 다시 조회해 검증한 뒤 주문·결제 상태를 반영한다. 웹훅은 서명을 검증하고 수신 이력을 저장해 중복 수신을 구분한다.
+- **프론트 확인 경로**: 결제 완료 뒤 `POST /api/payments/confirm`을 호출한다.
+- **웹훅 동기화 경로**: PortOne이 `POST /api/webhooks/portone`을 호출한다. 서명을 검증하고 수신 이력을 저장해 중복 수신을 구분한다.
+- **공통 처리**: 두 경로는 순서와 관계없이 결제 확정의 진입점이 되며, PortOne API에서 결제 상태와 금액을 재조회·검증한 뒤 주문·결제 상태를 반영한다.
 
 ### 실시간 채팅 흐름
 
@@ -192,7 +240,9 @@ sequenceDiagram
     E-->>U: Simple Broker로 /sub/chats/rooms/{roomId} 발행
 ```
 
-채팅방 생성·목록·이전 메시지 조회는 REST API로 처리한다. 실시간 메시지는 WebSocket STOMP 연결(`/ws-stomp`)을 사용하며, CONNECT 프레임의 JWT를 `StompAuthChannelInterceptor`로 검증한 뒤 채팅방 구독·발행을 허용한다. 메시지는 RDS에 먼저 저장하고 Spring의 Simple Broker가 같은 채팅방 구독자에게 `/sub/chats/rooms/{roomId}`로 전달한다.
+- **채팅방·이전 메시지**: REST API로 생성·목록·조회한다.
+- **실시간 메시지**: WebSocket STOMP(`/ws-stomp`)로 연결하고, CONNECT 프레임의 JWT를 `StompAuthChannelInterceptor`에서 검증한 뒤 채팅방 구독·발행을 허용한다.
+- **전달 방식**: 메시지를 RDS에 먼저 저장한 뒤 Spring의 Simple Broker가 같은 채팅방 구독자에게 `/sub/chats/rooms/{roomId}`로 전달한다.
 
 ### CI/CD 배포 흐름
 
@@ -214,55 +264,73 @@ sequenceDiagram
     A->>CF: CloudFront 캐시 무효화
 ```
 
-`main` 브랜치에 변경이 반영되면 GitHub Actions가 테스트와 JAR 빌드를 수행한 뒤 Docker 이미지를 빌드해 ECR에 올리고, Systems Manager 명령으로 EC2의 컨테이너를 최신 이미지로 교체한다(`/actuator/health`로 기동 확인). 프론트엔드는 별도 잡에서 빌드 후 S3에 동기화하고 CloudFront 캐시를 무효화한다. 세 잡 모두 `build-test`가 통과해야 진행된다.
-
----
-
-## 📌 ERD
-
-<img src="docs/images/erd.png" alt="onion-store ERD" />
-
-users(회원) - product_likes/products/categories(상품·좋아요·카테고리) - carts/cart_items(장바구니) - orders/order_items(주문) - payments(결제) - refunds/refund_items(환불) - chat_room/chat_messages(채팅) - webhook_events(PortOne 웹훅 수신 이력)로 구성된다. 주문은 결제 1건과 1:1로 연결되고, 환불은 주문 항목(order_items) 단위로 refund_items에 매핑된다.
+- **시작 조건**: `main` 브랜치 변경 시 GitHub Actions가 실행되며, 모든 배포 잡은 `build-test` 통과 뒤 진행된다.
+- **백엔드 배포**: 테스트·JAR 빌드 후 Docker 이미지를 ECR에 올리고, Systems Manager 명령으로 EC2 컨테이너를 최신 이미지로 교체한다. 기동은 `/actuator/health`로 확인한다.
+- **프론트엔드 배포**: 별도 잡에서 빌드한 정적 파일을 S3에 동기화하고 CloudFront 캐시를 무효화한다.
 
 ---
 
 ## 📊 도메인별 플로우차트
 
-### 회원 (가입·로그인·정보관리·탈퇴)
+<details>
+<summary>회원 (가입·로그인·정보관리·탈퇴)</summary>
+
 
 <img src="docs/images/flow-user.png" alt="회원 플로우차트" />
 
 가입 시 이메일 중복을 확인하고 비밀번호를 암호화해 `CUSTOMER`/`ACTIVE` 상태로 저장한다. 로그인은 이메일·비밀번호 확인 후 회원 상태가 `ACTIVE`일 때만 JWT를 발급한다(`DELETED`면 로그인 실패). 탈퇴는 비밀번호 재확인 후 상태를 `DELETED`로 바꾸고 이후 로그인을 차단한다.
 
-### 상품 (등록·수정·삭제·재고 감소)
+</details>
+
+<details>
+<summary>상품 (등록·수정·삭제·재고 감소)</summary>
+
 
 <img src="docs/images/flow-product.png" alt="상품 플로우차트" />
 
 등록/수정/삭제는 모두 관리자 계정 여부를 먼저 확인하고(`403 Forbidden`), 재고·가격 등 입력값을 검증한다(`400 Bad Request`). 재고 감소는 락을 획득한 뒤 요청 수량과 현재 재고를 비교하고, 재고가 0이 되면 상품 상태를 함께 변경한 후 락을 반환한다.
 
-### 장바구니
+</details>
+
+<details>
+<summary>장바구니</summary>
+
 
 <img src="docs/images/flow-cart.png" alt="장바구니 플로우차트" />
 
 담기는 상품 존재·판매 상태·재고를 확인한 뒤, 동일 상품이 이미 담겨 있으면 수량을 누적하고 없으면 새 항목을 생성한다. 수량 변경·삭제는 본인 장바구니인지, 대상 항목이 존재하는지 확인한 뒤 처리하며, 변경 수량은 0 이상이어야 한다.
 
-### 주문
+</details>
+
+<details>
+<summary>주문</summary>
+
 
 <img src="docs/images/flow-order.png" alt="주문 플로우차트" />
 
 주문 생성 시 장바구니가 본인 소유인지, 비어 있지 않은지 확인하고 상품별 판매 상태·재고를 검증한 뒤 재고를 선차감하고 `PENDING` 주문을 생성한다. 이어서 결제를 요청하고, 결제 성공 시 주문 상태를 `PAID`로 바꾸고 장바구니를 비우며, 실패 시 재고를 복구하고 주문을 `CANCELLED`로 전환한다.
 
-### 결제
+</details>
+
+<details>
+<summary>결제</summary>
+
 
 <img src="docs/images/flow-payment.png" alt="결제 플로우차트" />
 
 결제 요청은 본인 주문인지, 주문 상태가 `PENDING`·결제 상태가 `READY`인지, 요청 금액이 서버가 들고 있는 스냅샷 금액과 일치하는지 순서대로 검증한 뒤(불일치 시 각각 403/409/400) PG(PortOne)에 결제를 요청한다. PG 응답이 실패면 결제 상태를 `FAILED`로, 성공이면 `SUCCESS`/주문 `PAID`로 반영한다.
 
-### 실시간 채팅
+</details>
+
+<details>
+<summary>실시간 채팅</summary>
+
 
 <img src="docs/images/flow-chat.png" alt="채팅 플로우차트" />
 
 로그인 후 JWT가 유효할 때만 WebSocket 연결을 허용하고, 채팅방 구독 시 채팅방 존재 여부와 참여 권한을 확인한다. 메시지 전송은 본문이 비어 있지 않은 경우에만 `ChatMessage`로 저장한 뒤 구독자(고객·관리자)에게 실시간으로 발행(broadcast)한다.
+
+</details>
 
 ---
 
@@ -307,14 +375,6 @@ com.example.onionstore
 | payment  | 결제 확인(`PortOne` 상태·금액 검증), 웹훅 동기화                       |
 | refund   | 고객 환불 요청, 관리자 환불 승인/반려                                  |
 | chat     | 채팅방 생성/목록/상세, 메시지 내역 조회(커서 기반), STOMP 실시간 메시지 송수신       |
-
----
-
-## 🎨 와이어프레임
-
-<img src="docs/images/wireframe.png" alt="onion-store 와이어프레임" />
-
----
 
 # 🧑‍💻 Contributors
 
