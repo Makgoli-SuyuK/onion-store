@@ -40,9 +40,10 @@ class ChatMessageServiceTest {
         ChatMessageListResponse result = chatMessageService.getMessages(customer.getId(), room.getId(), null,2);
 
         assertThat(result.getMessages()).hasSize(2);
-        assertThat(result.getMessages().get(0).getMessage()).isEqualTo("메시지5");
+        assertThat(result.getMessages().get(0).getMessage()).isEqualTo("메시지4");
         assertThat(result.isHasNext()).isTrue();
-        assertThat(result.getNextCursor()).isEqualTo(result.getMessages().get(1).getMessageId());
+        assertThat(result.getNextCursor()).isEqualTo(result.getMessages().get(0).getMessageId());
+        assertThat(result.getMessages().get(1).getMessage()).isEqualTo("메시지5");
     }
 
     @Test
