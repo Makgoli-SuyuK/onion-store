@@ -1,0 +1,207 @@
+package com.example.onionstore.domain.product.service;
+
+import com.example.onionstore.domain.category.entity.Category;
+import com.example.onionstore.domain.product.dto.*;
+import com.example.onionstore.domain.product.entity.Product;
+import com.example.onionstore.domain.product.entity.ProductStatus;
+import com.example.onionstore.domain.product.repository.*;
+import com.example.onionstore.domain.product.repository.cache.ProductInfoCache;
+import com.example.onionstore.domain.product.repository.cache.ProductLikeCache;
+import com.example.onionstore.domain.product.repository.cache.ProductPopularCache;
+import com.example.onionstore.domain.product.repository.cache.ProductStockCache;
+import com.example.onionstore.domain.product.repository.dto.ProductSearchConditions;
+import com.example.onionstore.global.exception.BusinessException;
+import com.example.onionstore.global.exception.ErrorCode;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+@Service
+@Transactional(readOnly = true)
+@RequiredArgsConstructor
+public class ProductService {
+    private final ProductRepository productRepository;
+
+    private final ProductInfoCache productInfoCache;
+    private final ProductStockCache productStockCache;
+    private final ProductLikeCache productLikeCache;
+    private final ProductPopularCache productPopularCache;
+
+    @Transactional
+    public void createProduct(ProductCreateRequest createRequest, Category category) {
+        if (createRequest.price() <= 0) {
+            throw new BusinessException(ErrorCode.INVALID_PRICE);
+        }
+
+        if (createRequest.stock() <= 0) {
+            throw new BusinessException(ErrorCode.INVALID_STOCK);
+        }
+
+        Product newProduct = Product.create(
+                category,
+                createRequest.productName(),
+                createRequest.description(),
+                createRequest.price(),
+                createRequest.stock()
+        );
+
+        productRepository.save(newProduct);
+    }
+
+    @Transactional(readOnly = true)
+    public ProductResponse findById(Long id) {
+        ProductDto dto = productInfoCache.get(id);
+        Integer stock = productStockCache.get(id);
+        Long likeCount = productLikeCache.get(id);
+
+        if (dto != null && stock != null && likeCount != null) {
+            return ProductResponse.from(dto, stock, likeCount);
+        }
+
+        Product product = productRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
+
+        if (dto == null) {
+            dto = ProductDto.from(product);
+            productInfoCache.put(id, dto);
+        }
+
+        if (stock == null) {
+            stock = product.getStock();
+            productStockCache.put(id, stock);
+        }
+
+        if (likeCount == null) {
+            likeCount = product.getLikeCount();
+            productLikeCache.put(id, likeCount);
+        }
+
+        return ProductResponse.from(dto, stock, likeCount);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ProductSimpleResponse> searchWithConditions(ProductSearchConditions conditions, Pageable pageable) {
+        return productRepository.searchWithConditions(conditions, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean existsByCategoryId(Long categoryId) {
+        return productRepository.existsByCategory_Id(categoryId);
+    }
+
+    @Transactional
+    public void decreaseStock(Long productId, int quantity) {
+        Product product = findProductForUpdate(productId);
+        product.decreaseStock(quantity);
+
+        productStockCache.evict(productId);
+        productInfoCache.evict(productId);
+    }
+
+    @Transactional
+    public void restoreStock(Long productId, int quantity) {
+        Product product = findProductForUpdate(productId);
+        product.restoreStock(quantity);
+
+        productStockCache.evict(productId);
+        productInfoCache.evict(productId);
+    }
+
+    @Transactional
+    public void deleteProduct(Long productId) {
+        Product toDelete = findProductForUpdate(productId);
+
+        if (toDelete.isDeleted()) {
+            throw new BusinessException(ErrorCode.PRODUCT_NOT_FOUND);
+        }
+
+        toDelete.markAsDeleted();
+
+        productRepository.save(toDelete);
+
+        productInfoCache.evict(productId);
+        productLikeCache.evict(productId);
+        productStockCache.evict(productId);
+        productPopularCache.evict();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProductSimpleResponse> find10OrderByLikeCountDesc() {
+        List<ProductSimpleResponse> popular = productPopularCache.get();
+
+        if (popular != null) {
+            return popular;
+        }
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        popular = productRepository.find10OrderByLikeCountDesc(pageable).stream()
+                .map(ProductSimpleResponse::from)
+                .toList();
+
+        productPopularCache.put(popular);
+
+        return popular;
+    }
+
+    @Transactional
+    public ProductResponse editProduct(Long productId, ProductEditRequest editRequest) {
+        Product product = findProductForUpdate(productId);
+
+        product.changeName(editRequest.name());
+        product.changeDescription(editRequest.description());
+        product.changePrice(editRequest.price());
+        product.changeStock(editRequest.stock());
+
+        productInfoCache.evict(productId);
+        productStockCache.evict(productId);
+        productPopularCache.evict();
+
+        return ProductResponse.from(productRepository.save(product));
+    }
+
+    @Transactional(readOnly = true)
+    public Product getProductById(Long productId) {
+        return productRepository.findById(productId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
+    }
+
+    @Transactional
+    public void increaseLikeCount(Product product) {
+        product.increaseLikeCount();
+
+        productLikeCache.evict(product.getId());
+        productPopularCache.evict();
+    }
+
+    @Transactional
+    public void decreaseLikeCount(Product product) {
+        product.decreaseLikeCount();
+
+        productLikeCache.evict(product.getId());
+        productPopularCache.evict();
+    }
+
+    @Transactional(readOnly = true)
+    public Product getProductForCart(Long productId, int quantity) { // 존재하고 판매 중인 상품만 장바구니 도메인에 전달한다.
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
+        if (product.isDeleted() || product.getStatus() != ProductStatus.SELLING) {
+            throw new BusinessException(ErrorCode.PRODUCT_NOT_SELLING);
+        }
+        if (product.getStock() < quantity) {
+            throw new BusinessException(ErrorCode.PRODUCT_OUT_OF_STOCK);
+        }
+        return product;
+    }
+
+    public Product findProductForUpdate(Long productId) {
+        return productRepository.findByIdForUpdate(productId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
+    }
+}

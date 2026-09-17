@@ -1,0 +1,25 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  cloud:
+    aws:
+      parameterstore:
+        enabled: false
+logging:
+  level:
+    org.springframework.boot: info
+    org.springframework.web: info
+    org.hibernate.SQL: info
+    org.hibernate.orm.jdbc.bind: trace
+
+portone:
+  webhook-secret: whsec_dGVzdC13ZWJob29rLXNlY3JldA==

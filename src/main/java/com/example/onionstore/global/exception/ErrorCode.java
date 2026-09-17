@@ -22,14 +22,18 @@ public enum ErrorCode {
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH_002", "유효하지 않은 토큰입니다."),
     EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH_003", "만료된 토큰입니다."),
     FORBIDDEN_ROLE(HttpStatus.FORBIDDEN, "AUTH_004", "해당 작업을 수행할 권한이 없습니다."),
+    ACCESS_DENIED(HttpStatus.FORBIDDEN, "AUTH_005", "접근 권한이 없습니다."),
 
     // 회원
     EMAIL_ALREADY_EXISTS(HttpStatus.CONFLICT, "USER_001", "이미 사용 중인 이메일입니다."),
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER_002", "회원을 찾을 수 없습니다."),
+    INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "USER_003", "이메일 또는 비밀번호가 올바르지 않습니다."),
 
     // 카테고리
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "CATEGORY_001", "카테고리를 찾을 수 없습니다."),
     DUPLICATE_CATEGORY(HttpStatus.CONFLICT, "CATEGORY_002", "이미 존재하는 카테고리입니다."),
+    CATEGORY_ITEM_EXISTS(HttpStatus.BAD_REQUEST, "CATEGORY_003", "상품이 존재하는 카테고리는 삭제할 수 없습니다."),
+    CATEGORY_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "CATEGORY_004", "이미 삭제된 카테고리입니다."),
 
     // 상품
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "PRODUCT_001", "상품을 찾을 수 없습니다."),
@@ -41,6 +45,8 @@ public enum ErrorCode {
     // 상품 찜
     ALREADY_LIKED_PRODUCT(HttpStatus.CONFLICT, "LIKE_001", "이미 찜한 상품입니다."),
     PRODUCT_LIKE_NOT_FOUND(HttpStatus.NOT_FOUND, "LIKE_002", "찜 내역을 찾을 수 없습니다."),
+    LIKE_ADMIN_NOT_ALLOWED(HttpStatus.FORBIDDEN, "LIKE_003", "관리자 계정은 찜할 수 없습니다."),
+    PRODUCT_LIKE_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "LIKE_004", "삭제 처리된 상품은 찜할 수 없습니다."),
 
     // 장바구니
     CART_NOT_FOUND(HttpStatus.NOT_FOUND, "CART_001", "장바구니를 찾을 수 없습니다."),
@@ -48,12 +54,16 @@ public enum ErrorCode {
     CART_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "CART_003", "장바구니 상품을 찾을 수 없습니다."),
     INVALID_CART_ITEM_QUANTITY(HttpStatus.BAD_REQUEST, "CART_004", "수량은 1개 이상이어야 합니다."),
 
+    CART_ITEM_ACCESS_DENIED(HttpStatus.FORBIDDEN, "CART_005", "본인의 장바구니 상품만 변경하거나 삭제할 수 있습니다."),
+
     // 주문
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "ORDER_001", "주문을 찾을 수 없습니다."),
     ORDER_NOT_PAYABLE(HttpStatus.CONFLICT, "ORDER_002", "현재 결제할 수 없는 주문입니다."),
     INVALID_ORDER_STATUS(HttpStatus.BAD_REQUEST, "ORDER_003", "유효하지 않은 주문 상태 변경입니다."),
     ORDER_ALREADY_CANCELED(HttpStatus.CONFLICT, "ORDER_004", "이미 취소된 주문입니다."),
     CANNOT_CANCEL_ORDER(HttpStatus.BAD_REQUEST, "ORDER_005", "현재 상태에서는 주문을 취소할 수 없습니다."),
+    ORDER_ACCESS_DENIED(HttpStatus.FORBIDDEN, "ORDER_006", "접근 권한이 없습니다."),
+    ORDER_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "ORDER_007", "주문 상품을 찾을 수 없습니다."),
 
     // 결제
     PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "PAYMENT_001", "결제 정보를 찾을 수 없습니다."),
@@ -61,17 +71,37 @@ public enum ErrorCode {
     INVALID_PAYMENT_STATUS(HttpStatus.BAD_REQUEST, "PAYMENT_003", "유효하지 않은 결제 상태 변경입니다."),
     PAYMENT_ALREADY_PROCESSED(HttpStatus.CONFLICT, "PAYMENT_004", "이미 처리된 결제입니다."),
     PAYMENT_FAILED(HttpStatus.BAD_REQUEST, "PAYMENT_005", "결제 처리에 실패했습니다."),
+    PAYMENT_GATEWAY_ERROR(HttpStatus.BAD_GATEWAY, "PAYMENT_006", "결제사 조회에 실패했습니다."),
+    PAYMENT_NOT_COMPLETED(HttpStatus.CONFLICT, "PAYMENT_007", "결제가 아직 완료되지 않았습니다."),
+    PAYMENT_CANCELLATION_FAILED(HttpStatus.BAD_GATEWAY, "PAYMENT_008", "결제사 취소에 실패했습니다."),
+    PAYMENT_ALREADY_CANCELLED(HttpStatus.CONFLICT, "PAYMENT_009", "이미 취소된 결제입니다."),
 
-    // 이벤트
-    EVENT_NOT_STARTED(HttpStatus.CONFLICT, "EVENT_001", "아직 타임세일 시작 전입니다."),
-    EVENT_ENDED(HttpStatus.CONFLICT, "EVENT_002", "타임세일이 종료되었습니다."),
-    LOCK_ACQUISITION_FAILED(HttpStatus.CONFLICT, "EVENT_003", "요청이 몰리고 있습니다. 잠시 후 다시 시도해주세요."),
+    // 환불
+    REFUND_NOT_FOUND(HttpStatus.NOT_FOUND, "REFUND_001", "환불 정보를 찾을 수 없습니다."),
+    REFUND_ALREADY_IN_PROGRESS(HttpStatus.CONFLICT, "REFUND_002", "처리 중인 환불 요청이 이미 있습니다."),
+    REFUND_NOT_ALLOWED(HttpStatus.CONFLICT, "REFUND_003", "현재 결제 상태에서는 환불을 요청할 수 없습니다."),
+    EXCEEDS_REFUNDABLE_QUANTITY(HttpStatus.CONFLICT, "REFUND_004", "환불 가능한 수량을 초과했습니다."),
+    INVALID_REFUND_STATUS(HttpStatus.CONFLICT, "REFUND_005", "현재 환불 상태에서는 처리할 수 없습니다."),
+    CANCELLATION_ALREADY_LINKED(HttpStatus.CONFLICT, "REFUND_006", "기존 취소 이력과 PortOne 취소 ID가 일치하지 않습니다."),
+    INVALID_CANCELLATION_ID(HttpStatus.BAD_REQUEST, "REFUND_007", "유효하지 않은 PortOne 취소 ID입니다."),
+    DUPLICATE_REFUND_ITEM_REQUEST(HttpStatus.BAD_REQUEST, "REFUND_008", "같은 주문 상품을 중복해 환불 요청할 수 없습니다."),
+
+    // webhook
+    WEBHOOK_VERIFICATION_FAILED(HttpStatus.BAD_REQUEST, "WEBHOOK_001", "웹훅 서명검증에 실패했습니다"),
+    WEBHOOK_EVENT_NOT_FOUND(HttpStatus.NOT_FOUND, "WEBHOOK_002", "웹훅 이벤트를 찾을 수 없습니다."),
+    WEBHOOK_ALREADY_PROCESSING(HttpStatus.SERVICE_UNAVAILABLE, "WEBHOOK_003", "웹훅을 처리 중입니다. 잠시 후 다시 시도해주세요."),
 
     // 채팅
     CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT_001", "채팅방을 찾을 수 없습니다."),
     CHAT_ROOM_ACCESS_DENIED(HttpStatus.FORBIDDEN, "CHAT_002", "해당 채팅방에 참여하지 않은 사용자입니다."),
     CHAT_MESSAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT_003", "채팅 메시지를 찾을 수 없습니다."),
-    EMPTY_MESSAGE(HttpStatus.BAD_REQUEST, "CHAT_004", "메시지 내용이 비어있습니다.");
+    CHAT_MESSAGE_EMPTY(HttpStatus.BAD_REQUEST, "CHAT_004", "메시지 내용이 비어있습니다."),
+    CHAT_ROOM_CREATE_FORBIDDEN_FOR_ADMIN(HttpStatus.FORBIDDEN, "CHAT_005", "관리자는 문의방을 생성할 수 없습니다."),
+    CHAT_ROOM_STATUS_CHANGE_ADMIN_ONLY(HttpStatus.FORBIDDEN, "CHAT_006", "관리자만 상태를 변경할 수 있습니다."),
+    INVALID_CHAT_ROOM_STATUS_TRANSITION(HttpStatus.CONFLICT, "CHAT_007", "완료된 문의는 상태를 되돌릴 수 없습니다."),
+    INVALID_CHAT_MESSAGE_LENGTH(HttpStatus.BAD_REQUEST, "CHAT_008", "메시지는 1~1000자여야 합니다."),
+    CANNOT_SEND_TO_COMPLETED_CHAT_ROOM(HttpStatus.CONFLICT, "CHAT_009", "완료된 문의에는 메시지를 보낼 수 없습니다.");
+
 
     private final HttpStatus status;
     private final String code;

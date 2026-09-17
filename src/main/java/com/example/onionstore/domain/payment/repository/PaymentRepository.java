@@ -1,7 +1,47 @@
 package com.example.onionstore.domain.payment.repository;
 
 import com.example.onionstore.domain.payment.entity.Payment;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
+import java.util.Optional;
 
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
+
+    @Query("SELECT p FROM Payment p WHERE p.order.id = :orderId")
+    Optional<Payment> findByOrderId(@Param("orderId") Long orderId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select p from Payment p where p.order.id = :orderId")
+    Optional<Payment> findByOrderIdForUpdate(@Param("orderId") Long orderId);
+
+    @Query("SELECT p FROM Payment p WHERE p.order.id IN :orderIds")
+    List<Payment> findAllByOrder_IdIn(@Param("orderIds") List<Long> orderIds);
+
+    @Query("""
+        select p from Payment p
+        join fetch p.order o
+        join fetch o.user
+        where p.portonePaymentId = :portonePaymentId
+          and o.id = :orderId
+        """)
+    Optional<Payment> findByPortonePaymentIdAndOrderIdWithOrderAndUser(
+            @Param("portonePaymentId") String portonePaymentId,
+            @Param("orderId") Long orderId
+    );
+
+    // PaymentRepository.java
+
+    @Query("""
+    select p from Payment p
+    join fetch p.order
+    where p.portonePaymentId = :portonePaymentId
+    """)
+    Optional<Payment> findByPortonePaymentIdWithOrder(
+            @Param("portonePaymentId") String portonePaymentId
+    );
 }

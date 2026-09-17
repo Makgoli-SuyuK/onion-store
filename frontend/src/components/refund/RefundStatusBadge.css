@@ -1,0 +1,16 @@
+.refund-status--pending_approval,
+.refund-status--requested {
+  background: var(--color-yellow-pale);
+  color: var(--color-text);
+}
+
+.refund-status--completed {
+  background: var(--color-tag-bg);
+  color: var(--color-green-dark);
+}
+
+.refund-status--rejected,
+.refund-status--failed {
+  background: #f8dddd;
+  color: var(--color-danger);
+}

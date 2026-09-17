@@ -1,0 +1,49 @@
+package com.example.onionstore.domain.cart.facade;
+
+import com.example.onionstore.domain.cart.dto.request.AddCartItemRequest;
+import com.example.onionstore.domain.cart.dto.request.UpdateCartItemQuantityRequest;
+import com.example.onionstore.domain.cart.entity.CartItem;
+import com.example.onionstore.domain.cart.dto.response.CartItemResponse;
+import com.example.onionstore.domain.cart.dto.response.CartResponse;
+import com.example.onionstore.domain.cart.service.CartService;
+import com.example.onionstore.domain.product.entity.Product;
+import com.example.onionstore.domain.product.service.ProductService;
+import com.example.onionstore.domain.user.entity.User;
+import com.example.onionstore.domain.user.service.UserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+@Component
+@RequiredArgsConstructor
+public class CartFacade {
+
+    private final UserService userService;
+    private final CartService cartService;
+    private final ProductService productService;
+
+    @Transactional
+    public CartItemResponse addItem(Long userId, AddCartItemRequest request) {
+        User user = userService.findUser(userId);
+        Product product = productService.getProductById(request.productId());
+        return cartService.addItem(user, product, request.quantity());
+    }
+
+    @Transactional
+    public CartItemResponse updateQuantity(Long userId, Long cartItemId, UpdateCartItemQuantityRequest request) {
+        CartItem cartItem = cartService.findCartItem(userId, cartItemId);
+        Product product = productService.getProductById(cartItem.getProduct().getId());
+        return cartService.updateQuantity(cartItem, product, request.quantity());
+    }
+
+    @Transactional
+    public void deleteItem(Long userId, Long cartItemId) {
+        cartService.deleteItem(userId, cartItemId);
+    }
+
+    @Transactional(readOnly = true)
+    public CartResponse getCart(Long userId) {
+        User user = userService.findUser(userId);
+        return cartService.getCart(user);
+    }
+}

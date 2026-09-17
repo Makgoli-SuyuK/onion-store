@@ -24,7 +24,18 @@ public class Category extends BaseTimeEntity {
     @Column(nullable = false, unique = true, length = 50)
     private String name;
 
+    private boolean deleted;
+
     public Category(String name) {
         this.name = name;
+        deleted = false;
+    }
+
+    public void changeName(String newName) {
+        this.name = newName;
+    }
+
+    public void markAsDeleted() {
+        this.deleted = true;
     }
 }
