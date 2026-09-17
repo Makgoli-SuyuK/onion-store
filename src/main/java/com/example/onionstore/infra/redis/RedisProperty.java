@@ -20,9 +20,9 @@ public final class RedisProperty {
 
     public static final String CATEGORY = "categories";
 
-    public static final Duration PRODUCT_INFO_DURATION = Duration.ofSeconds(60);
-    public static final Duration PRODUCT_STOCK_DURATION = Duration.ofSeconds(5);
-    public static final Duration PRODUCT_LIKE_DURATION = Duration.ofSeconds(10);
-    public static final Duration PRODUCT_POPULAR_DURATION = Duration.ofSeconds(10);
-    public static final Duration CATEGORY_DURATION = Duration.ofSeconds(180);
+    public static final Duration PRODUCT_INFO_DURATION = Duration.ofMinutes(60);
+    public static final Duration PRODUCT_STOCK_DURATION = Duration.ofMinutes(5);
+    public static final Duration PRODUCT_LIKE_DURATION = Duration.ofMinutes(10);
+    public static final Duration PRODUCT_POPULAR_DURATION = Duration.ofMinutes(10);
+    public static final Duration CATEGORY_DURATION = Duration.ofMinutes(180);
 }
