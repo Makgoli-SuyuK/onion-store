@@ -18,6 +18,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -64,7 +66,10 @@ public class ChatMessageService {
             nextCursor = messages.get(messages.size() - 1).getMessageId();
         }
 
-        return new ChatMessageListResponse(messages, nextCursor, hasNext);
+        List<ChatMessageResponse> displayOrder = new ArrayList<>(messages);
+        Collections.reverse(displayOrder);
+
+        return new ChatMessageListResponse(displayOrder, nextCursor, hasNext);
     }
 
     @Transactional
