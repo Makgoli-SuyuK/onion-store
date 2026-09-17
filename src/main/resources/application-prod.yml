@@ -16,6 +16,10 @@ spring:
           - clustercfg.onion-redis.kc4oj9.apn2.cache.amazonaws.com:6379
       ssl:
         enabled: true
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 0
 
 management:
   endpoints:

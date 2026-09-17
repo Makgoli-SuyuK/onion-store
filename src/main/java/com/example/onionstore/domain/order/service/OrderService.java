@@ -133,6 +133,13 @@ public class OrderService {
         return order.cancel();
     }
 
+    // 전액 환불이 검증된 결제 완료 주문을 취소한다.
+    @Transactional
+    public boolean completeRefundCancellation(Long orderId) {
+        Order order = findOrderForUpdate(orderId);
+        return order.completeRefundCancellation();
+    }
+
     @Transactional
     public Order findById(Long orderId) {
         return orderRepository.findByIdForUpdate(orderId).

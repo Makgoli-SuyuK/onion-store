@@ -64,7 +64,7 @@ public class OrderFacade {
 
             OrderItem orderItem = new OrderItem(order,
                     product, product.getName(),
-                    product.getPrice(), cartItem.getQuantity());
+                    product.getPrice(), cartItem.getQuantity(), cartItem.getId());
             orderItems.add(orderItem);
         }
         orderItemRepository.saveAll(orderItems);

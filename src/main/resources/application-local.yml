@@ -8,7 +8,13 @@ spring:
     password: onion
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+  sql:
+    init:
+      mode: always
+
   jpa:
+    # Hibernate가 스키마를 만든 뒤 data.sql을 실행한다. Flyway를 쓰는 운영 환경에는 적용하지 않는다.
+    defer-datasource-initialization: true
     hibernate:
       ddl-auto: create
     properties:

@@ -16,32 +16,35 @@ export function ProductDetailPage() {
   const { id } = useParams<{ id: string }>()
   const productId = Number(id)
   const navigate = useNavigate()
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, isAdmin } = useAuth()
   const cart = useCart()
   const { showToast } = useToast()
 
-  const { data: product, loading, error, refetch } = useApiRequest(
-    () => productApi.getProduct(productId),
+  const { data: detail, loading, error, refetch } = useApiRequest(
+    () => productApi.getProductDetail(productId),
     [productId],
   )
 
   const [quantity, setQuantity] = useState(1)
   const [likeCount, setLikeCount] = useState(0)
+  const [liked, setLiked] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [likeSubmitting, setLikeSubmitting] = useState(false)
 
   useEffect(() => {
-    if (product) {
+    if (detail) {
       setQuantity(1)
-      setLikeCount(product.likeCount)
+      setLikeCount(detail.productInfo.likeCount)
+      setLiked(detail.liked)
     }
-  }, [product])
+  }, [detail])
 
   if (loading) return <LoadingSpinner />
   if (error) return <ErrorState message={error} onRetry={refetch} />
 
-  console.log('PRODUCT DATA:', product)
-  if (!product) return null
+  if (!detail) return null
 
+  const product = detail.productInfo
   const soldOut = product.status !== 'SELLING'
   const totalPrice = product.price * quantity
 
@@ -50,8 +53,22 @@ export function ProductDetailPage() {
     navigate('/login')
   }
 
-  // 백엔드에 좋아요 등록/취소 API가 아직 없어 화면에서만 증가시킨다.
-  const handleLike = () => setLikeCount((c) => c + 1)
+  const handleLike = async () => {
+    if (!isAuthenticated) return requireLogin()
+    if (isAdmin) return
+
+    setLikeSubmitting(true)
+    try {
+      const wasLiked = liked
+      await productApi.toggleLike(product.id)
+      setLiked(!wasLiked)
+      setLikeCount((count) => Math.max(0, count + (wasLiked ? -1 : 1)))
+    } catch (err) {
+      showToast((err as Error).message, 'error')
+    } finally {
+      setLikeSubmitting(false)
+    }
+  }
 
   const handleAddToCart = async () => {
     if (!isAuthenticated) return requireLogin()
@@ -85,22 +102,28 @@ export function ProductDetailPage() {
       </div>
 
       <div className="product-detail__info">
-        <span className="badge badge--tag">{product.categoryName}</span>
-        <h1 className="product-detail__name">{product.name}</h1>
+        <div className="product-detail__heading">
+          <span className="product-detail__category">{product.categoryName}</span>
+          <h1 className="product-detail__name">{product.name}</h1>
+        </div>
         {product.description && <p className="product-detail__desc">{product.description}</p>}
 
         <div className="product-detail__meta">
           <span className="product-detail__price">{formatCurrency(product.price)}</span>
-          <button type="button" className="product-detail__like" onClick={handleLike}>
-            🧡 좋아요 {likeCount}
+          <button
+            type="button"
+            className="product-detail__like"
+            onClick={handleLike}
+            disabled={likeSubmitting}
+            aria-pressed={liked}
+          >
+            {liked ? '🧡 좋아요 취소' : '🤍 좋아요'} {likeCount}
           </button>
         </div>
 
         <p className="product-detail__stock">
           {soldOut ? '현재 품절된 상품이에요.' : `남은 재고 ${product.stock}개`}
         </p>
-        <p className="product-detail__shipping">오직 양파만 · 5만원 이상 구매 시 무료배송 (미만 3,000원)</p>
-
         {!soldOut && (
           <div className="product-detail__qty">
             <span>수량</span>

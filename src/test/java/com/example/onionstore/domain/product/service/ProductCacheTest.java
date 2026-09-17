@@ -66,7 +66,7 @@ public class ProductCacheTest {
         ProductResponse res = productService.findById(1L);
 
         //then
-        verify(productRepository, never()).findById(anyLong());
+        verify(productRepository, never()).findByIdAndDeletedFalse(anyLong());
 
         verify(productInfoCache, never()).put(anyLong(), any());
         verify(productLikeCache, never()).put(anyLong(), any());

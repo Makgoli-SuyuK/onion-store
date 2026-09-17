@@ -78,3 +78,7 @@
 .admin-table tr:last-child td {
   border-bottom: none;
 }
+
+.admin-page__delete {
+  color: var(--color-danger);
+}

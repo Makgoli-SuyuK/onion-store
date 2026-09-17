@@ -78,7 +78,7 @@ public class PaymentFacade {
 
     private void cancelMismatchedPayment(PaymentConfirmationInfo paymentInfo, PaymentGatewayResponse gatewayPayment) {
         if (gatewayPayment.totalAmount() == null || paymentInfo.amount() != gatewayPayment.totalAmount()) {
-            paymentGateway.cancelPayment(paymentInfo.portonePaymentId(), "결제 금액 불일치 자동 취소");
+            paymentGateway.cancelPaymentForAmountMismatch(paymentInfo.portonePaymentId(), "결제 금액 불일치 자동 취소");
             paymentCommandService.cancelPaymentForAmountMismatch(paymentInfo.orderId());
             throw new BusinessException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);
         }

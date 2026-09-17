@@ -44,8 +44,6 @@ import static org.mockito.Mockito.verify;
 class ProductServiceTest {
     @Mock
     private ProductRepository productRepository;
-    @InjectMocks
-    private ProductService productService;
     @Mock
     private ProductInfoCache productInfoCache;
     @Mock
@@ -54,6 +52,8 @@ class ProductServiceTest {
     private ProductLikeCache productLikeCache;
     @Mock
     private ProductPopularCache productPopularCache;
+    @InjectMocks
+    private ProductService productService;
 
     @Test
     @DisplayName("상품 추가 비즈니스 로직 테스트")

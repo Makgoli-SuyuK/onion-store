@@ -10,7 +10,10 @@ spring:
     redis:
       host: localhost
       port: 6379
-
+  cloud:
+    aws:
+      parameterstore:
+        enabled: false
 logging:
   level:
     org.springframework.boot: info

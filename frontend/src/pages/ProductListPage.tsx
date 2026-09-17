@@ -1,8 +1,6 @@
-import { useState, type FormEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { productApi } from '@/api/productApi'
 import { useApiRequest } from '@/hooks/useApiRequest'
-import { useCategories } from '@/hooks/useCategories'
 import { ProductGrid } from '@/components/product/ProductGrid'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { ErrorState } from '@/components/common/ErrorState'
@@ -18,11 +16,9 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
 
 export function ProductListPage() {
   const [searchParams, setSearchParams] = useSearchParams()
-  const { categories } = useCategories()
   const name = searchParams.get('name') ?? ''
   const category = searchParams.get('category') ?? ''
   const sort = (searchParams.get('sort') as SortOption) || 'POPULAR'
-  const [nameInput, setNameInput] = useState(name)
 
   const { data, loading, error, refetch } = useApiRequest(
     () => productApi.getProducts({ name, category: category || undefined, sort, page: 0, size: 20 }),
@@ -38,48 +34,9 @@ export function ProductListPage() {
     setSearchParams(params)
   }
 
-  const handleSearchSubmit = (e: FormEvent) => {
-    e.preventDefault()
-    updateParams({ name: nameInput.trim() })
-  }
-
   return (
     <div className="container product-list-page">
-      <form className="product-list-page__search" onSubmit={handleSearchSubmit}>
-        <input
-          type="search"
-          className="input"
-          placeholder="상품명으로 검색"
-          value={nameInput}
-          onChange={(e) => setNameInput(e.target.value)}
-          aria-label="상품명 검색"
-        />
-        <button type="submit" className="btn btn--primary btn--sm">
-          검색
-        </button>
-      </form>
-
       <div className="product-list-page__filters">
-        <div className="product-list-page__categories">
-          <button
-            type="button"
-            className={`chip ${category === '' ? 'chip--active' : ''}`}
-            onClick={() => updateParams({ category: '' })}
-          >
-            전체 상품
-          </button>
-          {categories.map((c) => (
-            <button
-              key={c.id}
-              type="button"
-              className={`chip ${category === c.name ? 'chip--active' : ''}`}
-              onClick={() => updateParams({ category: c.name })}
-            >
-              {c.name}
-            </button>
-          ))}
-        </div>
-
         <select
           className="input product-list-page__sort"
           value={sort}

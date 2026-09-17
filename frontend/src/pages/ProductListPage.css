@@ -1,46 +1,16 @@
 .product-list-page {
-  padding: 28px 6% 60px;
-}
-
-.product-list-page__search {
-  display: flex;
-  gap: 8px;
-  max-width: 420px;
-  margin: 0 auto 24px;
+  padding: 20px 6% 60px;
 }
 
 .product-list-page__filters {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   gap: 12px;
-  flex-wrap: wrap;
   margin-bottom: 24px;
 }
 
-.product-list-page__categories {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.chip {
-  border: 1.5px solid var(--color-border);
-  background: #fff;
-  border-radius: var(--radius-pill);
-  padding: 7px 16px;
-  font-size: 13px;
-  color: var(--color-text-soft);
-}
-
-.chip--active {
-  background: var(--color-green);
-  border-color: var(--color-green);
-  color: #fff;
-  font-weight: bold;
-}
-
-.product-list-page__sort {
-  width: auto;
-  min-width: 130px;
+.input.product-list-page__sort {
+  width: 180px;
+  min-width: 180px;
 }

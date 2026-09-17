@@ -30,7 +30,7 @@ class PaymentFacadeTest {
 
         // then
         assertEquals(expected, result);
-        verify(gateway, never()).cancelPayment(anyString(), anyString());
+        verify(gateway, never()).cancelPaymentForAmountMismatch(anyString(), anyString());
     }
 
     @Test
@@ -61,7 +61,7 @@ class PaymentFacadeTest {
         // then
         assertEquals(ErrorCode.PAYMENT_AMOUNT_MISMATCH, exception.getErrorCode());
         var order = inOrder(gateway, commands);
-        order.verify(gateway).cancelPayment("pay-1", "결제 금액 불일치 자동 취소");
+        order.verify(gateway).cancelPaymentForAmountMismatch("pay-1", "결제 금액 불일치 자동 취소");
         order.verify(commands).cancelPaymentForAmountMismatch(1L);
         verify(commands, never()).completePaymentSuccess(any());
     }
@@ -71,7 +71,7 @@ class PaymentFacadeTest {
         // given
         when(payments.getPaymentConfirmationInfoByPortonePaymentId("pay-1")).thenReturn(info);
         when(gateway.getPayment("pay-1")).thenReturn(new PaymentGatewayResponse("pay-1", GatewayPaymentStatus.PAID, null));
-        doThrow(new BusinessException(ErrorCode.PAYMENT_CANCELLATION_FAILED)).when(gateway).cancelPayment(anyString(), anyString());
+        doThrow(new BusinessException(ErrorCode.PAYMENT_CANCELLATION_FAILED)).when(gateway).cancelPaymentForAmountMismatch(anyString(), anyString());
 
         // when
         var exception = assertThrows(BusinessException.class,

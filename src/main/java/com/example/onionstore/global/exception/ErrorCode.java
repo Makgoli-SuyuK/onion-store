@@ -22,6 +22,7 @@ public enum ErrorCode {
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH_002", "유효하지 않은 토큰입니다."),
     EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH_003", "만료된 토큰입니다."),
     FORBIDDEN_ROLE(HttpStatus.FORBIDDEN, "AUTH_004", "해당 작업을 수행할 권한이 없습니다."),
+    ACCESS_DENIED(HttpStatus.FORBIDDEN, "AUTH_005", "접근 권한이 없습니다."),
 
     // 회원
     EMAIL_ALREADY_EXISTS(HttpStatus.CONFLICT, "USER_001", "이미 사용 중인 이메일입니다."),
@@ -62,6 +63,7 @@ public enum ErrorCode {
     ORDER_ALREADY_CANCELED(HttpStatus.CONFLICT, "ORDER_004", "이미 취소된 주문입니다."),
     CANNOT_CANCEL_ORDER(HttpStatus.BAD_REQUEST, "ORDER_005", "현재 상태에서는 주문을 취소할 수 없습니다."),
     ORDER_ACCESS_DENIED(HttpStatus.FORBIDDEN, "ORDER_006", "접근 권한이 없습니다."),
+    ORDER_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "ORDER_007", "주문 상품을 찾을 수 없습니다."),
 
     // 결제
     PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "PAYMENT_001", "결제 정보를 찾을 수 없습니다."),
@@ -82,15 +84,12 @@ public enum ErrorCode {
     INVALID_REFUND_STATUS(HttpStatus.CONFLICT, "REFUND_005", "현재 환불 상태에서는 처리할 수 없습니다."),
     CANCELLATION_ALREADY_LINKED(HttpStatus.CONFLICT, "REFUND_006", "기존 취소 이력과 PortOne 취소 ID가 일치하지 않습니다."),
     INVALID_CANCELLATION_ID(HttpStatus.BAD_REQUEST, "REFUND_007", "유효하지 않은 PortOne 취소 ID입니다."),
+    DUPLICATE_REFUND_ITEM_REQUEST(HttpStatus.BAD_REQUEST, "REFUND_008", "같은 주문 상품을 중복해 환불 요청할 수 없습니다."),
 
     // webhook
     WEBHOOK_VERIFICATION_FAILED(HttpStatus.BAD_REQUEST, "WEBHOOK_001", "웹훅 서명검증에 실패했습니다"),
     WEBHOOK_EVENT_NOT_FOUND(HttpStatus.NOT_FOUND, "WEBHOOK_002", "웹훅 이벤트를 찾을 수 없습니다."),
     WEBHOOK_ALREADY_PROCESSING(HttpStatus.SERVICE_UNAVAILABLE, "WEBHOOK_003", "웹훅을 처리 중입니다. 잠시 후 다시 시도해주세요."),
-    // 이벤트
-    EVENT_NOT_STARTED(HttpStatus.CONFLICT, "EVENT_001", "아직 타임세일 시작 전입니다."),
-    EVENT_ENDED(HttpStatus.CONFLICT, "EVENT_002", "타임세일이 종료되었습니다."),
-    LOCK_ACQUISITION_FAILED(HttpStatus.CONFLICT, "EVENT_003", "요청이 몰리고 있습니다. 잠시 후 다시 시도해주세요."),
 
     // 채팅
     CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT_001", "채팅방을 찾을 수 없습니다."),

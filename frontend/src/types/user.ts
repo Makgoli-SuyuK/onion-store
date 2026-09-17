@@ -28,3 +28,17 @@ export interface SignupRequest {
   name: string
   phoneNumber: string
 }
+
+export interface UserProfileUpdateRequest {
+  name: string
+  phoneNumber: string
+}
+
+export interface PasswordChangeRequest {
+  currentPassword: string
+  newPassword: string
+}
+
+export interface WithdrawRequest {
+  password: string
+}
