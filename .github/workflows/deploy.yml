@@ -3,7 +3,7 @@ name: Onion Store CI/CD
 on:
   push:
     branches:
-      - dev
+      - main
 
 permissions:
   id-token: write
